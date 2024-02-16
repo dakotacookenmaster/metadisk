@@ -9,8 +9,9 @@ import {
     Typography,
     useTheme,
 } from "@mui/material"
-import { FileSystemSetup } from "../VSFS"
 import Tooltip from "../../common/components/Tooltip"
+import { useAppDispatch } from "../../../redux/hooks/hooks"
+import { setIsAwaitingDisk } from "../../../redux/reducers/fileSystemSlice"
 
 const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
@@ -34,21 +35,20 @@ const getByteCount = (amount: number) => {
     }
 }
 
-const SetUpFileSystem = (props: FileSystemSetup) => {
+const SetUpDisk = (props: any) => {
     const {
         minimumRequiredDiskSize,
         totalBlocks,
         setTotalBlocks,
-        setIsFinishedConfiguringFileSystem,
         name,
         blockSize,
         sectorsPerBlock,
         setSectorsPerBlock,
         sectorSize,
         setSectorSize,
-        setIsAwaitingDisk
     } = props
     const theme = useTheme()
+    const dispatch = useAppDispatch()
     return (
         <Box
             sx={{
@@ -64,7 +64,7 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                 sx={{ width: "100%", textAlign: "center" }}
                 variant="h5"
             >
-                Set Up Your File System
+                Set Up Your Disk
             </Typography>
             <hr style={{ width: "100%", marginTop: "-5px" }} />
             <Tooltip
@@ -180,8 +180,7 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                 variant="contained"
                 sx={{ marginLeft: "auto" }}
                 onClick={() => {
-                    setIsAwaitingDisk(true)
-                    setIsFinishedConfiguringFileSystem(true)
+                    dispatch(setIsAwaitingDisk(false))
                 }}
             >
                 Finish
@@ -190,4 +189,4 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
     )
 }
 
-export default SetUpFileSystem
+export default SetUpDisk

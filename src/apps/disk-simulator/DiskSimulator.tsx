@@ -1,4 +1,20 @@
 import AlbumIcon from "@mui/icons-material/Album"
+import {
+    Paper,
+    useTheme,
+} from "@mui/material"
+import { useEffect, useRef } from "react"
+import { useAppSelector } from "../../redux/hooks/hooks"
+import {
+    selectCurrentlyServicing,
+    selectDiskState,
+} from "../../redux/reducers/diskSlice"
+import {
+    selectIsAwaitingDisk,
+    selectIsFinishedConfiguringFileSystem,
+} from "../../redux/reducers/fileSystemSlice"
+import SetUpDisk from "./components/SetUpDisk"
+import AwaitingFileSystemConfiguration from "./components/AwaitingFileSystemConfiguration";
 
 export const DiskSimulatorIcon = (props: any) => {
     return (
@@ -22,7 +38,39 @@ export const DiskSimulatorIcon = (props: any) => {
 }
 
 const DiskSimulator = () => {
-    return <div>Disk Simulator</div>
+    const currentlyServicing = useAppSelector(selectCurrentlyServicing)
+    const dataRequests = useRef<string[]>([])
+    const diskState = useAppSelector(selectDiskState)
+    const isFinishedConfiguringFileSystem = useAppSelector(
+        selectIsFinishedConfiguringFileSystem,
+    )
+    const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
+    const theme = useTheme()
+
+    useEffect(() => {
+        console.log("DISK STATE:", diskState)
+    }, [diskState])
+
+    useEffect(() => {
+        if (currentlyServicing) {
+            console.log(currentlyServicing)
+            dataRequests.current.splice(
+                dataRequests.current.findIndex(
+                    (value) => value === currentlyServicing.requestId,
+                ),
+                1,
+            )
+        }
+    }, [currentlyServicing])
+
+    return (
+        <Paper sx={{ height: "100%", padding: theme.spacing(2) }}>
+            {!isFinishedConfiguringFileSystem && (
+                <AwaitingFileSystemConfiguration />
+            )}
+            {isFinishedConfiguringFileSystem && isAwaitingDisk && <SetUpDisk />}
+        </Paper>
+    )
 }
 
 export default DiskSimulator

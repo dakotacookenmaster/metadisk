@@ -1,13 +1,15 @@
-import { Paper, useTheme } from "@mui/material"
+import { Box, Paper, Typography, useTheme } from "@mui/material"
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import {
     selectBlockSize,
+    selectIsAwaitingDisk,
     selectIsFinishedConfiguringFileSystem,
     selectMinimumRequiredDiskSize,
     selectName,
     selectSectorSize,
     selectSectorsPerBlock,
     selectTotalBlocks,
+    setIsAwaitingDisk,
     setIsFinishedConfiguringFileSystem,
     setSectorSize,
     setSectorsPerBlock,
@@ -15,7 +17,8 @@ import {
 } from "../../redux/reducers/fileSystemSlice"
 import SetUpFileSystem from "./components/SetUpFileSystem"
 import { AppDispatch } from "../../store"
-import Superblock from "./components/Superblock"
+import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
+import AwaitingDiskConfiguration from "./components/AwaitingDiskConfiguration"
 
 export interface FileSystemSetup {
     name: string
@@ -30,6 +33,7 @@ export interface FileSystemSetup {
     setIsFinishedConfiguringFileSystem: (
         value: boolean,
     ) => ReturnType<AppDispatch>
+    setIsAwaitingDisk: (value: boolean) => ReturnType<AppDispatch>
 }
 
 const VSFS = () => {
@@ -38,6 +42,7 @@ const VSFS = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
     const blockSize = useAppSelector(selectBlockSize)
     const sectorSize = useAppSelector(selectSectorSize)
+    const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
     const sectorsPerBlock = useAppSelector(selectSectorsPerBlock)
     const minimumRequiredDiskSize = useAppSelector(
         selectMinimumRequiredDiskSize,
@@ -51,9 +56,10 @@ const VSFS = () => {
         <Paper
             sx={{
                 padding: theme.spacing(2),
+                height: "100%",
             }}
         >
-            {!isFinishedConfiguringFileSystem ? (
+            {!isFinishedConfiguringFileSystem && (
                 <SetUpFileSystem
                     name={name}
                     blockSize={blockSize}
@@ -73,11 +79,14 @@ const VSFS = () => {
                     setTotalBlocks={(value: number) =>
                         dispatch(setTotalBlocks(value))
                     }
+                    setIsAwaitingDisk={(value: boolean) => dispatch(setIsAwaitingDisk(value))}
                 />
-            ) : (
-                <>
-                    <Superblock />
-                </>
+            )}
+            {isFinishedConfiguringFileSystem && isAwaitingDisk && (
+                <AwaitingDiskConfiguration />
+            )}
+            {isFinishedConfiguringFileSystem && !isAwaitingDisk && (
+                <FileSystemBlockLayout />
             )}
         </Paper>
     )

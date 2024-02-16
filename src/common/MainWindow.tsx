@@ -17,7 +17,7 @@ import apps from "../register-apps"
 import Tooltip from "../apps/common/components/Tooltip"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { VERSION } from "../apps/common/constants"
-import { blue } from "@mui/material/colors"
+import { useMediaQuery } from "@mui/material"
 
 const drawerWidth = 300
 
@@ -96,6 +96,7 @@ export default function MainWindow(props: {
 }) {
     const theme = useTheme()
     const { apps, setApps } = props
+    const isMD = useMediaQuery(theme.breakpoints.down('lg'))
 
     return (
         <Box sx={{ display: "flex" }}>
@@ -226,7 +227,7 @@ export default function MainWindow(props: {
                     <ListItem
                         disablePadding
                         sx={{
-                            background: blue[600],
+                            background: theme.palette.primary.main,
                             display: "block",
                         }}
                     >
@@ -242,13 +243,13 @@ export default function MainWindow(props: {
                         >
                             Designed by Dakota Cookenmaster
                             <br />
-                            &copy; {new Date().getFullYear()} | Version{" "}
+                            Metadisk &copy; {new Date().getFullYear()} | Version{" "}
                             {VERSION}
                         </ListItemText>
                     </ListItem>
                 </List>
             </Drawer>
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+            <Box component="main" sx={{ minWidth: 0, flexGrow: 1, p: 3 }}>
                 <DrawerHeader />
                 <Box
                     sx={{
@@ -265,7 +266,7 @@ export default function MainWindow(props: {
                                 <Box
                                     key={appKey}
                                     sx={{
-                                        width: `calc(50% - (${theme.spacing(
+                                        width: `calc(${isMD ? "100%" : "50%"} - (${theme.spacing(
                                             1.5,
                                         )} / 2))`,
                                     }}

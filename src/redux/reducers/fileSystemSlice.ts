@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
-import { RootState } from "../../store"
+import { AppDispatch, RootState } from "../../store"
+import { setSectors } from "./diskSlice"
 interface FileSystemState {
     sectorSize: number
     sectorsPerBlock: number

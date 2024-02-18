@@ -10,8 +10,9 @@ import {
     useTheme,
 } from "@mui/material"
 import Tooltip from "../../common/components/Tooltip"
-import { useAppDispatch } from "../../../redux/hooks/hooks"
-import { setIsAwaitingDisk } from "../../../redux/reducers/fileSystemSlice"
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks/hooks"
+import { selectMinimumRequiredDiskSize, selectSectorSize, selectSectorsPerBlock, selectTotalBlocks, setIsAwaitingDisk } from "../../../redux/reducers/fileSystemSlice"
+import { selectTrackCount, setSectors, setTrackCount } from "../../../redux/reducers/diskSlice"
 
 const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
@@ -35,19 +36,13 @@ const getByteCount = (amount: number) => {
     }
 }
 
-const SetUpDisk = (props: any) => {
-    const {
-        minimumRequiredDiskSize,
-        totalBlocks,
-        setTotalBlocks,
-        name,
-        blockSize,
-        sectorsPerBlock,
-        setSectorsPerBlock,
-        sectorSize,
-        setSectorSize,
-    } = props
+const SetUpDisk = () => {
     const theme = useTheme()
+    const sectorSize = useAppSelector(selectSectorSize)
+    const trackCount = useAppSelector(selectTrackCount)
+    const diskSize = useAppSelector(selectMinimumRequiredDiskSize)
+    const totalSectors = useAppSelector(selectSectorsPerBlock) * useAppSelector(selectTotalBlocks)
+    const sectorsPerTrack = totalSectors / trackCount
     const dispatch = useAppDispatch()
     return (
         <Box
@@ -69,117 +64,52 @@ const SetUpDisk = (props: any) => {
             <hr style={{ width: "100%", marginTop: "-5px" }} />
             <Tooltip
                 placement="top"
-                title="The name of the file system, though this value is often represented simply as a number in the superblock."
+                title="Tracks are the rings around the disk that the read / write head seeks. Tracks are typically thinner than the width of a human hair."
             >
-                <TextField
-                    disabled
-                    label="File System Name"
-                    fullWidth
-                    value={name}
-                />
+                <FormControl required fullWidth>
+                    <InputLabel id="track-count-label">Number of Tracks</InputLabel>
+                    <Select
+                        value={trackCount}
+                        onChange={(event) =>
+                            dispatch(setTrackCount((+event.target.value) as (2 | 4 | 8)))
+                        }
+                        label="Number of Tracks"
+                        labelId="track-count-label"
+                    >
+                        {[...Array(3)].map((_, i) => (
+                            <MenuItem
+                                key={`menu-item-${i}`}
+                                value={2 ** (i + 1)}
+                            >
+                                {2 ** (i + 1)}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </Tooltip>
             <Tooltip
                 placement="top"
                 title="Sectors are the smallest addressable unit on a hard drive disk (and thus disks are not byte-addressable!)"
             >
-                <FormControl required fullWidth>
-                    <InputLabel id="sector-size-label">Sector Size</InputLabel>
-                    <Select
-                        value={sectorSize}
-                        onChange={(event) =>
-                            setSectorSize(+(event.target.value as number))
-                        }
-                        label="Sector Size"
-                        labelId="sector-size-label"
-                    >
-                        {[...Array(6)].map((_, i) => (
-                            <MenuItem
-                                key={`menu-item-${i}`}
-                                value={2 ** (i + 9)}
-                            >
-                                {getByteCount(2 ** (i + 9))}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                <TextField label="Sector Size" disabled value={getByteCount(sectorSize)} fullWidth />
             </Tooltip>
             <Tooltip
                 placement="top"
-                title="The number of sectors in a block will determine how large in bytes a block is."
+                title="The total storage capacity of this disk."
             >
-                <FormControl required fullWidth>
-                    <InputLabel id="sectors-per-block-label">
-                        Sectors Per Block
-                    </InputLabel>
-                    <Select
-                        value={sectorsPerBlock}
-                        onChange={(event) =>
-                            setSectorsPerBlock(+(event.target.value as number))
-                        }
-                        label="Sectors Per Block"
-                        labelId="sectors-per-block-label"
-                    >
-                        {[...Array(4)].map((_, i) => (
-                            <MenuItem key={`menu-item-${i}`} value={i + 1}>
-                                {i + 1} sectors
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                <TextField label="Disk Size" disabled value={getByteCount(diskSize)} fullWidth />
             </Tooltip>
             <Tooltip
                 placement="top"
-                title="VSFS uses bitmaps to track available blocks. As any file stored on the file system must take up at least one block, the number of blocks essentially defines the maximum number of files the system can store."
+                title="The number of sectors allocated per track. For this visualization, it's simply the number of sectors / number of tracks. Real disks would be able to place more sectors on tracks further from the center."
             >
-                <FormControl required fullWidth>
-                    <InputLabel id="total-blocks-label">
-                        Total Blocks
-                    </InputLabel>
-                    <Select
-                        value={totalBlocks}
-                        onChange={(event) =>
-                            setTotalBlocks(+(event.target.value as number))
-                        }
-                        label="Total Blocks"
-                        labelId="total-blocks-label"
-                    >
-                        {[...Array(4)].map((_, i) => (
-                            <MenuItem
-                                key={`menu-item-${i}`}
-                                value={2 ** (i + 4)}
-                            >
-                                {(2 ** (i + 4)).toLocaleString()} blocks
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Tooltip>
-            <Tooltip
-                placement="top"
-                title="As each file in the system must take up at least one block, no file is technically smaller than this size. It's imperative to find a good balance when choosing a block size to avoid wasting space on small files."
-            >
-                <TextField
-                    label="Block Size"
-                    fullWidth
-                    disabled
-                    value={getByteCount(blockSize)}
-                />
-            </Tooltip>
-            <Tooltip
-                placement="top"
-                title="To be able to store the number of blocks you've chosen with the sectors and sector sizes provided, you'll need at least this much space on a disk."
-            >
-                <TextField
-                    label="Minimum Required Disk Size"
-                    fullWidth
-                    disabled
-                    value={getByteCount(minimumRequiredDiskSize)}
-                />
+                <TextField label="Sectors Per Track" disabled value={sectorsPerTrack} fullWidth />
             </Tooltip>
             <Button
                 variant="contained"
                 sx={{ marginLeft: "auto" }}
                 onClick={() => {
+                    dispatch(setSectors([...Array(totalSectors)].map(() => ({ data: "" }))))
                     dispatch(setIsAwaitingDisk(false))
                 }}
             >

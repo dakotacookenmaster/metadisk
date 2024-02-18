@@ -11,6 +11,7 @@ import {
 } from "@mui/material"
 import { FileSystemSetup } from "../VSFS"
 import Tooltip from "../../common/components/Tooltip"
+import { setSectors } from "../../../redux/reducers/diskSlice"
 
 const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
@@ -113,13 +114,13 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                     </InputLabel>
                     <Select
                         value={sectorsPerBlock}
-                        onChange={(event) =>
+                        onChange={(event) => {
                             setSectorsPerBlock(+(event.target.value as number))
-                        }
+                        }}
                         label="Sectors Per Block"
                         labelId="sectors-per-block-label"
                     >
-                        {[...Array(4)].map((_, i) => (
+                        {[...Array(3)].map((_, i) => (
                             <MenuItem key={`menu-item-${i}`} value={i + 1}>
                                 {i + 1} sectors
                             </MenuItem>
@@ -137,18 +138,18 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                     </InputLabel>
                     <Select
                         value={totalBlocks}
-                        onChange={(event) =>
+                        onChange={(event) => {
                             setTotalBlocks(+(event.target.value as number))
-                        }
+                        }}
                         label="Total Blocks"
                         labelId="total-blocks-label"
                     >
-                        {[...Array(4)].map((_, i) => (
+                        {[...Array(3)].map((_, i) => (
                             <MenuItem
                                 key={`menu-item-${i}`}
-                                value={2 ** (i + 4)}
+                                value={2 ** (i + 2)}
                             >
-                                {(2 ** (i + 4)).toLocaleString()} blocks
+                                {(2 ** (i + 2)).toLocaleString()} blocks
                             </MenuItem>
                         ))}
                     </Select>

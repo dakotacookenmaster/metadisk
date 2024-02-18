@@ -4,6 +4,20 @@
     }
 }
 
+@keyframes antirotate {
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+.read, .write, .seek {
+    animation: rotate 20s linear infinite forwards;
+}
+
+.sector-read, .sector-write, .sector-seek {
+    animation: antirotate 20s linear infinite forwards;
+}
+
 @keyframes slowBounceAndWobble {
     25% {
         transform: rotate(20deg);

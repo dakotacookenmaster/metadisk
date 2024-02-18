@@ -7,15 +7,18 @@ import {
 } from "../../apis/disk"
 
 interface DiskState {
-    state: "read" | "write" | "idle"
-    sectorSize: number
+    state: "read" | "write" | "idle" | "seek"
+    trackCount: 2 | 4 | 8
+    diskRotation: number
+    armRotation: {
+        degrees: number
+        time: number
+    }
     queue: (ReadPayload | WritePayload)[]
     currentlyServicing: CurrentlyServicingPayload
-    sectors: [
-        {
-            data: string
-        },
-    ]
+    sectors: {
+        data: string
+    }[]
 }
 
 const existingState: string | null = localStorage?.getItem("disk")
@@ -24,14 +27,15 @@ const initialState: DiskState = existingState
     ? JSON.parse(existingState)
     : {
           isProcessing: false,
-          sectorSize: 512,
+          diskRotation: 0,
+          trackCount: 2,
+          armRotation: {
+              degrees: 0,
+              time: 0,
+          },
           state: "idle",
           queue: [],
-          sectors: [...Array(512)].map(() => {
-              return {
-                  data: "",
-              }
-          }),
+          sectors: [],
       }
 
 export const diskSlice = createSlice({
@@ -40,7 +44,7 @@ export const diskSlice = createSlice({
     reducers: {
         setDiskState: (
             state,
-            action: PayloadAction<"read" | "write" | "idle">,
+            action: PayloadAction<"read" | "write" | "idle" | "seek">,
         ) => {
             const { payload } = action
             state.state = payload
@@ -57,24 +61,86 @@ export const diskSlice = createSlice({
         ) => {
             state.currentlyServicing = action.payload
         },
-        writeDataToSector: (state, action: PayloadAction<{ sector: number, data: string }>) => {
+        writeDataToSector: (
+            state,
+            action: PayloadAction<{ sector: number; data: string }>,
+        ) => {
             const { sector, data } = action.payload
             state.sectors[sector].data = data
-        }
+        },
+        setTrackCount: (state, action: PayloadAction<2 | 4 | 8>) => {
+            state.trackCount = action.payload
+        },
+        setDiskRotation: (state, action: PayloadAction<number>) => {
+            state.diskRotation = action.payload
+        },
+        setSectors: (state, action: PayloadAction<{ data: string }[]>) => {
+            state.sectors = action.payload
+        },
+        setArmRotation: (
+            state,
+            action: PayloadAction<{ degrees: number; time: number }>,
+        ) => {
+            state.armRotation = action.payload
+        },
     },
 })
 
-const processItem =
-    (item: ReadPayload | WritePayload) => async (dispatch: AppDispatch, getState: () => RootState) => {
-        dispatch(setDiskState(item.type))
+const findSectorRotation = (sector: number, getState: () => RootState) => {
+    const sectors = getState().disk.sectors.length
+    const sectorsPerTrack = sectors / getState().disk.trackCount
+    const rotation = 360 / (sector % sectorsPerTrack)
+    return rotation
+}
 
-        // Checking for the rotation, setting the arm, etc. 
+const findTrackNumber = (sector: number, getState: () => RootState) => {
+    const sectors = getState().disk.sectors.length
+    const sectorsPerTrack = sectors / getState().disk.trackCount
+    const trackNumber = getState().disk.trackCount - Math.floor(sector / sectorsPerTrack) - 1
+    return trackNumber
+}
+
+const goToSector =
+    (sector: number) =>
+    async (dispatch: AppDispatch, getState: () => RootState) => {
+        const trackNumber = findTrackNumber(sector, getState)
+        const trackCount = getState().disk.trackCount
+        const trackSeparation = 90 / trackCount
+        const radiusOfTrack = (((90 - trackSeparation * trackNumber) / 100) * 500) / 2
+        const [x1, y1] = [0, -270] // origin of the disk read / write head
+        const [x2, y2] = [0, 0] // origin of the disk
+        const [r1, r2] = [250, radiusOfTrack] // the radii of the two circles
+        const d = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+        const l = (r1 ** 2 - r2 ** 2 + d ** 2) / (2 * d)
+        const h = Math.sqrt(r1 ** 2 - l ** 2)
+        const horizontalOffset = (l / d) * (x2 - x1) - (h / d) * (y2 - y1) + x1
+        const degrees = -Math.asin(horizontalOffset / r1) * (180 / Math.PI) 
+        const timeDifferential =
+            (3 / 55) *
+            Math.abs(getState().disk.armRotation.degrees - degrees)
+        dispatch(
+            setArmRotation({ degrees, time: timeDifferential }),
+        )
         await new Promise((resolve) =>
             setTimeout(() => {
                 resolve(true)
-            }, 1000),
+            }, timeDifferential * 1000),
         )
+    }
 
+const processItem =
+    (item: ReadPayload | WritePayload) =>
+    async (dispatch: AppDispatch, getState: () => RootState) => {
+        dispatch(setDiskState("seek"))
+        
+        
+        // begin moving the arm
+        await dispatch(goToSector(item.sectorNumber))
+
+        // Only set the state to the action after the arm has moved
+        dispatch(setDiskState(item.type))
+
+        // When the read / write has happened, notify all subscribers that it's being serviced
         dispatch(
             setCurrentlyServicing({
                 requestId: item.requestId,
@@ -97,18 +163,29 @@ export const processQueue =
                 const item = diskQueue[0]
                 await dispatch(processItem(item))
             }
-            dispatch(setDiskState('idle'))
+            dispatch(setDiskState("idle"))
         }
     }
 
-export const { setDiskState, enqueue, dequeue, setCurrentlyServicing } =
-    diskSlice.actions
+export const {
+    setDiskState,
+    enqueue,
+    dequeue,
+    setCurrentlyServicing,
+    setTrackCount,
+    setDiskRotation,
+    setSectors,
+    setArmRotation,
+} = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk
-export const selectSectorSize = (state: RootState) => state.disk.sectorSize
 export const selectDiskState = (state: RootState) => state.disk.state
 export const selectDiskQueue = (state: RootState) => state.disk.queue
 export const selectCurrentlyServicing = (state: RootState) =>
     state.disk.currentlyServicing
+export const selectSectors = (state: RootState) => state.disk.sectors
+export const selectTrackCount = (state: RootState) => state.disk.trackCount
+export const selectDiskRotation = (state: RootState) => state.disk.diskRotation
+export const selectArmRotation = (state: RootState) => state.disk.armRotation
 
 export default diskSlice.reducer

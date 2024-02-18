@@ -1,4 +1,4 @@
-import { Box, Paper, Typography, useTheme } from "@mui/material"
+import { Paper, useTheme } from "@mui/material"
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import {
     selectBlockSize,
@@ -18,7 +18,7 @@ import {
 import SetUpFileSystem from "./components/SetUpFileSystem"
 import { AppDispatch } from "../../store"
 import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
-import AwaitingDiskConfiguration from "./components/AwaitingDiskConfiguration"
+import WaitingMessage from "../common/components/WaitingMessage"
 
 export interface FileSystemSetup {
     name: string
@@ -57,6 +57,8 @@ const VSFS = () => {
             sx={{
                 padding: theme.spacing(2),
                 height: "100%",
+                flexGrow: 1,
+                flexBasis: "50%",
             }}
         >
             {!isFinishedConfiguringFileSystem && (
@@ -83,7 +85,7 @@ const VSFS = () => {
                 />
             )}
             {isFinishedConfiguringFileSystem && isAwaitingDisk && (
-                <AwaitingDiskConfiguration />
+                <WaitingMessage title="Set Up Your File System" message="Waiting for disk..." />
             )}
             {isFinishedConfiguringFileSystem && !isAwaitingDisk && (
                 <FileSystemBlockLayout />

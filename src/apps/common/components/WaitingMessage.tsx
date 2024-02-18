@@ -1,15 +1,16 @@
 import { Box, Typography, useTheme } from "@mui/material"
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty"
 
-const AwaitingDiskConfiguration = () => {
+const WaitingMessage = (props: { title: string, message: string }) => {
     const theme = useTheme()
+    const { title, message } = props
     return (
         <>
             <Typography
                 variant="h5"
                 sx={{ textAlign: "center", paddingBottom: "3px" }}
             >
-                File System Block Viewer
+                { title }
             </Typography>
             <hr />
             <Box
@@ -21,6 +22,7 @@ const AwaitingDiskConfiguration = () => {
                     alignItems: "center",
                     width: "100%",
                     height: "calc(100% - 50px)",
+                    p: 2,
                 }}
             >
                 <HourglassEmptyIcon
@@ -28,11 +30,11 @@ const AwaitingDiskConfiguration = () => {
                     className="slowBounceAndWobble"
                 />
                 <Typography variant="body1" fontSize="20px">
-                    Please Configure Your Disk Before Continuing
+                    { message }
                 </Typography>
             </Box>
         </>
     )
 }
 
-export default AwaitingDiskConfiguration
+export default WaitingMessage

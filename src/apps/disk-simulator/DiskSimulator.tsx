@@ -1,11 +1,9 @@
 import AlbumIcon from "@mui/icons-material/Album"
-import {
-    Paper,
-    useTheme,
-} from "@mui/material"
-import { useEffect, useRef } from "react"
+import { Box, Paper, Typography } from "@mui/material"
+import { useEffect, useRef, useState } from "react"
 import { useAppSelector } from "../../redux/hooks/hooks"
 import {
+    selectArmRotation,
     selectCurrentlyServicing,
     selectDiskState,
 } from "../../redux/reducers/diskSlice"
@@ -14,7 +12,10 @@ import {
     selectIsFinishedConfiguringFileSystem,
 } from "../../redux/reducers/fileSystemSlice"
 import SetUpDisk from "./components/SetUpDisk"
-import AwaitingFileSystemConfiguration from "./components/AwaitingFileSystemConfiguration";
+import WaitingMessage from "../common/components/WaitingMessage"
+import DiskPlatter from "./components/DiskPlatter"
+import DiskArm from "./components/DiskArm"
+import DiskMetrics from "./components/DiskMetrics"
 
 export const DiskSimulatorIcon = (props: any) => {
     return (
@@ -45,7 +46,25 @@ const DiskSimulator = () => {
         selectIsFinishedConfiguringFileSystem,
     )
     const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
-    const theme = useTheme()
+    const armRotation = useAppSelector(selectArmRotation)
+
+    // useEffect(() => {
+    //     const id = setInterval(() => {
+    //         const newRotation = Math.random() * 50
+    //         setArmRotation((prevRotation) => {
+    //             const difference = Math.abs(newRotation - prevRotation.degrees)
+    //             const newValue = {
+    //                 degrees: newRotation,
+    //                 time: (3 / 55) * difference,
+    //             }
+    //             return newValue
+    //         })
+    //     }, 3000)
+
+    //     return () => {
+    //         clearInterval(id)
+    //     }
+    // }, [])
 
     useEffect(() => {
         console.log("DISK STATE:", diskState)
@@ -64,11 +83,43 @@ const DiskSimulator = () => {
     }, [currentlyServicing])
 
     return (
-        <Paper sx={{ height: "100%", padding: theme.spacing(2) }}>
+        <Paper
+            sx={{
+                minHeight: "fit-content",
+                height: "100%",
+                padding: "10px 20px",
+            }}
+        >
             {!isFinishedConfiguringFileSystem && (
-                <AwaitingFileSystemConfiguration />
+                <WaitingMessage
+                    title="Set Up Your Disk"
+                    message="Waiting for file system..."
+                />
             )}
             {isFinishedConfiguringFileSystem && isAwaitingDisk && <SetUpDisk />}
+            {isFinishedConfiguringFileSystem && !isAwaitingDisk && (
+                <Box sx={{ minWidth: "500px" }}>
+                    <Typography variant="h5" sx={{ textAlign: "center" }}>
+                        Disk Simulator
+                    </Typography>
+                    <hr />
+                    <Box
+                        sx={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            position: "relative",
+                            marginTop: "15px",
+                            paddingTop: "45px",
+                        }}
+                    >
+                        <DiskMetrics />
+                        <DiskPlatter />
+                        <DiskArm rotation={armRotation} />
+                    </Box>
+                </Box>
+            )}
         </Paper>
     )
 }

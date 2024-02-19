@@ -76,7 +76,7 @@ export const diskSlice = createSlice({
             state,
             action: PayloadAction<string>,
         ) => {
-            state.currentlyServicing.filter(
+            state.currentlyServicing = state.currentlyServicing.filter(
                 (item) => item.requestId !== action.payload,
             )
         },

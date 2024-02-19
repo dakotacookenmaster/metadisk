@@ -1,6 +1,7 @@
 import {
     enqueue,
     processQueue,
+    removeFromCurrentlyServicing,
     selectSectors,
 } from "../redux/reducers/diskSlice"
 import { selectSectorSize } from "../redux/reducers/fileSystemSlice"
@@ -89,6 +90,8 @@ export const writeSector = async (
         await new Promise((resolve) => setTimeout(resolve, 50)) // Wait 50ms and then check again
     }
 
+    store.dispatch(removeFromCurrentlyServicing(cs!.requestId))
+
     return cs as CurrentlyServicingPayload
 }
 
@@ -133,6 +136,8 @@ export const readSector = async (
     while (!(cs = store.getState().disk.currentlyServicing?.find(item => item.requestId === id))) {
         await new Promise((resolve) => setTimeout(resolve, 50)) // Wait 50ms and then check again
     }
+
+    store.dispatch(removeFromCurrentlyServicing(cs!.requestId))
 
 
     return cs as CurrentlyServicingPayload

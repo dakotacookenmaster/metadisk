@@ -12,7 +12,6 @@ interface FileSystemState {
     superblock: {
         name: string
         magicNumber: number
-        binaryData: string
         inodeSize: number
         numberOfInodeBlocks: number
         numberOfDataBlocks: number
@@ -62,7 +61,6 @@ const initialState: FileSystemState = {
         numberOfDataBlocks: calculateInodeAndDataBlocks(16, 2).dataBlocks,
         numberOfInodes: calculateInodeAndDataBlocks(16, 2).inodeBlocks * 2,
         startIndex: 3,
-        binaryData: "",
     },
 }
 

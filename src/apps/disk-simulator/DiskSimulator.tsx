@@ -1,10 +1,8 @@
 import AlbumIcon from "@mui/icons-material/Album"
 import { Box, Paper, Typography } from "@mui/material"
-import { useEffect, useRef } from "react"
 import { useAppSelector } from "../../redux/hooks/hooks"
 import {
     selectArmRotation,
-    selectCurrentlyServicing,
 } from "../../redux/reducers/diskSlice"
 import {
     selectIsAwaitingDisk,
@@ -39,24 +37,11 @@ export const DiskSimulatorIcon = (props: any) => {
 }
 
 const DiskSimulator = () => {
-    const currentlyServicing = useAppSelector(selectCurrentlyServicing)
-    const dataRequests = useRef<string[]>([])
     const isFinishedConfiguringFileSystem = useAppSelector(
         selectIsFinishedConfiguringFileSystem,
     )
     const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
     const armRotation = useAppSelector(selectArmRotation)
-
-    useEffect(() => {
-        if (currentlyServicing) {
-            dataRequests.current.splice(
-                dataRequests.current.findIndex(
-                    (value) => value === currentlyServicing.requestId,
-                ),
-                1,
-            )
-        }
-    }, [currentlyServicing])
 
     return (
         <Paper

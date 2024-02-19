@@ -1,4 +1,3 @@
-import React from "react"
 import ReactDOM from "react-dom/client"
 import App from "./App.tsx"
 import "./index.css"
@@ -13,11 +12,9 @@ import { ThemeProvider } from "@emotion/react"
 import theme from "./common/theme.ts"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        <ReduxProvider store={store}>
-            <ThemeProvider theme={theme}>
-                <App />
-            </ThemeProvider>
-        </ReduxProvider>
-    </React.StrictMode>,
+    <ReduxProvider store={store}>
+        <ThemeProvider theme={theme}>
+            <App />
+        </ThemeProvider>
+    </ReduxProvider>,
 )

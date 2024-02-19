@@ -6,9 +6,7 @@ import {
 import { selectSectorSize } from "../redux/reducers/fileSystemSlice"
 import { store } from "../store"
 import { InvalidBinaryStringError } from "./api-errors/InvalidBinaryString.error"
-import {
-    InvalidSectorError,
-} from "./api-errors/InvalidSector.error"
+import { InvalidSectorError } from "./api-errors/InvalidSector.error"
 import { v4 as uuid } from "uuid"
 import { SectorOverflowError } from "./api-errors/SectorOverflow.error"
 
@@ -27,7 +25,7 @@ export interface ReadPayload {
 
 export interface CurrentlyServicingPayload {
     requestId: string
-    type: "read" | "write",
+    type: "read" | "write"
     sectorNumber: number
     data?: string
 }
@@ -36,12 +34,15 @@ export interface CurrentlyServicingPayload {
  * Instructs the disk to write a blob of ASCII-encoded binary
  * data to a particular sector.
  * @param sector The sector you wish to write to
- * @param data The data you wish to write to the requested sector 
+ * @param data The data you wish to write to the requested sector
  * @throws `InvalidBinaryStringError` String must be composed entirely of 0s and 1s
  * @throws `SectorOverflowError` String must be small enough to fit within the desired sector
- * @returns 
+ * @returns `CurrentlyServicingPayload` The data from the result of the write, indicating its completion.
  */
-export const writeSector = (sector: number, data: string) => {
+export const writeSector = async (
+    sector: number,
+    data: string,
+): Promise<CurrentlyServicingPayload> => {
     // Verify that the sector exists
     const sectors = selectSectors(store.getState())
 
@@ -79,9 +80,16 @@ export const writeSector = (sector: number, data: string) => {
             data,
         }),
     )
-    store.dispatch(processQueue())
+    await store.dispatch(processQueue())
 
-    return id
+    let cs: CurrentlyServicingPayload | undefined
+
+    // Would this be an acceptable place to spin-wait for the data going into the queue to be processed?
+    while (!(cs = store.getState().disk.currentlyServicing?.find(item => item.requestId === id))) {
+        await new Promise((resolve) => setTimeout(resolve, 50)) // Wait 50ms and then check again
+    }
+
+    return cs as CurrentlyServicingPayload
 }
 
 /**
@@ -89,8 +97,12 @@ export const writeSector = (sector: number, data: string) => {
  * data from a particular sector.
  * @param sector
  * @throws {InvalidSectorError} Sector must be a valid sector on the disk
+ * @returns `CurrentlyServicingPayload` The data from the result of the write, indicating its completion.
  */
-export const readSector = (sector: number) => {
+
+export const readSector = async (
+    sector: number,
+): Promise<CurrentlyServicingPayload> => {
     // Verify that the sector exists
     const sectors = selectSectors(store.getState())
 
@@ -112,7 +124,16 @@ export const readSector = (sector: number) => {
             requestId: id,
         }),
     )
-    store.dispatch(processQueue())
+    
+    await store.dispatch(processQueue())
 
-    return id
+    let cs: CurrentlyServicingPayload | undefined
+
+    // Would this be an acceptable place to spin-wait for the data going into the queue to be processed?
+    while (!(cs = store.getState().disk.currentlyServicing?.find(item => item.requestId === id))) {
+        await new Promise((resolve) => setTimeout(resolve, 50)) // Wait 50ms and then check again
+    }
+
+
+    return cs as CurrentlyServicingPayload
 }

@@ -7,17 +7,21 @@ import {
 } from "../../apis/disk"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../apps/common/constants"
 
+export type DiskStateType = "read" | "write" | "idle" | "seek" | "waiting"
+
 interface DiskState {
-    state: "read" | "write" | "idle" | "seek"
+    state: DiskStateType
     rotationTimeInSeconds: number
+    isProcessing: boolean
     trackCount: 1 | 2 | 4 | 8
+    armRotationReference: number | undefined
     diskRotation: number
     armRotation: {
         degrees: number
         time: number
     }
     queue: (ReadPayload | WritePayload)[]
-    currentlyServicing?: CurrentlyServicingPayload
+    currentlyServicing: CurrentlyServicingPayload[]
     sectors: {
         data: string
     }[]
@@ -26,6 +30,9 @@ interface DiskState {
 const initialState: DiskState = {
     rotationTimeInSeconds: 6,
     diskRotation: 0,
+    isProcessing: false,
+    armRotationReference: undefined,
+    currentlyServicing: [],
     trackCount: 4,
     armRotation: {
         degrees: 0,
@@ -42,7 +49,7 @@ export const diskSlice = createSlice({
     reducers: {
         setDiskState: (
             state,
-            action: PayloadAction<"read" | "write" | "idle" | "seek">,
+            action: PayloadAction<DiskStateType>,
         ) => {
             const { payload } = action
             state.state = payload
@@ -59,13 +66,21 @@ export const diskSlice = createSlice({
         dequeue: (state, action: PayloadAction<number>) => {
             state.queue.splice(action.payload, 1)
         },
-        setCurrentlyServicing: (
+        addToCurrentlyServicing: (
             state,
             action: PayloadAction<CurrentlyServicingPayload>,
         ) => {
-            state.currentlyServicing = action.payload
+            state.currentlyServicing.push(action.payload)
         },
-        writeDataToSector: (
+        removeFromCurrentlyServicing: (
+            state,
+            action: PayloadAction<string>,
+        ) => {
+            state.currentlyServicing.filter(
+                (item) => item.requestId !== action.payload,
+            )
+        },
+        writeSector: (
             state,
             action: PayloadAction<{ sector: number; data: string }>,
         ) => {
@@ -89,7 +104,13 @@ export const diskSlice = createSlice({
         },
         setRotationTimeInSeconds: (state, action: PayloadAction<number>) => {
             state.rotationTimeInSeconds = action.payload
-        }
+        },
+        setIsProcessing: (state, action: PayloadAction<boolean>) => {
+            state.isProcessing = action.payload
+        },
+        setArmRotationReference: (state, action: PayloadAction<number>) => {
+            state.armRotationReference = action.payload
+        },
     },
 })
 
@@ -116,7 +137,7 @@ const findTrackNumber = (sector: number, getState: () => RootState) => {
     return trackNumber
 }
 
-const writeDataToSector =
+const writeOrRead =
     (data: ReadPayload | WritePayload) =>
     async (dispatch: AppDispatch, getState: () => RootState) => {
         const difference = () => {
@@ -129,15 +150,35 @@ const writeDataToSector =
 
         // While the arm is greater than 2 degrees away from the sector, don't do anything
         while (difference() > 5) {
-            await new Promise((resolve) => setTimeout(() => resolve(true), 100)) // Wait 100ms and try again
+            await new Promise((resolve) => setTimeout(() => resolve(true), 50)) // Wait 100ms and try again
         }
 
         // Only set the state to the action after when within the range of the appropriate rotation
         dispatch(setDiskState(data.type))
 
-        while (difference() < 5) {
-            await new Promise((resolve) => setTimeout(() => resolve(true), 100)) // wait for the arm to move away from the sector
+        // Actually write or read the data to / from the sector
+        if (data.type === "write") {
+            dispatch(
+                writeSector({ sector: data.sectorNumber, data: data.data }),
+            )
         }
+
+        while (difference() < 5) {
+            await new Promise((resolve) => setTimeout(() => resolve(true), 50)) // wait for the arm to move away from the sector
+        }
+
+        // When the read / write has happened, notify all subscribers that it has been serviced
+        dispatch(
+            addToCurrentlyServicing({
+                requestId: data.requestId,
+                sectorNumber: data.sectorNumber,
+                type: data.type,
+                data:
+                    data.type === "read"
+                        ? getState().disk.sectors[data.sectorNumber].data
+                        : undefined,
+            }),
+        )
     }
 
 export const getRadiusOfTrack = (sector: number, getState: () => RootState) => {
@@ -165,7 +206,11 @@ const goToSector =
         const horizontalOffset = (l / d) * (x2 - x1) - (h / d) * (y2 - y1) + x1
         const degrees = -Math.asin(horizontalOffset / r1) * (180 / Math.PI)
         const timeDifferential =
-            (3 / 55) * Math.abs(getState().disk.armRotation.degrees - degrees)
+            (3 / 55) *
+            Math.abs(
+                (getState().disk.armRotationReference ??
+                    getState().disk.armRotation.degrees) - degrees,
+            )
         dispatch(setArmRotation({ degrees, time: timeDifferential }))
         await new Promise((resolve) =>
             setTimeout(() => {
@@ -175,41 +220,44 @@ const goToSector =
     }
 
 const processItem =
-    (item: ReadPayload | WritePayload) =>
-    async (dispatch: AppDispatch, getState: () => RootState) => {
+    (item: ReadPayload | WritePayload) => async (dispatch: AppDispatch) => {
         dispatch(setDiskState("seek"))
 
         // move the arm into position
         await dispatch(goToSector(item.sectorNumber))
 
         // wait for the write head to be over the appropriate sector, and then write the data
-        await dispatch(writeDataToSector(item))
+        await dispatch(writeOrRead(item))
 
-        // When the read / write has happened, notify all subscribers that it has been serviced
-        dispatch(
-            setCurrentlyServicing({
-                requestId: item.requestId,
-                sectorNumber: item.sectorNumber,
-                type: item.type,
-                data:
-                    item.type === "read"
-                        ? getState().disk.sectors[item.sectorNumber].data
-                        : undefined,
-            }),
-        )
         dispatch(dequeue(0))
     }
 
 export const processQueue =
     () => async (dispatch: AppDispatch, getState: () => RootState) => {
-        const isIdle = getState().disk.state === "idle"
-        let diskQueue: (ReadPayload | WritePayload)[]
-        if (isIdle) {
+        const idleOrWaiting = getState().disk.state === "idle" || getState().disk.state === "waiting"
+        const isProcessing = getState().disk.isProcessing
+        let diskQueue: (ReadPayload | WritePayload)[] = []
+        if (idleOrWaiting && !isProcessing) {
+            dispatch(setIsProcessing(true))
             while ((diskQueue = getState().disk.queue).length > 0) {
                 const item = diskQueue[0]
                 await dispatch(processItem(item))
             }
-            dispatch(setDiskState("idle"))
+            if (getState().disk.queue.length === 0) {
+                dispatch(setIsProcessing(false))
+                dispatch(setDiskState("waiting"))
+
+                await new Promise((resolve) =>
+                    // Wait a bit. If nothing else gets queued after one second, it's probably reasonable to assume
+                    // the disk is idle, so you don't have to worry about jumping.
+                    setTimeout(() => {
+                        if (getState().disk.queue.length === 0) {
+                            dispatch(setDiskState("idle"))
+                            resolve(true)
+                        }
+                    }, 1000),
+                )
+            }
         }
     }
 
@@ -217,12 +265,16 @@ export const {
     setDiskState,
     enqueue,
     dequeue,
-    setCurrentlyServicing,
+    removeFromCurrentlyServicing,
     setTrackCount,
     setDiskRotation,
     setSectors,
     setArmRotation,
-    setRotationTimeInSeconds
+    setRotationTimeInSeconds,
+    writeSector,
+    setIsProcessing,
+    addToCurrentlyServicing,
+    setArmRotationReference,
 } = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk
@@ -234,6 +286,9 @@ export const selectSectors = (state: RootState) => state.disk.sectors
 export const selectTrackCount = (state: RootState) => state.disk.trackCount
 export const selectDiskRotation = (state: RootState) => state.disk.diskRotation
 export const selectArmRotation = (state: RootState) => state.disk.armRotation
-export const selectRotationTimeInSeconds = (state: RootState) => state.disk.rotationTimeInSeconds
+export const selectRotationTimeInSeconds = (state: RootState) =>
+    state.disk.rotationTimeInSeconds
+export const selectArmRotationReference = (state: RootState) =>
+    state.disk.armRotationReference
 
 export default diskSlice.reducer

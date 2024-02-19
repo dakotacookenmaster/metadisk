@@ -8,28 +8,13 @@ import { useEffect, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
 import { readSector } from "../../../apis/disk"
-import { resolvePendingWrites } from "../../common/helpers/resolvePendingWrites"
-import { selectCurrentlyServicing } from "../../../redux/reducers/diskSlice"
 
-const FileSystemBlockLayout = (props: {
-    setWaitingMessage: React.Dispatch<React.SetStateAction<string | null>>
-    pendingWrites: React.MutableRefObject<
-        {
-            tasks: {
-                id: string
-                cb?: () => void
-            }[]
-            finalCb?: (() => void) | undefined
-        }[]
-    >
-}) => {
-    const { setWaitingMessage, pendingWrites } = props
+const FileSystemBlockLayout = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
     const numberOfInodeBlocks =
         useAppSelector(selectSuperblock).numberOfInodeBlocks
     const theme = useTheme()
     const [selected, setSelected] = useState<string>("Superblock")
-    const currentlyServicing = useAppSelector(selectCurrentlyServicing)
 
     const getLabel = (index: number) => {
         if (index === 0) {
@@ -46,27 +31,12 @@ const FileSystemBlockLayout = (props: {
     }
 
     useEffect(() => {
-        if(currentlyServicing) {
-            resolvePendingWrites(pendingWrites, currentlyServicing)
-        }
-    }, [currentlyServicing])
-
-    useEffect(() => {
         // Start by reading from the superblock
-        const superblockId = readSector(0) // read from sector 0 to get the superblock data
-        pendingWrites.current = [
-            ...pendingWrites.current,
-            {
-                tasks: [
-                    {
-                        id: superblockId,
-                        cb: () => {
-                            setWaitingMessage(null)
-                        }
-                    }
-                ]
-            }
-        ]
+        ;(async () => {
+            // const superblockData = await readSector(0)
+            await Promise.all([readSector(10), readSector(5), readSector(8), readSector(12), readSector(15), readSector(13), readSector(2)])
+            // console.log("DATA:", superblockData)
+        })()
     }, [])
 
     return (

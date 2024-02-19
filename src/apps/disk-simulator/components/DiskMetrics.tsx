@@ -1,19 +1,27 @@
-import { Box, Typography } from "@mui/material"
+import { Box } from "@mui/material"
 import { useAppSelector } from "../../../redux/hooks/hooks"
-import { selectDisk, selectDiskState } from "../../../redux/reducers/diskSlice"
+import { selectDiskState } from "../../../redux/reducers/diskSlice"
 import SaveAsIcon from "@mui/icons-material/SaveAs"
 import SearchIcon from "@mui/icons-material/Search"
-import StopCircleIcon from "@mui/icons-material/StopCircle"
+import HourglassTopIcon from "@mui/icons-material/HourglassTop"
+import SelfImprovementIcon from "@mui/icons-material/SelfImprovement"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 
 const DiskMetrics = () => {
     const diskState = useAppSelector(selectDiskState)
-    const disk = useAppSelector(selectDisk)
     return (
         <Box sx={{ position: "absolute", zIndex: 50, top: 0, left: 0 }}>
-            {diskState === "write" && <SaveAsIcon fontSize="large" />}
-            {diskState === "seek" && <SearchIcon fontSize="large" />}
-            {diskState === "idle" && <StopCircleIcon fontSize="large" />}
-            <Typography>{diskState}: { disk.queue[0]?.sectorNumber }</Typography>
+            {diskState === "write" && <SaveAsIcon sx={{ fontSize: "50px" }} />}
+            {diskState === "seek" && <SearchIcon sx={{ fontSize: "50px" }} />}
+            {diskState === "read" && (
+                <AutoStoriesIcon sx={{ fontSize: "50px" }} />
+            )}
+            {diskState === "idle" && (
+                <SelfImprovementIcon sx={{ fontSize: "50px" }} />
+            )}
+            {diskState === "waiting" && (
+                <HourglassTopIcon sx={{ fontSize: "50px" }} />
+            )}
         </Box>
     )
 }

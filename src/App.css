@@ -10,11 +10,11 @@
     }
 }
 
-.read, .write, .seek, .idle {
+.read, .write, .seek, .idle, .waiting {
     animation: rotate linear infinite forwards;
 }
 
-.sector-read, .sector-write, .sector-seek, .sector-idle {
+.sector-read, .sector-write, .sector-seek, .sector-idle, .sector-waiting {
     animation: antirotate linear infinite forwards;
 }
 

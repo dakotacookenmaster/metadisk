@@ -6,21 +6,36 @@ import SearchIcon from "@mui/icons-material/Search"
 import HourglassTopIcon from "@mui/icons-material/HourglassTop"
 import SelfImprovementIcon from "@mui/icons-material/SelfImprovement"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import Tooltip from "../../common/components/Tooltip"
 
 const DiskMetrics = () => {
     const diskState = useAppSelector(selectDiskState)
     return (
         <Box sx={{ position: "absolute", zIndex: 50, top: 0, left: 0 }}>
-            {diskState === "write" && <SaveAsIcon sx={{ fontSize: "50px" }} />}
-            {diskState === "seek" && <SearchIcon sx={{ fontSize: "50px" }} />}
+            {diskState === "write" && (
+                <Tooltip placement="right" title="Disk Write">
+                    <SaveAsIcon sx={{ fontSize: "50px" }} />
+                </Tooltip>
+            )}
+            {diskState === "seek" && (
+                <Tooltip placement="right" title="Disk Seek">
+                    <SearchIcon sx={{ fontSize: "50px" }} />
+                </Tooltip>
+            )}
             {diskState === "read" && (
-                <AutoStoriesIcon sx={{ fontSize: "50px" }} />
+                <Tooltip placement="right" title="Disk Read">
+                    <AutoStoriesIcon sx={{ fontSize: "50px" }} />
+                </Tooltip>
             )}
             {diskState === "idle" && (
-                <SelfImprovementIcon sx={{ fontSize: "50px" }} />
+                <Tooltip placement="right" title="Disk Idling">
+                    <SelfImprovementIcon sx={{ fontSize: "50px" }} />
+                </Tooltip>
             )}
             {diskState === "waiting" && (
-                <HourglassTopIcon sx={{ fontSize: "50px" }} />
+                <Tooltip placement="right" title="Disk Waiting">
+                    <HourglassTopIcon sx={{ fontSize: "50px" }} />
+                </Tooltip>
             )}
         </Box>
     )

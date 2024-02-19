@@ -18,12 +18,6 @@ import Tooltip from "../apps/common/components/Tooltip"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { VERSION } from "../apps/common/constants"
 import { useMediaQuery } from "@mui/material"
-import { readSector, writeSector } from "../apis/disk"
-import { useAppSelector } from "../redux/hooks/hooks"
-import {
-    selectIsAwaitingDisk,
-    selectIsFinishedConfiguringFileSystem,
-} from "../redux/reducers/fileSystemSlice"
 
 const drawerWidth = 260
 
@@ -103,18 +97,6 @@ export default function MainWindow(props: {
     const theme = useTheme()
     const { apps, setApps } = props
     const isLG = useMediaQuery(theme.breakpoints.down("xl"))
-    const isFinishedConfiguringFileSystem = useAppSelector(
-        selectIsFinishedConfiguringFileSystem,
-    )
-    const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
-
-    React.useEffect(() => {
-        if (isFinishedConfiguringFileSystem && !isAwaitingDisk) {
-            for (let i = 0; i < 47; i++) {
-                writeSector(i, "1010101010101111")
-            }
-        }
-    }, [isFinishedConfiguringFileSystem, isAwaitingDisk])
 
     return (
         <Box sx={{ display: "flex" }}>

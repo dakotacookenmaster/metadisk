@@ -71,17 +71,17 @@ const SetUpDisk = () => {
                     <Select
                         value={trackCount}
                         onChange={(event) =>
-                            dispatch(setTrackCount((+event.target.value) as (2 | 4 | 8)))
+                            dispatch(setTrackCount((+event.target.value) as (1 | 2 | 4 | 8)))
                         }
                         label="Number of Tracks"
                         labelId="track-count-label"
                     >
-                        {[...Array(3)].map((_, i) => (
+                        {[...Array(4)].map((_, i) => (
                             <MenuItem
                                 key={`menu-item-${i}`}
-                                value={2 ** (i + 1)}
+                                value={2 ** i}
                             >
-                                {2 ** (i + 1)}
+                                {2 ** i}
                             </MenuItem>
                         ))}
                     </Select>

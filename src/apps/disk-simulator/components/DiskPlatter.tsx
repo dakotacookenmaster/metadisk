@@ -1,8 +1,8 @@
-import { Box } from "@mui/material"
+import { Box, useTheme } from "@mui/material"
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks/hooks"
 import {
-    selectDiskRotation,
     selectDiskState,
+    selectRotationTimeInSeconds,
     selectTrackCount,
     setDiskRotation,
 } from "../../../redux/reducers/diskSlice"
@@ -12,6 +12,7 @@ import {
 } from "../../../redux/reducers/fileSystemSlice"
 import React, { useEffect, useRef } from "react"
 import getCurrentRotation from "../../common/helpers/getCurrentRotation"
+import { MAX_DISK_WIDTH_PERCENTAGE } from "../../common/constants"
 
 const DiskPlatter = () => {
     const trackCount = useAppSelector(selectTrackCount)
@@ -19,12 +20,12 @@ const DiskPlatter = () => {
         (useAppSelector(selectSectorsPerBlock) *
             useAppSelector(selectTotalBlocks)) /
         trackCount
-    const trackSeparation = 90 / trackCount
-    const totalSectors = sectorsPerTrack * trackCount
+    const trackSeparation = MAX_DISK_WIDTH_PERCENTAGE / (trackCount + 1)
     const platterRef = useRef<HTMLElement | null>(null)
     const diskState = useAppSelector(selectDiskState)
-    const diskRotation = useAppSelector(selectDiskRotation)
     const dispatch = useAppDispatch()
+    const rotationTimeInSeconds = useAppSelector(selectRotationTimeInSeconds)
+    const theme = useTheme()
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -33,7 +34,7 @@ const DiskPlatter = () => {
                     setDiskRotation(getCurrentRotation(platterRef.current)),
                 )
             }
-        }, 100)
+        }, 1)
 
         return () => {
             clearInterval(id)
@@ -45,6 +46,7 @@ const DiskPlatter = () => {
             ref={platterRef}
             className={diskState}
             sx={{
+                animationDuration: `${rotationTimeInSeconds}s`,
                 width: "500px",
                 height: "500px",
                 minWidth: "500px",
@@ -53,19 +55,18 @@ const DiskPlatter = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 marginBottom: "30px",
-                transform:
-                    diskState === "idle"
-                        ? `rotate(${diskRotation}deg)`
-                        : undefined,
                 borderRadius: "100%",
             }}
         >
-            {[...Array(trackCount)].map((_, i) => {
+            {[...Array(trackCount + 1)].map((_, i) => {
                 return (
                     <React.Fragment key={`track-${i}`}>
                         <Box
                             sx={{
-                                width: `${90 - trackSeparation * i}%`,
+                                width: `${
+                                    MAX_DISK_WIDTH_PERCENTAGE -
+                                    trackSeparation * i
+                                }%`,
                                 aspectRatio: "1 / 1",
                                 background: i % 2 === 0 ? "#2D2D2D" : "gray",
                                 border: "2px solid white",
@@ -74,40 +75,50 @@ const DiskPlatter = () => {
                                 borderRadius: "100%",
                             }}
                         />
-                        {[...Array(sectorsPerTrack)].map((_, ii) => {
-                            const theta =
-                                (360 / sectorsPerTrack) * ii * (Math.PI / 180) // in radiians
-                            const radius =
-                                (((90 - trackSeparation * i) / 100) * 500) / 2
-                            return (
-                                <Box
-                                    sx={{
-                                        padding: "5px",
-                                        width: "30px",
-                                        height: "30px",
-                                        background: "orange",
-                                        borderRadius: "100%",
-                                        position: "absolute",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        left: radius * Math.sin(theta) + 235,
-                                        top: radius * Math.cos(theta) + 235,
-                                        transform:
-                                            diskState === "idle"
-                                                ? `rotate(-${diskRotation}deg)`
-                                                : undefined,
-                                        zIndex: 10,
-                                    }}
-                                    className={`sector-${diskState}`}
-                                    key={`track-${i}-sector-${ii}`}
-                                >
-                                    {totalSectors -
-                                        (sectorsPerTrack * i + ii) -
-                                        1}
-                                </Box>
-                            )
-                        })}
+                        {i !== trackCount &&
+                            [...Array(sectorsPerTrack)].map((_, ii) => {
+                                const theta =
+                                    (360 / sectorsPerTrack) *
+                                    ii *
+                                    (Math.PI / 180) // in radiians
+
+                                const radius =
+                                    (((MAX_DISK_WIDTH_PERCENTAGE -
+                                        trackSeparation * (i + 0.5)) /
+                                        100) *
+                                        500) /
+                                    2
+
+                                const sectorNumber =
+                                    ii + sectorsPerTrack * (trackCount - i - 1)
+                                return (
+                                    <Box
+                                        sx={{
+                                            width: "27px",
+                                            height: "27px",
+                                            color: "white",
+                                            background:
+                                                theme.palette.primary.main,
+                                            borderRadius: "100%",
+                                            fontWeight: "bold",
+                                            position: "absolute",
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            border: "2px solid white",
+                                            alignItems: "center",
+                                            animationDuration: `${rotationTimeInSeconds}s`,
+                                            left:
+                                                radius * Math.sin(theta) + 235,
+                                            top: radius * Math.cos(theta) + 235,
+                                            zIndex: 10,
+                                        }}
+                                        className={`sector-${diskState}`}
+                                        key={`track-${i}-sector-${ii}`}
+                                    >
+                                        {sectorNumber}
+                                    </Box>
+                                )
+                            })}
                     </React.Fragment>
                 )
             })}

@@ -10,12 +10,12 @@
     }
 }
 
-.read, .write, .seek {
-    animation: rotate 20s linear infinite forwards;
+.read, .write, .seek, .idle {
+    animation: rotate linear infinite forwards;
 }
 
-.sector-read, .sector-write, .sector-seek {
-    animation: antirotate 20s linear infinite forwards;
+.sector-read, .sector-write, .sector-seek, .sector-idle {
+    animation: antirotate linear infinite forwards;
 }
 
 @keyframes slowBounceAndWobble {

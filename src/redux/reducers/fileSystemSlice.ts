@@ -1,6 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
-import { AppDispatch, RootState } from "../../store"
-import { setSectors } from "./diskSlice"
+import { RootState } from "../../store"
 interface FileSystemState {
     sectorSize: number
     sectorsPerBlock: number
@@ -9,6 +8,7 @@ interface FileSystemState {
     minimumRequiredDiskSize: number
     isFinishedConfiguringFileSystem: boolean
     isAwaitingDisk: boolean
+    isDiskFormatted: boolean
     superblock: {
         name: string
         magicNumber: number
@@ -45,28 +45,26 @@ const calculateInodeAndDataBlocks = (
     }
 }
 
-const existingState: string | null = localStorage?.getItem("fileSystem")
-
-const initialState: FileSystemState = existingState
-    ? JSON.parse(existingState)
-    : {
-          isFinishedConfiguringFileSystem: false,
-          isAwaitingDisk: false,
-          sectorSize: 512,
-          sectorsPerBlock: 2,
-          blockSize: 512 * 2,
-          totalBlocks: 16,
-          minimumRequiredDiskSize: 512 * 2 * 16,
-          superblock: {
-            name: "Very Simple File System (vsfs)",
-            magicNumber: 7,
-            inodeSize: 512,
-            numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 2).inodeBlocks,
-            numberOfDataBlocks: calculateInodeAndDataBlocks(16, 2).dataBlocks,
-            numberOfInodes: calculateInodeAndDataBlocks(16, 2).inodeBlocks * 2,
-            startIndex: 3
-          },
-      }
+const initialState: FileSystemState = {
+    isFinishedConfiguringFileSystem: false,
+    isAwaitingDisk: false,
+    sectorSize: 512,
+    sectorsPerBlock: 3,
+    blockSize: 512 * 2,
+    totalBlocks: 16,
+    minimumRequiredDiskSize: 512 * 2 * 16,
+    isDiskFormatted: false,
+    superblock: {
+        name: "Very Simple File System (vsfs)",
+        magicNumber: 7,
+        inodeSize: 512,
+        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 2).inodeBlocks,
+        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 2).dataBlocks,
+        numberOfInodes: calculateInodeAndDataBlocks(16, 2).inodeBlocks * 2,
+        startIndex: 3,
+        binaryData: "",
+    },
+}
 
 export const fileSystemSlice = createSlice({
     name: "fileSystem",
@@ -124,6 +122,9 @@ export const fileSystemSlice = createSlice({
         },
         setIsAwaitingDisk: (state, action: PayloadAction<boolean>) => {
             state.isAwaitingDisk = action.payload
+        },
+        setIsDiskFormatted: (state, action: PayloadAction<boolean>) => {
+            state.isDiskFormatted = action.payload
         }
     },
 })
@@ -133,7 +134,8 @@ export const {
     setIsFinishedConfiguringFileSystem,
     setSectorsPerBlock,
     setTotalBlocks,
-    setIsAwaitingDisk
+    setIsAwaitingDisk,
+    setIsDiskFormatted
 } = fileSystemSlice.actions
 
 export const selectSectorSize = (state: RootState) =>
@@ -151,6 +153,7 @@ export const selectIsFinishedConfiguringFileSystem = (state: RootState) =>
     state.fileSystem.isFinishedConfiguringFileSystem
 export const selectSuperblock = (state: RootState) =>
     state.fileSystem.superblock
-export const selectIsAwaitingDisk = (state: RootState) => state.fileSystem.isAwaitingDisk
-
+export const selectIsAwaitingDisk = (state: RootState) =>
+    state.fileSystem.isAwaitingDisk
+export const selectIsDiskFormatted = (state: RootState) => state.fileSystem.isDiskFormatted
 export default fileSystemSlice.reducer

@@ -11,7 +11,6 @@ import {
 } from "@mui/material"
 import { FileSystemSetup } from "../VSFS"
 import Tooltip from "../../common/components/Tooltip"
-import { setSectors } from "../../../redux/reducers/diskSlice"
 
 const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
@@ -50,6 +49,7 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
         setIsAwaitingDisk
     } = props
     const theme = useTheme()
+    
     return (
         <Box
             sx={{

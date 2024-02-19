@@ -1,11 +1,10 @@
 import AlbumIcon from "@mui/icons-material/Album"
 import { Box, Paper, Typography } from "@mui/material"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useAppSelector } from "../../redux/hooks/hooks"
 import {
     selectArmRotation,
     selectCurrentlyServicing,
-    selectDiskState,
 } from "../../redux/reducers/diskSlice"
 import {
     selectIsAwaitingDisk,
@@ -16,6 +15,7 @@ import WaitingMessage from "../common/components/WaitingMessage"
 import DiskPlatter from "./components/DiskPlatter"
 import DiskArm from "./components/DiskArm"
 import DiskMetrics from "./components/DiskMetrics"
+import DiskControls from "./components/DiskControls"
 
 export const DiskSimulatorIcon = (props: any) => {
     return (
@@ -41,38 +41,14 @@ export const DiskSimulatorIcon = (props: any) => {
 const DiskSimulator = () => {
     const currentlyServicing = useAppSelector(selectCurrentlyServicing)
     const dataRequests = useRef<string[]>([])
-    const diskState = useAppSelector(selectDiskState)
     const isFinishedConfiguringFileSystem = useAppSelector(
         selectIsFinishedConfiguringFileSystem,
     )
     const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
     const armRotation = useAppSelector(selectArmRotation)
 
-    // useEffect(() => {
-    //     const id = setInterval(() => {
-    //         const newRotation = Math.random() * 50
-    //         setArmRotation((prevRotation) => {
-    //             const difference = Math.abs(newRotation - prevRotation.degrees)
-    //             const newValue = {
-    //                 degrees: newRotation,
-    //                 time: (3 / 55) * difference,
-    //             }
-    //             return newValue
-    //         })
-    //     }, 3000)
-
-    //     return () => {
-    //         clearInterval(id)
-    //     }
-    // }, [])
-
-    useEffect(() => {
-        console.log("DISK STATE:", diskState)
-    }, [diskState])
-
     useEffect(() => {
         if (currentlyServicing) {
-            console.log(currentlyServicing)
             dataRequests.current.splice(
                 dataRequests.current.findIndex(
                     (value) => value === currentlyServicing.requestId,
@@ -115,6 +91,11 @@ const DiskSimulator = () => {
                         }}
                     >
                         <DiskMetrics />
+                        <DiskControls sx={{ 
+                            position: "absolute",
+                            top: 0, 
+                            left: "80%",
+                        }} />
                         <DiskPlatter />
                         <DiskArm rotation={armRotation} />
                     </Box>

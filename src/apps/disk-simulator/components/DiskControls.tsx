@@ -48,6 +48,7 @@ export default function DiskControls(props: BoxProps) {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
+                    paddingTop: "10px"
                 }}
             >
                 <Typography variant="overline" fontWeight={"bold"}>

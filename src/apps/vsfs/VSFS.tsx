@@ -58,8 +58,8 @@ const VSFS = () => {
         selectIsFinishedConfiguringFileSystem,
     )
     const isDiskFormatted = useAppSelector(selectIsDiskFormatted)
-    const [formattingMessage] = useState("Writing Superblock...")
-    const [waitingMessage] = useState<null | string>(null)
+    const [waitingMessage, setWaitingMessage] = useState<null | { title: string, message: string }>(null)
+    const [progress, setProgress] = useState<number>(0)
     const dispatch = useAppDispatch()
 
     const getBlockStartingSector = (block: number) => {
@@ -83,29 +83,40 @@ const VSFS = () => {
                     magicNumber + inodeCount + inodeBlocks + dataBlocks
                 const bitmap = "0".repeat(sectorSize)
 
+                setProgress(0)
+                setWaitingMessage({ title: "Formatting Disk", message: "Please wait..." })
+
                 // write to the first block
                 const superblockRequest = writeSector(
                     getBlockStartingSector(0),
                     superblockData,
-                ) 
+                ).then(() => {
+                    setProgress(prevProgress => prevProgress + (100 / 3))
+                })
 
                 // write the inode bitmap
                 const inodeBitmapRequest = writeSector(
                     getBlockStartingSector(1),
                     bitmap,
-                ) 
+                ).then(() => {
+                    setProgress(prevProgress => prevProgress + (100 / 3))
+                })
 
                 // write the data bitmap
                 const dataBitmapRequest = writeSector(
                     getBlockStartingSector(2),
                     bitmap,
-                )
+                ).then(() => {
+                    setProgress(prevProgress => prevProgress + (100 / 3))
+                })
                 
                 await Promise.all([
                     superblockRequest,
                     inodeBitmapRequest,
                     dataBitmapRequest,
                 ])
+
+                setWaitingMessage(null)
 
                 dispatch(setIsDiskFormatted(true))
             })()
@@ -115,7 +126,9 @@ const VSFS = () => {
     return (
         <Paper
             sx={{
-                padding: theme.spacing(2),
+                pt: theme.spacing(1.3),
+                pb: theme.spacing(2),
+                px: theme.spacing(2),
                 height: "100%",
                 flexGrow: 1,
                 flexBasis: "50%",
@@ -154,19 +167,11 @@ const VSFS = () => {
             )}
             {isFinishedConfiguringFileSystem &&
                 !isAwaitingDisk &&
-                !isDiskFormatted && (
-                    <WaitingMessage
-                        title="Formatting Disk"
-                        message={formattingMessage}
-                    />
-                )}
-            {isFinishedConfiguringFileSystem &&
-                !isAwaitingDisk &&
-                isDiskFormatted &&
                 waitingMessage && (
                     <WaitingMessage
-                        title="Please Wait"
-                        message={waitingMessage}
+                        title={waitingMessage.title}
+                        message={waitingMessage.message}
+                        progress={progress}
                     />
                 )}
             {isFinishedConfiguringFileSystem &&

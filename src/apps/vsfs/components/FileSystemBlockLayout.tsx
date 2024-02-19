@@ -15,6 +15,8 @@ const FileSystemBlockLayout = () => {
         useAppSelector(selectSuperblock).numberOfInodeBlocks
     const theme = useTheme()
     const [selected, setSelected] = useState<string>("Superblock")
+    const [progress, setProgress] = useState<number>(0)
+    const [data, setData] = useState<string | undefined>(undefined)
 
     const getLabel = (index: number) => {
         if (index === 0) {
@@ -33,9 +35,10 @@ const FileSystemBlockLayout = () => {
     useEffect(() => {
         // Start by reading from the superblock
         ;(async () => {
-            // const superblockData = await readSector(0)
-            await Promise.all([readSector(10), readSector(5), readSector(8), readSector(12), readSector(15), readSector(13), readSector(2)])
-            // console.log("DATA:", superblockData)
+            setProgress(0)
+            const result = await readSector(0)
+            setData(result.data)
+            setProgress(100)
         })()
     }, [])
 
@@ -95,7 +98,7 @@ const FileSystemBlockLayout = () => {
                     )
                 })}
             </Box>
-            {selected === "Superblock" && <SuperblockTabs />}
+            {selected === "Superblock" && <SuperblockTabs data={data} progress={progress} />}
         </Box>
     )
 }

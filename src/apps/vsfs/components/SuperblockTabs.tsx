@@ -14,6 +14,8 @@ import {
     useTheme,
 } from "@mui/material"
 import Tooltip from "../../common/components/Tooltip"
+import WaitingMessage from "../../common/components/WaitingMessage"
+import Viewer from "./Viewers"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -44,7 +46,8 @@ function a11yProps(index: number) {
     }
 }
 
-export default function SuperblockTabs() {
+export default function SuperblockTabs(props: { data: string | undefined, progress: number }) {
+    const { data, progress } = props
     const [value, setValue] = React.useState(0)
     const superblock = useAppSelector(selectSuperblock)
     const theme = useTheme()
@@ -60,6 +63,10 @@ export default function SuperblockTabs() {
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
+    }
+
+    if(!data) {
+        return <WaitingMessage message="Reading from disk..." progress={progress} />
     }
 
     return (
@@ -142,10 +149,13 @@ export default function SuperblockTabs() {
                 </Table>
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-                Item Two
+                <Viewer data={data} mode="bin" />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
-                Item Three
+                <Viewer data={data} mode="hex" />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
+                <Viewer data={data} mode="ascii" />
             </CustomTabPanel>
         </Box>
     )

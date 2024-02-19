@@ -81,7 +81,8 @@ export const writeSector = async (
             data,
         }),
     )
-    await store.dispatch(processQueue())
+    
+    store.dispatch(processQueue())
 
     let cs: CurrentlyServicingPayload | undefined
 
@@ -128,7 +129,7 @@ export const readSector = async (
         }),
     )
     
-    await store.dispatch(processQueue())
+    store.dispatch(processQueue())
 
     let cs: CurrentlyServicingPayload | undefined
 

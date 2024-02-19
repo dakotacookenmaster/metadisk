@@ -16,7 +16,7 @@ const DiskArm = (props: { rotation: { degrees: number; time: number } }) => {
                     setArmRotationReference(getCurrentRotation(armRef.current)),
                 )
             }
-        }, 1)
+        }, 100)
     }, [])
 
     return (

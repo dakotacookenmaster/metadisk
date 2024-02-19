@@ -47,6 +47,7 @@ const DiskPlatter = () => {
             className={diskState}
             sx={{
                 animationDuration: `${rotationTimeInSeconds}s`,
+                willChange: "contents", // This is needed for chromium-based browsers to set up optimizations
                 width: "500px",
                 height: "500px",
                 minWidth: "500px",

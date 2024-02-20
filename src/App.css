@@ -1,3 +1,16 @@
+/* Include the IBM VGA 8x16 'Code Page 437' font face */
+@font-face {
+    font-family: "IBM VGA 8x16";
+    src: url("/WebPlus_IBM_VGA_8x16-2x.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "u0000";
+    src: url("/u0000.woff2") format("woff2");
+}
+
 @keyframes rotate {
     to {
         transform: rotate(360deg);
@@ -10,11 +23,24 @@
     }
 }
 
-.read, .write, .seek, .idle, .waiting {
+.vga8 {
+    /* Prefer the IBM font, but fall back for unicode characters */
+    font-family: "u0000", monospace;
+}
+
+.read,
+.write,
+.seek,
+.idle,
+.waiting {
     animation: rotate linear infinite forwards;
 }
 
-.sector-read, .sector-write, .sector-seek, .sector-idle, .sector-waiting {
+.sector-read,
+.sector-write,
+.sector-seek,
+.sector-idle,
+.sector-waiting {
     animation: antirotate linear infinite forwards;
 }
 

@@ -78,7 +78,7 @@ export const writeSector = async (
             type: "write",
             sectorNumber: sector,
             requestId: id,
-            data,
+            data: data.padEnd(sectorSize, "0"), // make sure we write an entire sector
         }),
     )
     

@@ -121,8 +121,8 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                         labelId="sectors-per-block-label"
                     >
                         {[...Array(3)].map((_, i) => (
-                            <MenuItem key={`menu-item-${i}`} value={i + 2}>
-                                {i + 2} sectors
+                            <MenuItem key={`menu-item-${i}`} value={i + 1}>
+                                {i + 1} sectors
                             </MenuItem>
                         ))}
                     </Select>

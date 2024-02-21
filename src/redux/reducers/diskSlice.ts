@@ -6,6 +6,7 @@ import {
     WritePayload,
 } from "../../apis/disk"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../apps/common/constants"
+import { selectSectorsPerBlock, selectTotalBlocks } from "./fileSystemSlice"
 
 export type DiskStateType = "read" | "write" | "idle" | "seek" | "waiting"
 
@@ -14,7 +15,6 @@ interface DiskState {
     rotationTimeInSeconds: number
     isProcessing: boolean
     trackCount: 1 | 2 | 4 | 8
-    armRotationReference: number | undefined
     diskRotation: number
     armRotation: {
         degrees: number
@@ -31,7 +31,6 @@ const initialState: DiskState = {
     rotationTimeInSeconds: 6,
     diskRotation: 0,
     isProcessing: false,
-    armRotationReference: undefined,
     currentlyServicing: [],
     trackCount: 4,
     armRotation: {
@@ -56,7 +55,7 @@ export const diskSlice = createSlice({
             if (state.state === "idle") {
                 state.armRotation = {
                     degrees: 70,
-                    time: (3 / 55) * Math.abs(state.armRotation.degrees - 70),
+                    time: (2 / 55) * Math.abs(state.armRotation.degrees - 70),
                 }
             }
         },
@@ -108,13 +107,9 @@ export const diskSlice = createSlice({
         setIsProcessing: (state, action: PayloadAction<boolean>) => {
             state.isProcessing = action.payload
         },
-        setArmRotationReference: (state, action: PayloadAction<number>) => {
-            state.armRotationReference = action.payload
-        },
     },
 })
 
-/** Evil demon function 😅 */
 const findSectorRotation = (sector: number, getState: () => RootState) => {
     const sectors = selectSectors(getState()).length
     const sectorsPerTrack = sectors / getState().disk.trackCount
@@ -140,16 +135,38 @@ const findTrackNumber = (sector: number, getState: () => RootState) => {
 const writeOrRead =
     (data: ReadPayload | WritePayload) =>
     async (dispatch: AppDispatch, getState: () => RootState) => {
-        const difference = () => {
+        const differenceFromArm = (sector: number) => {
             const necessaryRotation = findSectorRotation(
-                data.sectorNumber,
+                sector,
                 getState,
             )
             return Math.abs(getState().disk.diskRotation - necessaryRotation)
         }
 
+        const distanceFromSector = (sector: number) => {
+            const sectors = selectSectors(getState()).length
+            const sectorsPerTrack = sectors / getState().disk.trackCount
+            const sectorRotation = (sector % sectorsPerTrack) * (360 / sectorsPerTrack)
+            return Math.abs(getState().disk.diskRotation - sectorRotation - 90)
+        }
+
+        const getNextSectorOnTrack = (sector: number) => {
+            const state = getState()
+            const totalSectors = selectTotalBlocks(state) * selectSectorsPerBlock(state)
+            const sectorsPerTrack = totalSectors / selectTrackCount(state)
+
+            let nextSector = sector + 1
+            if(nextSector < totalSectors) {
+                if(nextSector % sectorsPerTrack === 0) {
+                    nextSector = 0
+                }
+            }
+
+            return nextSector
+        }
+
         // While the arm is greater than 2 degrees away from the sector, don't do anything
-        while (difference() > 5) {
+        while (differenceFromArm(data.sectorNumber) > 5) {
             await new Promise((resolve) => setTimeout(() => resolve(true), 50)) // Wait 100ms and try again
         }
 
@@ -163,7 +180,7 @@ const writeOrRead =
             )
         }
 
-        while (difference() < 5) {
+        while (distanceFromSector(getNextSectorOnTrack(data.sectorNumber)) > 5) {
             await new Promise((resolve) => setTimeout(() => resolve(true), 50)) // wait for the arm to move away from the sector
         }
 
@@ -206,10 +223,9 @@ const goToSector =
         const horizontalOffset = (l / d) * (x2 - x1) - (h / d) * (y2 - y1) + x1
         const degrees = -Math.asin(horizontalOffset / r1) * (180 / Math.PI)
         const timeDifferential =
-            (3 / 55) *
+            (2 / 55) *
             Math.abs(
-                (getState().disk.armRotationReference ??
-                    getState().disk.armRotation.degrees) - degrees,
+                (getState().disk.armRotation.degrees) - degrees,
             )
         dispatch(setArmRotation({ degrees, time: timeDifferential }))
         await new Promise((resolve) =>
@@ -274,7 +290,6 @@ export const {
     writeSector,
     setIsProcessing,
     addToCurrentlyServicing,
-    setArmRotationReference,
 } = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk
@@ -288,7 +303,5 @@ export const selectDiskRotation = (state: RootState) => state.disk.diskRotation
 export const selectArmRotation = (state: RootState) => state.disk.armRotation
 export const selectRotationTimeInSeconds = (state: RootState) =>
     state.disk.rotationTimeInSeconds
-export const selectArmRotationReference = (state: RootState) =>
-    state.disk.armRotationReference
 
 export default diskSlice.reducer

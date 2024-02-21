@@ -57,7 +57,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
                 quickSuggestions: false,
                 suggest: false,
                 glyphMargin: false,
-                lineNumbersMinChars: mode === "ascii" ? undefined : 6,
+                lineNumbersMinChars: 6,
                 lineNumbers: (num: number) => {
                     if(mode === "hex" || mode === "bin") {
                         return ((num - 1) * 15).toString(16).toUpperCase().padStart(6, "0")

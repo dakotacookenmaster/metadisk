@@ -7,7 +7,8 @@ import {
 import { useEffect, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
-import { readSector } from "../../../apis/disk"
+import BitmapTabs from "./BitmapTabs"
+import { readBlock } from "../../../apis/vsfs"
 
 const FileSystemBlockLayout = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
@@ -17,6 +18,7 @@ const FileSystemBlockLayout = () => {
     const [selected, setSelected] = useState<string>("Superblock")
     const [progress, setProgress] = useState<number>(0)
     const [data, setData] = useState<string | undefined>(undefined)
+    const [canMove, setCanMove] = useState(false)
 
     const getLabel = (index: number) => {
         if (index === 0) {
@@ -35,12 +37,22 @@ const FileSystemBlockLayout = () => {
     useEffect(() => {
         // Start by reading from the superblock
         ;(async () => {
+            setData(undefined)
             setProgress(0)
-            const result = await readSector(0)
-            setData(result.data)
-            setProgress(100)
+            setCanMove(false)
+            if (selected === "Superblock") {
+                const result = await readBlock(0, (progress: number) => setProgress(progress))
+                setData(result.data)
+            } else if (selected === "Inode Bitmap") {
+                const result = await readBlock(1, (progress: number) => setProgress(progress))
+                setData(result.data)
+            } else if (selected === "Data Bitmap") {
+                const result = await readBlock(2, (progress: number) => setProgress(progress))
+                setData(result.data)
+            }
+            setCanMove(true)
         })()
-    }, [])
+    }, [selected])
 
     return (
         <Box sx={{ padding: theme.spacing(1) }}>
@@ -81,8 +93,8 @@ const FileSystemBlockLayout = () => {
                                 textAlign: "center",
                                 userSelect: "none",
                                 "&:hover": {
-                                    cursor: "pointer",
-                                    background: theme.palette.primary.main,
+                                    cursor: canMove ? "pointer" : "not-allowed",
+                                    background: canMove ? theme.palette.primary.main : undefined,
                                 },
                                 background:
                                     selected === getLabel(i)
@@ -90,7 +102,9 @@ const FileSystemBlockLayout = () => {
                                         : undefined,
                             }}
                             onClick={() => {
-                                setSelected(getLabel(i))
+                                if (canMove) {
+                                    setSelected(getLabel(i))
+                                }
                             }}
                         >
                             {getLabel(i)}
@@ -98,7 +112,15 @@ const FileSystemBlockLayout = () => {
                     )
                 })}
             </Box>
-            {selected === "Superblock" && <SuperblockTabs data={data} progress={progress} />}
+            {selected === "Superblock" && (
+                <SuperblockTabs data={data} progress={progress} />
+            )}
+            {selected === "Inode Bitmap" && (
+                <BitmapTabs data={data} progress={progress} />
+            )}
+            {selected === "Data Bitmap" && (
+                <BitmapTabs data={data} progress={progress} />
+            )}
         </Box>
     )
 }

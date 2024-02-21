@@ -269,6 +269,7 @@ export default function MainWindow(props: {
                                         width: `calc(${
                                             isLG ? "100%" : "50%"
                                         } - (${theme.spacing(1.5)} / 2))`,
+                                        minHeight: "575px",
                                     }}
                                 >
                                     <Element {...apps[appKey].props} />

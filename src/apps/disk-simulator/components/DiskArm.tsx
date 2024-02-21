@@ -1,27 +1,10 @@
 import { Box } from "@mui/material"
-import { useEffect, useRef } from "react"
-import { useAppDispatch } from "../../../redux/hooks/hooks"
-import { setArmRotationReference } from "../../../redux/reducers/diskSlice"
-import getCurrentRotation from "../../common/helpers/getCurrentRotation"
 
 const DiskArm = (props: { rotation: { degrees: number; time: number } }) => {
     const { rotation } = props
-    const armRef = useRef(null)
-    const dispatch = useAppDispatch()
-
-    useEffect(() => {
-        setInterval(() => {
-            if (armRef.current) {
-                dispatch(
-                    setArmRotationReference(getCurrentRotation(armRef.current)),
-                )
-            }
-        }, 100)
-    }, [])
 
     return (
         <Box
-            ref={armRef}
             sx={{
                 position: "absolute",
                 width: "50px",

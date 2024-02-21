@@ -24,7 +24,7 @@ import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
 import WaitingMessage from "../common/components/WaitingMessage"
 import { useEffect, useState } from "react"
 import dec2bin from "../common/helpers/dec2bin"
-import { writeSector } from "../../apis/disk"
+import { writeBlock } from "../../apis/vsfs"
 
 export interface FileSystemSetup {
     name: string
@@ -58,14 +58,12 @@ const VSFS = () => {
         selectIsFinishedConfiguringFileSystem,
     )
     const isDiskFormatted = useAppSelector(selectIsDiskFormatted)
-    const [waitingMessage, setWaitingMessage] = useState<null | { title: string, message: string }>(null)
+    const [waitingMessage, setWaitingMessage] = useState<null | {
+        title: string
+        message: string
+    }>(null)
     const [progress, setProgress] = useState<number>(0)
     const dispatch = useAppDispatch()
-
-    const getBlockStartingSector = (block: number) => {
-        return block * sectorsPerBlock
-    }
-
 
     useEffect(() => {
         if (
@@ -84,32 +82,34 @@ const VSFS = () => {
                 const bitmap = "0".repeat(sectorSize)
 
                 setProgress(0)
-                setWaitingMessage({ title: "Formatting Disk", message: "Please wait..." })
+                setWaitingMessage({
+                    title: "Formatting Disk",
+                    message: "Please wait...",
+                })
+
+                const progressUpdate = (progress: number, taskCount: number) => {
+                    setProgress((prevProgress) => {
+                        return prevProgress + (progress * (1 / taskCount))
+                    })
+                }
 
                 // write to the first block
-                const superblockRequest = writeSector(
-                    getBlockStartingSector(0),
+                const superblockRequest = writeBlock(
+                    0,
                     superblockData,
-                ).then(() => {
-                    setProgress(prevProgress => prevProgress + (100 / 3))
-                })
+                    progressUpdate,
+                )
 
                 // write the inode bitmap
-                const inodeBitmapRequest = writeSector(
-                    getBlockStartingSector(1),
-                    bitmap,
-                ).then(() => {
-                    setProgress(prevProgress => prevProgress + (100 / 3))
-                })
+                const inodeBitmapRequest = writeBlock(1, bitmap, progressUpdate)
 
                 // write the data bitmap
-                const dataBitmapRequest = writeSector(
-                    getBlockStartingSector(2),
+                const dataBitmapRequest = writeBlock(
+                    2,
                     bitmap,
-                ).then(() => {
-                    setProgress(prevProgress => prevProgress + (100 / 3))
-                })
-                
+                    progressUpdate,
+                )
+
                 await Promise.all([
                     superblockRequest,
                     inodeBitmapRequest,

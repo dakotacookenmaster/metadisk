@@ -2,6 +2,7 @@ import splitIntoBytes from "../../common/helpers/splitIntoBytes"
 import Editor from "@monaco-editor/react"
 import { useRef } from "react"
 import { chunk } from "lodash"
+import { Typography } from "@mui/material"
 
 const getCharacter = (byte: number): string => {
     return ["\uE400", "\u263A", "\u263B", "\u2665", "\u2666", "\u2663", "\u2660", "\u2022", "\u25D8", "\u25CB", "\u25D9", "\u2642", "\u2640", "\u266A", "\u266B", "\u263C",
@@ -43,6 +44,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
 
     return (
         <Editor 
+            loading={<Typography>Loading...</Typography>}
             height="380px" 
             width="100%"
             defaultLanguage="text"

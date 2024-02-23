@@ -48,7 +48,7 @@ const initialState: FileSystemState = {
     isFinishedConfiguringFileSystem: false,
     isAwaitingDisk: false,
     sectorSize: 512,
-    sectorsPerBlock: 3,
+    sectorsPerBlock: 4,
     blockSize: 512 * 2,
     totalBlocks: 16,
     minimumRequiredDiskSize: 512 * 2 * 16,

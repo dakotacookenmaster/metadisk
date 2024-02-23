@@ -1,44 +1,40 @@
 import { Typography } from "@mui/material"
 import Box, { BoxProps } from "@mui/material/Box"
 import Slider from "@mui/material/Slider"
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks/hooks"
+import { useAppDispatch } from "../../../redux/hooks/hooks"
 import {
-    selectRotationTimeInSeconds,
-    setRotationTimeInSeconds,
+    setDiskSpeed,
 } from "../../../redux/reducers/diskSlice"
+import { useState } from "react"
 
 export default function DiskControls(props: BoxProps) {
     const dispatch = useAppDispatch()
-    const rotationTimeInSeconds = useAppSelector(selectRotationTimeInSeconds)
+    const [value, setValue] = useState("Moderate")
     const marks = [
         {
-            value: 30,
-            label: "2 RPM",
+            value: 0.1,
+            label: "Uber Slow",
         },
         {
-            value: 20,
-            label: "3 RPM",
+            value: 0.3,
+            label: "Very Slow",
         },
         {
-            value: 12,
-            label: "5 RPM",
+            value: 0.5,
+            label: "Slow",
         },
         {
-            value: 10,
-            label: "6 RPM",
+            value: 0.6,
+            label: "Moderate",
         },
         {
-            value: 6,
-            label: "10 RPM",
-        },
-        {
-            value: 4,
-            label: "15 RPM",
+            value: 1.0,
+            label: "Fast",
         },
     ]
 
     function valuetext(value: number) {
-        return `${value} RPM`
+        return marks[value].label
     }
 
     return (
@@ -52,20 +48,21 @@ export default function DiskControls(props: BoxProps) {
                 }}
             >
                 <Typography variant="overline" fontWeight={"bold"}>
-                    Speed: {60 / rotationTimeInSeconds} RPM
+                    Speed: { value }
                 </Typography>
                 <Slider
                     aria-label="Disk Speed"
-                    defaultValue={4}
+                    defaultValue={3}
                     valueLabelFormat={(value: number) => marks[value].label}
                     getAriaValueText={valuetext}
                     sx={{ width: "120px", marginTop: "-10px" }}
                     step={1}
                     min={0}
-                    max={5}
+                    max={4}
                     onChange={(_, value: number | number[]) => {
+                        setValue(marks[value as number].label)
                         dispatch(
-                            setRotationTimeInSeconds(
+                            setDiskSpeed(
                                 marks[value as number].value,
                             ),
                         )

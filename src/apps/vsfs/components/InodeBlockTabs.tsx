@@ -4,7 +4,6 @@ import Tab from "@mui/material/Tab"
 import Box from "@mui/material/Box"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
-import Bitmap from "./Bitmap"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -35,7 +34,7 @@ function a11yProps(index: number) {
     }
 }
 
-export default function BitmapTabs(props: { data: string | undefined, progress: number }) {
+export default function InodeBlockTabs(props: { data: string | undefined, progress: number }) {
     const { data, progress } = props
     const [value, setValue] = React.useState(0)
 
@@ -55,22 +54,22 @@ export default function BitmapTabs(props: { data: string | undefined, progress: 
                     onChange={handleChange}
                     aria-label="basic tabs example"
                 >
-                    <Tab label="Overview" {...a11yProps(0)} />
-                    <Tab label="Binary" {...a11yProps(1)} />
-                    <Tab label="Hex" {...a11yProps(2)} />
-                    <Tab label="ASCII" {...a11yProps(3)} />
+                    {/* <Tab label="Overview" {...a11yProps(0)} /> */}
+                    <Tab label="Binary" {...a11yProps(0)} />
+                    <Tab label="Hex" {...a11yProps(1)} />
+                    <Tab label="ASCII" {...a11yProps(2)} />
                 </Tabs>
             </Box>
-            <CustomTabPanel value={value} index={0}>
+            {/* <CustomTabPanel value={value} index={0}>
                 <Bitmap data={data} />
-            </CustomTabPanel>
-            <CustomTabPanel value={value} index={1}>
+            </CustomTabPanel> */}
+            <CustomTabPanel value={value} index={0}>
                 <Viewer data={data} mode="bin" />
             </CustomTabPanel>
-            <CustomTabPanel value={value} index={2}>
+            <CustomTabPanel value={value} index={1}>
                 <Viewer data={data} mode="hex" />
             </CustomTabPanel>
-            <CustomTabPanel value={value} index={3}>
+            <CustomTabPanel value={value} index={2}>
                 <Viewer data={data} mode="ascii" />
             </CustomTabPanel>
         </Box>

@@ -16,6 +16,7 @@ import {
 import Tooltip from "../../common/components/Tooltip"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
+import splitIntoBytes from "../../common/helpers/splitIntoBytes"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -34,7 +35,9 @@ function CustomTabPanel(props: TabPanelProps) {
             aria-labelledby={`simple-tab-${index}`}
             {...other}
         >
-            {value === index && <Box sx={{ pt: 3, minHeight: "400px", }}>{children}</Box>}
+            {value === index && (
+                <Box sx={{ pt: 3, minHeight: "400px" }}>{children}</Box>
+            )}
         </div>
     )
 }
@@ -46,7 +49,10 @@ function a11yProps(index: number) {
     }
 }
 
-export default function SuperblockTabs(props: { data: string | undefined, progress: number }) {
+export default function SuperblockTabs(props: {
+    data: string | undefined
+    progress: number
+}) {
     const { data, progress } = props
     const [value, setValue] = React.useState(0)
     const superblock = useAppSelector(selectSuperblock)
@@ -65,9 +71,16 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
         setValue(newValue)
     }
 
-    if(!data) {
-        return <WaitingMessage message="Reading from disk..." progress={progress} />
+    if (!data) {
+        return (
+            <WaitingMessage
+                message="Reading from disk..."
+                progress={progress}
+            />
+        )
     }
+
+    const dataAsBytes = splitIntoBytes(data)
 
     return (
         <Box sx={{ width: "100%" }}>
@@ -84,7 +97,6 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
                 </Tabs>
             </Box>
             <CustomTabPanel value={value} index={0}>
-                {/* <TextField multiline fullWidth sx={{ height: "100%" }} value={"Data \n on \n multiple \n lines"} /> */}
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -99,7 +111,12 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>System Name</TableCell>
-                                <TableCell>{superblock.name}</TableCell>
+                                <TableCell>
+                                    {parseInt(dataAsBytes[0], 2) ===
+                                    superblock.magicNumber
+                                        ? superblock.name
+                                        : "Unknown File System (System Potentially Corrupted)"}
+                                </TableCell>
                             </TableRow>
                         </Tooltip>
                         <Tooltip
@@ -108,7 +125,9 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>Magic Number</TableCell>
-                                <TableCell>{superblock.magicNumber}</TableCell>
+                                <TableCell>
+                                    {parseInt(dataAsBytes[0], 2)}{" "}
+                                </TableCell>
                             </TableRow>
                         </Tooltip>
                         <Tooltip
@@ -118,7 +137,7 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
                             <TableRow sx={styles.row}>
                                 <TableCell>Inodes</TableCell>
                                 <TableCell>
-                                    {superblock.numberOfInodes}
+                                    {parseInt(dataAsBytes[1], 2)}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>
@@ -127,9 +146,9 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
                             title="The first block that contains inodes. This is an important offset that allows the system to quickly skip other metadata."
                         >
                             <TableRow sx={styles.row}>
-                                <TableCell>First Inode Block</TableCell>
+                                <TableCell>Total Inode Blocks</TableCell>
                                 <TableCell>
-                                    Block {superblock.startIndex}
+                                    {parseInt(dataAsBytes[2], 2)}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>
@@ -140,7 +159,7 @@ export default function SuperblockTabs(props: { data: string | undefined, progre
                             <TableRow sx={styles.row}>
                                 <TableCell>Data Blocks</TableCell>
                                 <TableCell>
-                                    {superblock.numberOfDataBlocks}
+                                    {parseInt(dataAsBytes[3], 2)}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>

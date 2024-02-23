@@ -24,7 +24,7 @@ import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
 import WaitingMessage from "../common/components/WaitingMessage"
 import { useEffect, useState } from "react"
 import dec2bin from "../common/helpers/dec2bin"
-import { writeBlock } from "../../apis/vsfs"
+import { writeBlocks } from "../../apis/vsfs"
 
 export interface FileSystemSetup {
     name: string
@@ -87,35 +87,22 @@ const VSFS = () => {
                     message: "Please wait...",
                 })
 
-                const progressUpdate = (progress: number, taskCount: number) => {
-                    setProgress((prevProgress) => {
-                        return prevProgress + (progress * (1 / taskCount))
-                    })
-                }
+                const rootInodeData: string = [
+                    "00000110", // Read ✅, Write ❌, Execute ❌
+                    "0000000000000000", // Who owns this file? ROOT
+                    "00000000000000000000000000000000", // How many bytes are in this file? FIXME
+                    Date.now().toString(2).padStart(32, "0"), // What time was this file created?
+                    Date.now().toString(2).padStart(32, "0"), // What time was this file last accessed?
+                    Date.now().toString(2).padStart(32, "0"), // What time was this file last modified?
+                    Date.now().toString(2).padStart(32, "0"), // What time was this inode deleted?
+                    "00000001", // How many blocks have been allocated to this file?
+                    [...Array(10)].map(() => "0".repeat(32)).join("") // initialize block pointers FIXME
+                ].join("")
 
-                // write to the first block
-                const superblockRequest = writeBlock(
-                    0,
-                    superblockData,
-                    progressUpdate,
-                )
-
-                // write the inode bitmap
-                const inodeBitmapRequest = writeBlock(1, bitmap, progressUpdate)
-
-                // write the data bitmap
-                const dataBitmapRequest = writeBlock(
-                    2,
-                    bitmap,
-                    progressUpdate,
-                )
-
-                await Promise.all([
-                    superblockRequest,
-                    inodeBitmapRequest,
-                    dataBitmapRequest,
-                ])
-
+                await writeBlocks([0, 1, 2, 3], [superblockData, bitmap, bitmap, rootInodeData], (progress) => {
+                    setProgress(progress)
+                })
+                
                 setWaitingMessage(null)
 
                 dispatch(setIsDiskFormatted(true))

@@ -9,6 +9,8 @@ import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
 import BitmapTabs from "./BitmapTabs"
 import { readBlock } from "../../../apis/vsfs"
+import InodeBlockTabs from "./InodeBlockTabs"
+import DataBlockTabs from "./DataBlockTabs"
 
 const FileSystemBlockLayout = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
@@ -19,6 +21,7 @@ const FileSystemBlockLayout = () => {
     const [progress, setProgress] = useState<number>(0)
     const [data, setData] = useState<string | undefined>(undefined)
     const [canMove, setCanMove] = useState(false)
+    const [blockNumber, setBlockNumber] = useState(0)
 
     const getLabel = (index: number) => {
         if (index === 0) {
@@ -37,19 +40,10 @@ const FileSystemBlockLayout = () => {
     useEffect(() => {
         // Start by reading from the superblock
         ;(async () => {
-            setData(undefined)
-            setProgress(0)
-            setCanMove(false)
-            if (selected === "Superblock") {
-                const result = await readBlock(0, (progress: number) => setProgress(progress))
-                setData(result.data)
-            } else if (selected === "Inode Bitmap") {
-                const result = await readBlock(1, (progress: number) => setProgress(progress))
-                setData(result.data)
-            } else if (selected === "Data Bitmap") {
-                const result = await readBlock(2, (progress: number) => setProgress(progress))
-                setData(result.data)
-            }
+            const result = await readBlock(blockNumber, (progress: number) =>
+                setProgress(progress),
+            )
+            setData(result.data)
             setCanMove(true)
         })()
     }, [selected])
@@ -71,6 +65,7 @@ const FileSystemBlockLayout = () => {
                     marginTop: theme.spacing(2),
                     paddingBottom: theme.spacing(2),
                     scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
+                    scrollbarWidth: "thin",
                 }}
             >
                 {[...Array(totalBlocks)].map((_, i) => {
@@ -94,7 +89,9 @@ const FileSystemBlockLayout = () => {
                                 userSelect: "none",
                                 "&:hover": {
                                     cursor: canMove ? "pointer" : "not-allowed",
-                                    background: canMove ? theme.palette.primary.main : undefined,
+                                    background: canMove
+                                        ? theme.palette.primary.main
+                                        : undefined,
                                 },
                                 background:
                                     selected === getLabel(i)
@@ -103,7 +100,16 @@ const FileSystemBlockLayout = () => {
                             }}
                             onClick={() => {
                                 if (canMove) {
-                                    setSelected(getLabel(i))
+                                    setSelected((prevLabel) => {
+                                        setBlockNumber(i)
+                                        const newLabel = getLabel(i)
+                                        if (prevLabel !== newLabel) {
+                                            setData(undefined)
+                                            setProgress(0)
+                                            setCanMove(false)
+                                        }
+                                        return newLabel
+                                    })
                                 }
                             }}
                         >
@@ -120,6 +126,12 @@ const FileSystemBlockLayout = () => {
             )}
             {selected === "Data Bitmap" && (
                 <BitmapTabs data={data} progress={progress} />
+            )}
+            {selected.includes("Inode Block") && (
+                <InodeBlockTabs data={data} progress={progress} />
+            )}
+            {selected.includes("Data Block") && (
+                <DataBlockTabs data={data} progress={progress} />
             )}
         </Box>
     )

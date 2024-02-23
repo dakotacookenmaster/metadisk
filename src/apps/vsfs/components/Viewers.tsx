@@ -52,7 +52,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
                 wordWrap: "on", 
                 fontSize: "18px",
                 readOnly: true,
-                fontFamily: "u0000", 
+                fontFamily: "u0000",
                 suggestOnTriggerCharacters: false,
                 quickSuggestions: false,
                 suggest: false,
@@ -60,7 +60,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
                 lineNumbersMinChars: 6,
                 lineNumbers: (num: number) => {
                     if(mode === "hex" || mode === "bin") {
-                        return ((num - 1) * 15).toString(16).toUpperCase().padStart(6, "0")
+                        return ((num - 1) * (mode === "hex" ? 15 : 4)).toString(16).toUpperCase().padStart(4, "0")
                     } else {
                         return num
                     }
@@ -68,7 +68,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
             }}
             theme="vs-dark" 
             onMount={handleMount} 
-            defaultValue={chunk(bytes.map(byte => convertBinaryByteStringToType(byte, mode)), mode === "ascii" ? 22 : mode === "hex" ? 15 : 4).map(byteGroup => byteGroup.join(" ")).join("\n")}
+            defaultValue={chunk(bytes.map(byte => convertBinaryByteStringToType(byte, mode)), mode === "ascii" ? 21 : mode === "hex" ? 15 : 4).map(byteGroup => byteGroup.join(" ")).join("\n")}
         />
     )
 }

@@ -120,7 +120,7 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                         label="Sectors Per Block"
                         labelId="sectors-per-block-label"
                     >
-                        {[...Array(3)].map((_, i) => (
+                        {[...Array(4)].map((_, i) => (
                             <MenuItem key={`menu-item-${i}`} value={i + 1}>
                                 {i + 1} sectors
                             </MenuItem>
@@ -144,12 +144,12 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                         label="Total Blocks"
                         labelId="total-blocks-label"
                     >
-                        {[...Array(2)].map((_, i) => (
+                        {[8, 16].map((v) => (
                             <MenuItem
-                                key={`menu-item-${i}`}
-                                value={2 ** (i + 3)}
+                                key={`menu-item-${v}`}
+                                value={v}
                             >
-                                {(2 ** (i + 3)).toLocaleString()} blocks
+                                {v} blocks
                             </MenuItem>
                         ))}
                     </Select>

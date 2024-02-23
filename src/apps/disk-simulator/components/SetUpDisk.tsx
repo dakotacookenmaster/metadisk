@@ -56,6 +56,24 @@ const SetUpDisk = () => {
         useAppSelector(selectTotalBlocks)
     const sectorsPerTrack = totalSectors / trackCount
     const dispatch = useAppDispatch()
+
+    const getTrackCountOptions = () => {
+        const options = []
+        if(totalSectors <= 16) {
+            options.push(1)
+        }
+        if(totalSectors <= 32) {
+            options.push(2)
+        }
+        if(totalSectors <= 64) {
+            options.push(4)
+        }
+        if(totalSectors <= 99) { // 99 is the maximum number of sectors because of display reasons
+            options.push(8)
+        }
+        return options
+    }
+
     return (
         <Box
             sx={{
@@ -86,16 +104,16 @@ const SetUpDisk = () => {
                         onChange={(event) =>
                             dispatch(
                                 setTrackCount(
-                                    +event.target.value as 1 | 2 | 4 | 8,
+                                    +event.target.value
                                 ),
                             )
                         }
                         label="Number of Tracks"
                         labelId="track-count-label"
                     >
-                        {[...Array(4)].map((_, i) => (
-                            <MenuItem key={`menu-item-${i}`} value={2 ** i}>
-                                {2 ** i}
+                        {getTrackCountOptions().map((v) => (
+                            <MenuItem key={`menu-item-${v}`} value={v}>
+                                {v}
                             </MenuItem>
                         ))}
                     </Select>

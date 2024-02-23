@@ -1,8 +1,9 @@
 import { Box, useTheme } from "@mui/material"
+import { useAnimationFrame } from "framer-motion"
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks/hooks"
 import {
+    selectDiskSpeed,
     selectDiskState,
-    selectRotationTimeInSeconds,
     selectTrackCount,
     setDiskRotation,
 } from "../../../redux/reducers/diskSlice"
@@ -10,8 +11,7 @@ import {
     selectSectorsPerBlock,
     selectTotalBlocks,
 } from "../../../redux/reducers/fileSystemSlice"
-import React, { useEffect, useRef } from "react"
-import getCurrentRotation from "../../common/helpers/getCurrentRotation"
+import React, { useRef } from "react"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../common/constants"
 
 const DiskPlatter = () => {
@@ -22,36 +22,40 @@ const DiskPlatter = () => {
         trackCount
     const trackSeparation = MAX_DISK_WIDTH_PERCENTAGE / (trackCount + 1)
     const platterRef = useRef<HTMLElement | null>(null)
+    const sectorRefs = [...Array(sectorsPerTrack * trackCount)].map(() =>
+        useRef<HTMLElement | null>(null),
+    )
     const diskState = useAppSelector(selectDiskState)
+    const diskSpeed = useAppSelector(selectDiskSpeed)
     const dispatch = useAppDispatch()
-    const rotationTimeInSeconds = useAppSelector(selectRotationTimeInSeconds)
     const theme = useTheme()
+    const rotation = useRef(0)
 
-    useEffect(() => {
-        const id = setInterval(() => {
-            if (platterRef.current) {
-                dispatch(
-                    setDiskRotation(getCurrentRotation(platterRef.current)),
-                )
-            }
-        }, 1)
 
-        return () => {
-            clearInterval(id)
+    useAnimationFrame(() => {
+        if (
+            platterRef.current &&
+            sectorRefs.every((sectorRef) => sectorRef.current)
+        ) {
+            rotation.current = (rotation.current + diskSpeed) % 360
+            platterRef.current.style.transform = `rotate(${rotation.current}deg)`
+            sectorRefs.forEach((sectorRef) => {
+                sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
+            })
+            dispatch(setDiskRotation(rotation.current))
         }
-    }, [])
+    })
 
     return (
         <Box
             ref={platterRef}
             className={diskState}
             sx={{
-                animationDuration: `${rotationTimeInSeconds}s`,
-                willChange: "contents", // This is needed for chromium-based browsers to set up optimizations
                 width: "500px",
                 height: "500px",
                 minWidth: "500px",
                 position: "relative",
+                transform: `rotate(${rotation}deg)`,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -94,6 +98,7 @@ const DiskPlatter = () => {
                                     ii + sectorsPerTrack * (trackCount - i - 1)
                                 return (
                                     <Box
+                                        ref={sectorRefs[sectorNumber]}
                                         sx={{
                                             width: "27px",
                                             height: "27px",
@@ -107,13 +112,15 @@ const DiskPlatter = () => {
                                             justifyContent: "center",
                                             border: "2px solid white",
                                             alignItems: "center",
-                                            animationDuration: `${rotationTimeInSeconds}s`,
+                                            transform: `rotate(${-rotation}deg)`,
                                             left:
-                                                radius * Math.sin(theta) + 235,
-                                            top: radius * Math.cos(theta) + 235,
+                                                radius * Math.sin(theta) +
+                                                (250 - 27 / 2),
+                                            top:
+                                                radius * Math.cos(theta) +
+                                                (250 - 27 / 2),
                                             zIndex: 10,
                                         }}
-                                        className={`sector-${diskState}`}
                                         key={`track-${i}-sector-${ii}`}
                                     >
                                         {sectorNumber}

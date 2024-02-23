@@ -49,6 +49,7 @@ const DiskSimulator = () => {
                 minHeight: "fit-content",
                 height: "100%",
                 padding: "10px 20px",
+                overflow: "hidden",
             }}
         >
             {!isFinishedConfiguringFileSystem && (

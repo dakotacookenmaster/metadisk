@@ -93,7 +93,7 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                         label="Sector Size"
                         labelId="sector-size-label"
                     >
-                        {[...Array(6)].map((_, i) => (
+                        {[...Array(7)].map((_, i) => (
                             <MenuItem
                                 key={`menu-item-${i}`}
                                 value={2 ** (i + 9)}

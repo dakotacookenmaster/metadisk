@@ -16,7 +16,6 @@ import {
 import Tooltip from "../../common/components/Tooltip"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
-import splitIntoBytes from "../../common/helpers/splitIntoBytes"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -80,7 +79,10 @@ export default function SuperblockTabs(props: {
         )
     }
 
-    const dataAsBytes = splitIntoBytes(data)
+    const magicNumber = data.slice(0, 8)
+    const inodeCount = data.slice(8, 24)
+    const inodeBlocks = data.slice(24, 28)
+    const dataBlocks = data.slice(28, 32)
 
     return (
         <Box sx={{ width: "100%" }}>
@@ -112,7 +114,7 @@ export default function SuperblockTabs(props: {
                             <TableRow sx={styles.row}>
                                 <TableCell>System Name</TableCell>
                                 <TableCell>
-                                    {parseInt(dataAsBytes[0], 2) ===
+                                    {parseInt(magicNumber, 2) ===
                                     superblock.magicNumber
                                         ? superblock.name
                                         : "Unknown File System (System Potentially Corrupted)"}
@@ -126,7 +128,7 @@ export default function SuperblockTabs(props: {
                             <TableRow sx={styles.row}>
                                 <TableCell>Magic Number</TableCell>
                                 <TableCell>
-                                    {parseInt(dataAsBytes[0], 2)}{" "}
+                                    {parseInt(magicNumber, 2)}{" "}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>
@@ -136,9 +138,7 @@ export default function SuperblockTabs(props: {
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>Inodes</TableCell>
-                                <TableCell>
-                                    {parseInt(dataAsBytes[1], 2)}
-                                </TableCell>
+                                <TableCell>{parseInt(inodeCount, 2)}</TableCell>
                             </TableRow>
                         </Tooltip>
                         <Tooltip
@@ -148,7 +148,7 @@ export default function SuperblockTabs(props: {
                             <TableRow sx={styles.row}>
                                 <TableCell>Total Inode Blocks</TableCell>
                                 <TableCell>
-                                    {parseInt(dataAsBytes[2], 2)}
+                                    {parseInt(inodeBlocks, 2)}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>
@@ -158,9 +158,7 @@ export default function SuperblockTabs(props: {
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>Data Blocks</TableCell>
-                                <TableCell>
-                                    {parseInt(dataAsBytes[3], 2)}
-                                </TableCell>
+                                <TableCell>{parseInt(dataBlocks, 2)}</TableCell>
                             </TableRow>
                         </Tooltip>
                     </TableBody>

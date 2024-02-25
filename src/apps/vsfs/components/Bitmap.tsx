@@ -9,12 +9,14 @@ const Bitmap = (props: { data: string }) => {
     const pageData = chunk(data.split(""), 256)
     const [page, setPage] = useState(1)
     return (
-        <Box style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: theme.spacing(3),
-            alignItems: "center",
-        }}>
+        <Box
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: theme.spacing(3),
+                alignItems: "center",
+            }}
+        >
             <Box
                 sx={{
                     paddingRight: theme.spacing(2),
@@ -30,34 +32,40 @@ const Bitmap = (props: { data: string }) => {
                     width: "100%",
                 }}
             >
-                {pageData[page]
+                {pageData[page - 1]
                     .join("")
                     .split("")
-                    .map((char, i) => (
-                        <Box
-                            key={`bit-${i}`}
-                            style={{
-                                display: "flex",
-                                fontWeight: "bold",
-                                borderRadius: "2px",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: "50px",
-                                height: "50px",
-                                border: "2px solid white",
-                                background:
-                                    char === "0"
-                                        ? theme.palette.error.main
-                                        : theme.palette.success.main,
-                            }}
-                        >
-                            {i + (page - 1) * 256}
-                        </Box>
-                    ))}
+                    .map((char, i) => {
+                        return (
+                            <Box
+                                key={`bit-${i}`}
+                                style={{
+                                    display: "flex",
+                                    fontWeight: "bold",
+                                    borderRadius: "2px",
+                                    alignItems: "center",
+                                    fontSize: (i + (page - 1) * 256) > 9999 ? "12px" : "16px",
+                                    justifyContent: "center",
+                                    width: "50px",
+                                    height: "50px",
+                                    border: "2px solid white",
+                                    background:
+                                        char === "0"
+                                            ? theme.palette.success.main
+                                            : theme.palette.error.main,
+                                }}
+                            >
+                                {i + (page - 1) * 256}
+                            </Box>
+                        )
+                    })}
             </Box>
-            <Pagination count={pageData.length - 1} onChange={(_, page) => {
-                setPage(page)
-            }} />
+            <Pagination
+                count={pageData.length - 1}
+                onChange={(_, page) => {
+                    setPage(page)
+                }}
+            />
         </Box>
     )
 }

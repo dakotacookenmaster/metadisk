@@ -1,12 +1,9 @@
-import FolderCopyIcon from "@mui/icons-material/FolderCopy"
+import ViewModuleIcon from '@mui/icons-material/ViewModule'
 
 export const VSFSIcon = (props: any) => {
     return (
-        <FolderCopyIcon
+        <ViewModuleIcon
             {...props}
-            sx={{
-                color: "#F1D592",
-            }}
         />
     )
 }

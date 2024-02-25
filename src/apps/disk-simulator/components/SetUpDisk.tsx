@@ -24,7 +24,7 @@ import {
     setTrackCount,
 } from "../../../redux/reducers/diskSlice"
 
-const getByteCount = (amount: number) => {
+export const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
     const MiB = amount / 8_388_608
     const KiB = amount / 8_192
@@ -41,8 +41,10 @@ const getByteCount = (amount: number) => {
         return KiB === 1
             ? `${KiB.toLocaleString()} kibibyte (KiB)`
             : `${KiB.toLocaleString()} kibibytes (KiB)`
-    } else {
+    } else if(B >= 1) {
         return `${B.toLocaleString()} bytes (B)`
+    } else {
+        return `${amount.toLocaleString()} bits (b)`
     }
 }
 

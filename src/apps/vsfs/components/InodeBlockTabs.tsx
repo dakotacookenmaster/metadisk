@@ -4,6 +4,10 @@ import Tab from "@mui/material/Tab"
 import Box from "@mui/material/Box"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
+import InodeOverview from "./InodeOverview"
+import { useState } from "react"
+import { IconButton } from "@mui/material"
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -22,7 +26,9 @@ function CustomTabPanel(props: TabPanelProps) {
             aria-labelledby={`simple-tab-${index}`}
             {...other}
         >
-            {value === index && <Box sx={{ pt: 3, minHeight: "400px", }}>{children}</Box>}
+            {value === index && (
+                <Box sx={{ pt: 3, minHeight: "400px" }}>{children}</Box>
+            )}
         </div>
     )
 }
@@ -34,42 +40,72 @@ function a11yProps(index: number) {
     }
 }
 
-export default function InodeBlockTabs(props: { data: string | undefined, progress: number }) {
-    const { data, progress } = props
+export default function InodeBlockTabs(props: {
+    data: string | undefined
+    progress: number
+    setSelected: React.Dispatch<React.SetStateAction<string>>
+    canMove: boolean
+    beginOperation: () => void
+    blockNumber: number
+    setBlockNumber: React.Dispatch<React.SetStateAction<number>>
+}) {
+    const { data, progress, setSelected, canMove, beginOperation, blockNumber, setBlockNumber } = props
     const [value, setValue] = React.useState(0)
+    const [selectedInode, setSelectedInode] = useState<number | undefined>(undefined)
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
     }
 
-    if(!data) {
-        return <WaitingMessage message="Reading from disk..." progress={progress} />
+    if (!data) {
+        return (
+            <WaitingMessage
+                message="Reading from disk..."
+                progress={progress}
+            />
+        )
     }
 
     return (
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: "100%", position: "relative" }}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                 <Tabs
                     value={value}
                     onChange={handleChange}
                     aria-label="basic tabs example"
                 >
-                    {/* <Tab label="Overview" {...a11yProps(0)} /> */}
-                    <Tab label="Binary" {...a11yProps(0)} />
-                    <Tab label="Hex" {...a11yProps(1)} />
-                    <Tab label="ASCII" {...a11yProps(2)} />
+                    <Tab label="Overview" {...a11yProps(0)} />
+                    <Tab label="Binary" {...a11yProps(1)} />
+                    <Tab label="Hex" {...a11yProps(2)} />
+                    <Tab label="ASCII" {...a11yProps(3)} />
                 </Tabs>
+                {
+                    selectedInode !== undefined && (
+                        <IconButton onClick={() => setSelectedInode(undefined) } sx={{ position: "absolute", top: 3, right: 0 }}>
+                            <ChevronLeftIcon />
+                        </IconButton>
+                    )
+                }
             </Box>
-            {/* <CustomTabPanel value={value} index={0}>
-                <Bitmap data={data} />
-            </CustomTabPanel> */}
             <CustomTabPanel value={value} index={0}>
-                <Viewer data={data} mode="bin" />
+                <InodeOverview
+                    data={data}
+                    canMove={canMove}
+                    setSelected={setSelected}
+                    beginOperation={beginOperation}
+                    blockNumber={blockNumber}
+                    selectedInode={selectedInode}
+                    setSelectedInode={setSelectedInode}
+                    setBlockNumber={setBlockNumber}
+                />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-                <Viewer data={data} mode="hex" />
+                <Viewer data={data} mode="bin" />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
+                <Viewer data={data} mode="hex" />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
                 <Viewer data={data} mode="ascii" />
             </CustomTabPanel>
         </Box>

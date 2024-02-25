@@ -37,6 +37,12 @@ const FileSystemBlockLayout = () => {
         }
     }
 
+    const beginOperation = () => {
+        setData(undefined)
+        setProgress(0)
+        setCanMove(false)
+    }
+
     useEffect(() => {
         // Start by reading from the superblock
         ;(async () => {
@@ -104,9 +110,7 @@ const FileSystemBlockLayout = () => {
                                         setBlockNumber(i)
                                         const newLabel = getLabel(i)
                                         if (prevLabel !== newLabel) {
-                                            setData(undefined)
-                                            setProgress(0)
-                                            setCanMove(false)
+                                            beginOperation()
                                         }
                                         return newLabel
                                     })
@@ -128,7 +132,15 @@ const FileSystemBlockLayout = () => {
                 <BitmapTabs data={data} progress={progress} />
             )}
             {selected.includes("Inode Block") && (
-                <InodeBlockTabs data={data} progress={progress} />
+                <InodeBlockTabs
+                    setBlockNumber={setBlockNumber}
+                    canMove={canMove}
+                    data={data}
+                    progress={progress}
+                    setSelected={setSelected}
+                    beginOperation={beginOperation}
+                    blockNumber={parseInt(selected.split(" ")[2])}
+                />
             )}
             {selected.includes("Data Block") && (
                 <DataBlockTabs data={data} progress={progress} />

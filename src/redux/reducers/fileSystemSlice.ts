@@ -5,10 +5,12 @@ interface FileSystemState {
     sectorsPerBlock: number
     blockSize: number
     totalBlocks: number
+    path: string
     minimumRequiredDiskSize: number
     isFinishedConfiguringFileSystem: boolean
     isAwaitingDisk: boolean
     isDiskFormatted: boolean
+    fileDescriptorTable: (FileDescriptor | null)[]
     superblock: {
         name: string
         magicNumber: number
@@ -18,6 +20,11 @@ interface FileSystemState {
         numberOfInodes: number
         startIndex: number
     }
+}
+
+export interface FileDescriptor {
+    path: string,
+    inode: number
 }
 
 /**
@@ -33,8 +40,8 @@ const calculateInodeAndDataBlocks = (
 ) => {
     let inodeTotalCount = 0
     let availableDataBlocks = totalBlocks - 3 // account for the superblock, i-bmap, and d-bmap
-    while (inodeTotalCount <= availableDataBlocks) {
-        availableDataBlocks = availableDataBlocks - 1
+    while (inodeTotalCount < availableDataBlocks) {
+        availableDataBlocks--
         inodeTotalCount += inodesPerBlock
     }
     const inodeBlocks = Math.ceil(inodeTotalCount / inodesPerBlock)
@@ -49,17 +56,19 @@ const initialState: FileSystemState = {
     isAwaitingDisk: false,
     sectorSize: 512,
     sectorsPerBlock: 4,
-    blockSize: 512 * 2,
+    blockSize: 512 * 4,
     totalBlocks: 16,
-    minimumRequiredDiskSize: 512 * 2 * 16,
+    minimumRequiredDiskSize: 512 * 4 * 16,
+    fileDescriptorTable: [null, null, null],
     isDiskFormatted: false,
+    path: "/",
     superblock: {
         name: "Very Simple File System (vsfs)",
         magicNumber: 7,
-        inodeSize: 512,
-        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 2).inodeBlocks,
-        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 2).dataBlocks,
-        numberOfInodes: calculateInodeAndDataBlocks(16, 2).inodeBlocks * 2,
+        inodeSize: 128,
+        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 16).inodeBlocks,
+        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 16).dataBlocks,
+        numberOfInodes: calculateInodeAndDataBlocks(16, 16).inodeBlocks * 4,
         startIndex: 3,
     },
 }
@@ -73,44 +82,44 @@ export const fileSystemSlice = createSlice({
             state.blockSize = state.sectorSize * state.sectorsPerBlock
             state.minimumRequiredDiskSize =
                 state.sectorSize * state.sectorsPerBlock * state.totalBlocks
+            const inodesPerBlock = state.blockSize / state.superblock.inodeSize
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
-                state.blockSize / state.superblock.inodeSize,
+                inodesPerBlock,
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
             state.superblock.numberOfInodes =
-                state.superblock.numberOfInodeBlocks *
-                (state.blockSize / state.superblock.inodeSize)
+                state.superblock.numberOfInodeBlocks * inodesPerBlock
         },
         setSectorsPerBlock: (state, action: PayloadAction<number>) => {
             state.sectorsPerBlock = action.payload
             state.blockSize = state.sectorSize * state.sectorsPerBlock
             state.minimumRequiredDiskSize =
                 state.sectorSize * state.sectorsPerBlock * state.totalBlocks
+            const inodesPerBlock = state.blockSize / state.superblock.inodeSize
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
-                state.blockSize / state.superblock.inodeSize,
+                inodesPerBlock,
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
             state.superblock.numberOfInodes =
-                state.superblock.numberOfInodeBlocks *
-                (state.blockSize / state.superblock.inodeSize)
+                state.superblock.numberOfInodeBlocks * inodesPerBlock
         },
         setTotalBlocks: (state, action: PayloadAction<number>) => {
             state.totalBlocks = action.payload
             state.minimumRequiredDiskSize =
                 state.sectorSize * state.sectorsPerBlock * state.totalBlocks
+            const inodesPerBlock = state.blockSize / state.superblock.inodeSize
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
-                state.blockSize / state.superblock.inodeSize,
+                inodesPerBlock,
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
             state.superblock.numberOfInodes =
-                state.superblock.numberOfInodeBlocks *
-                (state.blockSize / state.superblock.inodeSize)
+                state.superblock.numberOfInodeBlocks * inodesPerBlock
         },
         setIsFinishedConfiguringFileSystem: (
             state,
@@ -123,9 +132,20 @@ export const fileSystemSlice = createSlice({
         },
         setIsDiskFormatted: (state, action: PayloadAction<boolean>) => {
             state.isDiskFormatted = action.payload
-        }
+        },
+        setPath: (state, action: PayloadAction<string>) => {
+            state.path = action.payload
+        },
+        addFileDescriptor: (state, action: PayloadAction<FileDescriptor>) => {
+            state.fileDescriptorTable.push(action.payload)
+        },
+        removeFileDescriptor: (state, action: PayloadAction<number>) => {
+            state.fileDescriptorTable = state.fileDescriptorTable.splice(action.payload, 1)
+        },
     },
 })
+
+
 
 export const {
     setSectorSize,
@@ -133,7 +153,10 @@ export const {
     setSectorsPerBlock,
     setTotalBlocks,
     setIsAwaitingDisk,
-    setIsDiskFormatted
+    setIsDiskFormatted,
+    setPath,
+    addFileDescriptor,
+    removeFileDescriptor
 } = fileSystemSlice.actions
 
 export const selectSectorSize = (state: RootState) =>
@@ -153,5 +176,9 @@ export const selectSuperblock = (state: RootState) =>
     state.fileSystem.superblock
 export const selectIsAwaitingDisk = (state: RootState) =>
     state.fileSystem.isAwaitingDisk
-export const selectIsDiskFormatted = (state: RootState) => state.fileSystem.isDiskFormatted
+export const selectIsDiskFormatted = (state: RootState) =>
+    state.fileSystem.isDiskFormatted
+export const selectPath = (state: RootState) => state.fileSystem.path
+export const selectFileDescriptorTable = (state: RootState) => state.fileSystem.fileDescriptorTable
+
 export default fileSystemSlice.reducer

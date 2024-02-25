@@ -19,7 +19,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { VERSION } from "../apps/common/constants"
 import { useMediaQuery } from "@mui/material"
 
-const drawerWidth = 260
+const drawerWidth = 300
 
 const openedMixin = (theme: Theme): CSSObject => ({
     width: drawerWidth,
@@ -259,7 +259,7 @@ export default function MainWindow(props: {
                     }}
                 >
                     {Object.keys(apps)
-                        .filter((appKey) => apps[appKey].enabled)
+                        // .filter((appKey) => apps[appKey].enabled)
                         .map((appKey) => {
                             const Element = apps[appKey].elementFn
                             return (
@@ -270,6 +270,7 @@ export default function MainWindow(props: {
                                             isLG ? "100%" : "50%"
                                         } - (${theme.spacing(1.5)} / 2))`,
                                         minHeight: "575px",
+                                        display: apps[appKey].enabled ? "block" : "none",
                                     }}
                                 >
                                     <Element {...apps[appKey].props} />

@@ -80,7 +80,7 @@ const DiskSimulator = () => {
                         <DiskControls sx={{ 
                             position: "absolute",
                             top: 0, 
-                            left: "80%",
+                            right: "15px",
                         }} />
                         <DiskPlatter />
                         <DiskArm rotation={armRotation} />

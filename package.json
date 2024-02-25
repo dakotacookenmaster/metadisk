@@ -16,6 +16,7 @@
     "@monaco-editor/react": "^4.6.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
+    "@mui/x-tree-view": "^6.17.0",
     "@reduxjs/toolkit": "^2.2.0",
     "framer-motion": "^11.0.6",
     "lodash": "^4.17.21",

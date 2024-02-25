@@ -151,7 +151,7 @@ const writeOrRead =
         }
 
         // While the arm is away from the sector, don't do anything
-        while (differenceFromArm(data.sectorNumber) >= 3) {
+        while (differenceFromArm(data.sectorNumber) >= 4) {
             await new Promise((resolve) => setTimeout(() => resolve(true), 1)) // Wait and try again
         }
 

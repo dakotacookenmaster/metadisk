@@ -58,10 +58,10 @@ const InodeOverview = (props: {
     const size = getByteCount(parseInt(data.slice(8 + offset, 32 + offset), 2))
     const createdAt = new Date(
         parseInt(data.slice(32 + offset, 64 + offset), 2) * 1000,
-    ).toString()
+    ).toLocaleString()
     const lastAccessed = new Date(
         parseInt(data.slice(64 + offset, 96 + offset), 2) * 1000,
-    ).toString()
+    ).toLocaleString()
     const blockPointers = chunk(
         data.slice(96 + offset, 128 + offset).split(""),
         4,
@@ -155,7 +155,7 @@ const InodeOverview = (props: {
                     <TableCell>{type}</TableCell>
                 </TableRow>
                 <TableRow>
-                    <TableCell>Read / Write / Execute</TableCell>
+                    <TableCell sx={{ minWidth: "200px" }}>Read / Write / Execute</TableCell>
                     <TableCell>
                         {read} {write} {execute}
                     </TableCell>

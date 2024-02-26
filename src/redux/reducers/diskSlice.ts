@@ -16,6 +16,7 @@ interface DiskState {
     trackCount: number
     diskSpeed: number
     diskRotation: number
+    skipWaitTime: boolean
     armRotation: {
         degrees: number
         time: number
@@ -30,6 +31,7 @@ interface DiskState {
 const initialState: DiskState = {
     diskRotation: 0,
     isProcessing: false,
+    skipWaitTime: false,
     diskSpeed: 0.6,
     currentlyServicing: [],
     trackCount: 8,
@@ -104,6 +106,9 @@ export const diskSlice = createSlice({
         setDiskSpeed: (state, action: PayloadAction<number>) => {
             state.diskSpeed = action.payload
         },
+        setSkipWaitTime: (state, action: PayloadAction<boolean>) => {
+            state.skipWaitTime = action.payload
+        }
     },
 })
 
@@ -151,8 +156,12 @@ const writeOrRead =
         }
 
         // While the arm is away from the sector, don't do anything
-        while (differenceFromArm(data.sectorNumber) >= 4) {
-            await new Promise((resolve) => setTimeout(() => resolve(true), 1)) // Wait and try again
+        if (!selectSkipWaitTime(getState())) {
+            while (differenceFromArm(data.sectorNumber) >= 4) {
+                await new Promise((resolve) =>
+                    setTimeout(() => resolve(true), 1),
+                ) // Wait and try again
+            }
         }
 
         // Only set the state to the action after when within the range of the appropriate rotation
@@ -165,10 +174,14 @@ const writeOrRead =
             )
         }
 
-        while (
-            differenceFromArm(getNextSectorOnTrack(data.sectorNumber)) >= 3
-        ) {
-            await new Promise((resolve) => setTimeout(() => resolve(true), 1)) // wait for the arm to move away from the sector
+        if (!selectSkipWaitTime(getState())) {
+            while (
+                differenceFromArm(getNextSectorOnTrack(data.sectorNumber)) >= 3
+            ) {
+                await new Promise((resolve) =>
+                    setTimeout(() => resolve(true), 1),
+                ) // wait for the arm to move away from the sector
+            }
         }
 
         // When the read / write has happened, notify all subscribers that it has been serviced
@@ -220,11 +233,14 @@ const goToSector =
     }
 
 const processItem =
-    (item: ReadPayload | WritePayload) => async (dispatch: AppDispatch) => {
+    (item: ReadPayload | WritePayload, getState: () => RootState) =>
+    async (dispatch: AppDispatch) => {
         dispatch(setDiskState("seek"))
 
         // move the arm into position
-        await dispatch(goToSector(item.sectorNumber))
+        if (!selectSkipWaitTime(getState())) {
+            await dispatch(goToSector(item.sectorNumber))
+        }
 
         // wait for the write head to be over the appropriate sector, and then write the data
         await dispatch(writeOrRead(item))
@@ -233,7 +249,8 @@ const processItem =
     }
 
 export const processQueue =
-    () => async (dispatch: AppDispatch, getState: () => RootState) => {
+    () =>
+    async (dispatch: AppDispatch, getState: () => RootState) => {
         const idleOrWaiting =
             getState().disk.state === "idle" ||
             getState().disk.state === "waiting"
@@ -243,7 +260,7 @@ export const processQueue =
             dispatch(setIsProcessing(true))
             while ((diskQueue = getState().disk.queue).length > 0) {
                 const item = diskQueue[0]
-                await dispatch(processItem(item))
+                await dispatch(processItem(item, getState))
             }
             if (getState().disk.queue.length === 0) {
                 dispatch(setIsProcessing(false))
@@ -252,12 +269,15 @@ export const processQueue =
                 await new Promise((resolve) =>
                     // Wait a bit. If nothing else gets queued after one second, it's probably reasonable to assume
                     // the disk is idle, so you don't have to worry about jumping.
-                    setTimeout(() => {
-                        if (getState().disk.queue.length === 0) {
-                            dispatch(setDiskState("idle"))
-                            resolve(true)
-                        }
-                    }, 300),
+                    setTimeout(
+                        () => {
+                            if (getState().disk.queue.length === 0) {
+                                dispatch(setDiskState("idle"))
+                                resolve(true)
+                            }
+                        },
+                        selectSkipWaitTime(getState()) ? 0 : 300,
+                    ),
                 )
             }
         }
@@ -276,6 +296,7 @@ export const {
     setIsProcessing,
     addToCurrentlyServicing,
     setDiskSpeed,
+    setSkipWaitTime
 } = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk
@@ -288,5 +309,6 @@ export const selectTrackCount = (state: RootState) => state.disk.trackCount
 export const selectDiskRotation = (state: RootState) => state.disk.diskRotation
 export const selectArmRotation = (state: RootState) => state.disk.armRotation
 export const selectDiskSpeed = (state: RootState) => state.disk.diskSpeed
+export const selectSkipWaitTime = (state: RootState) => state.disk.skipWaitTime
 
 export default diskSlice.reducer

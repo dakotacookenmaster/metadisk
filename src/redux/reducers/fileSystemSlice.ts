@@ -1,11 +1,11 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { RootState } from "../../store"
+import { OpenFlags } from "../../apis/vsfs"
 interface FileSystemState {
     sectorSize: number
     sectorsPerBlock: number
     blockSize: number
     totalBlocks: number
-    path: string
     minimumRequiredDiskSize: number
     isFinishedConfiguringFileSystem: boolean
     isAwaitingDisk: boolean
@@ -24,7 +24,8 @@ interface FileSystemState {
 
 export interface FileDescriptor {
     path: string,
-    inode: number
+    inode: number,
+    flags: OpenFlags[]
 }
 
 /**
@@ -61,7 +62,6 @@ const initialState: FileSystemState = {
     minimumRequiredDiskSize: 512 * 4 * 16,
     fileDescriptorTable: [null, null, null],
     isDiskFormatted: false,
-    path: "/",
     superblock: {
         name: "Very Simple File System (vsfs)",
         magicNumber: 7,
@@ -133,9 +133,6 @@ export const fileSystemSlice = createSlice({
         setIsDiskFormatted: (state, action: PayloadAction<boolean>) => {
             state.isDiskFormatted = action.payload
         },
-        setPath: (state, action: PayloadAction<string>) => {
-            state.path = action.payload
-        },
         addFileDescriptor: (state, action: PayloadAction<FileDescriptor>) => {
             state.fileDescriptorTable.push(action.payload)
         },
@@ -154,7 +151,6 @@ export const {
     setTotalBlocks,
     setIsAwaitingDisk,
     setIsDiskFormatted,
-    setPath,
     addFileDescriptor,
     removeFileDescriptor
 } = fileSystemSlice.actions
@@ -178,7 +174,6 @@ export const selectIsAwaitingDisk = (state: RootState) =>
     state.fileSystem.isAwaitingDisk
 export const selectIsDiskFormatted = (state: RootState) =>
     state.fileSystem.isDiskFormatted
-export const selectPath = (state: RootState) => state.fileSystem.path
 export const selectFileDescriptorTable = (state: RootState) => state.fileSystem.fileDescriptorTable
 
 export default fileSystemSlice.reducer

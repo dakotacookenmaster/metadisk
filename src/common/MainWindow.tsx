@@ -134,8 +134,12 @@ export default function MainWindow(props: {
                                     }}
                                 >
                                     <ListItemButton
-                                        onClick={() =>
+                                        onClick={() => {
                                             setApps((prevApps) => {
+                                                if(prevApps[appKey].onChange) {
+                                                    prevApps[appKey].onChange!(!prevApps[appKey].enabled)
+                                                }
+
                                                 return {
                                                     ...prevApps,
                                                     [appKey]: {
@@ -146,7 +150,7 @@ export default function MainWindow(props: {
                                                     },
                                                 }
                                             })
-                                        }
+                                        }}
                                         sx={{
                                             minHeight: 48,
                                             px: 2.5,
@@ -270,7 +274,9 @@ export default function MainWindow(props: {
                                             isLG ? "100%" : "50%"
                                         } - (${theme.spacing(1.5)} / 2))`,
                                         minHeight: "575px",
-                                        display: apps[appKey].enabled ? "block" : "none",
+                                        display: apps[appKey].enabled
+                                            ? "block"
+                                            : "none",
                                     }}
                                 >
                                     <Element {...apps[appKey].props} />

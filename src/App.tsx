@@ -1,12 +1,16 @@
 import { useState } from "react"
 import MainWindow from "./common/MainWindow"
 import allApps from "./register-apps"
+import Alert from "./apps/common/components/Alert"
 
 const App = () => {
     const [apps, setApps] = useState(allApps)
 
     return (
-        <MainWindow apps={apps} setApps={setApps} />
+        <>
+            <Alert />
+            <MainWindow apps={apps} setApps={setApps} />
+        </>
     )
 }
 

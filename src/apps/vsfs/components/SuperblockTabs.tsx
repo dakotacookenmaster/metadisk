@@ -16,6 +16,7 @@ import {
 import Tooltip from "../../common/components/Tooltip"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
+import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -83,6 +84,7 @@ export default function SuperblockTabs(props: {
     const inodeCount = data.slice(8, 24)
     const inodeBlocks = data.slice(24, 28)
     const dataBlocks = data.slice(28, 32)
+    const blockSize = data.slice(32, 56)
 
     return (
         <Box sx={{ width: "100%" }}>
@@ -159,6 +161,15 @@ export default function SuperblockTabs(props: {
                             <TableRow sx={styles.row}>
                                 <TableCell>Data Blocks</TableCell>
                                 <TableCell>{parseInt(dataBlocks, 2)}</TableCell>
+                            </TableRow>
+                        </Tooltip>
+                        <Tooltip
+                            placement="top"
+                            title="The number of data blocks. This is the real maximum number of files or directories the system could theoretically store. Blocks (sometimes referred to in literature as 'clusters') are the smallest unit in the file system."
+                        >
+                            <TableRow sx={styles.row}>
+                                <TableCell>Block Size</TableCell>
+                                <TableCell>{getByteCount(parseInt(blockSize, 2))}</TableCell>
                             </TableRow>
                         </Tooltip>
                     </TableBody>

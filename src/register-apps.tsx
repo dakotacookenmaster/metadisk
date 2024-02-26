@@ -6,6 +6,8 @@ import { SvgIconTypeMap } from "@mui/material"
 import { VSFSIcon } from "./apps/vsfs/components/VSFSIcon"
 import ExploreIcon from '@mui/icons-material/Explore'
 import FileExplorer from "./apps/file-explorer/FileExplorer"
+import { store } from "./store"
+import { setSkipWaitTime } from "./redux/reducers/diskSlice"
 
 const apps: Record<
     string,
@@ -18,22 +20,26 @@ const apps: Record<
               })
             | ((props?: any) => React.JSX.Element)
         enabled: boolean
+        onChange?: (enabled: boolean) => void
     }
 > = {
     "File System Visualizer": {
         elementFn: VSFS,
         muiIcon: VSFSIcon,
-        enabled: true, // disabling this will prevent the app from running
+        enabled: true,
     },
     "Disk Simulator": {
         elementFn: DiskSimulator,
         muiIcon: DiskSimulatorIcon,
-        enabled: true, // disabling this will prevent the app from running
+        enabled: true,
+        onChange: (enabled: boolean) => {
+            store.dispatch(setSkipWaitTime(!enabled))
+        }
     },
     "File Explorer": {
         elementFn: FileExplorer,
         muiIcon: ExploreIcon,
-        enabled: true,
+        enabled: false,
     }
 }
 

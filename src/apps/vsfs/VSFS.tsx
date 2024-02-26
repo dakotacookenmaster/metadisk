@@ -23,9 +23,10 @@ import { AppDispatch } from "../../store"
 import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
 import WaitingMessage from "../common/components/WaitingMessage"
 import { useEffect, useState } from "react"
-import { OpenFlags, Permissions, listing, writeBlocks } from "../../apis/vsfs"
+import { OpenFlags, Permissions, mkdir, writeBlocks } from "../../apis/vsfs"
 import { getCharacterEncoding } from "./components/Viewers"
 import { open } from "../../apis/vsfs"
+import { setError } from "../../redux/reducers/appSlice"
 
 export interface FileSystemSetup {
     name: string
@@ -86,8 +87,16 @@ const VSFS = () => {
                 const dataBlocks = superblock.numberOfDataBlocks
                     .toString(2)
                     .padStart(4, "0") // the number of datablocks in the system
+
+                const writableBlockSize = blockSize
+                    .toString(2)
+                    .padStart(24, "0")
                 const superblockData =
-                    magicNumber + inodeCount + inodeBlocks + dataBlocks
+                    magicNumber +
+                    inodeCount +
+                    inodeBlocks +
+                    dataBlocks +
+                    writableBlockSize
                 const bitmap = "1" + "0".repeat(sectorSize - 1)
 
                 setProgress(0)
@@ -119,8 +128,11 @@ const VSFS = () => {
 
                     // .. directory
                     "00000000".repeat(11), // 11 null characters
-                    getCharacterEncoding('.').toString(2).padStart(8, "0").repeat(2), // .. as ASCII
-                    "00000000".repeat(3) // inode number
+                    getCharacterEncoding(".")
+                        .toString(2)
+                        .padStart(8, "0")
+                        .repeat(2), // .. as ASCII
+                    "00000000".repeat(3), // inode number
                 ].join("")
                 const rootDirectoryBlock = superblock.numberOfInodeBlocks + 3
 
@@ -138,7 +150,113 @@ const VSFS = () => {
                     },
                 )
 
-                const id = await open("/file.txt", OpenFlags.O_CREAT, Permissions.None)
+                try {
+                    await open(
+                        "/file.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
+                        Permissions.Read,
+                    )
+                    await open(
+                        "/new.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR], // FIXME <-- If they open it as read / write in the flags, that should be what the file descriptor returns
+                        Permissions.ReadWrite,
+                    )
+                    await mkdir("/abc", Permissions.ReadWrite)
+                    await open(
+                        "/abc/new.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await mkdir("/abc/efg", Permissions.ReadWrite)
+                    await open(
+                        "/abc/efg/new.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new1.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new2.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new3.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new4.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new5.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new6.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    await open(
+                        "/abc/efg/new7.txt",
+                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                        Permissions.ReadWrite,
+                    )
+                    // await open(
+                    //     "/another.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                    //     Permissions.ReadWriteExecute,
+                    // )
+                    // await open(
+                    //     "/file1.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
+                    //     Permissions.Read,
+                    // )
+                    // await open(
+                    //     "/new1.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                    //     Permissions.ReadWrite,
+                    // )
+                    // await open(
+                    //     "/another1.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                    //     Permissions.ReadWriteExecute,
+                    // )
+                    // await open(
+                    //     "/file2.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
+                    //     Permissions.Read,
+                    // )
+                    // await open(
+                    //     "/new2.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                    //     Permissions.ReadWrite,
+                    // )
+                    // await open(
+                    //     "/another2.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                    //     Permissions.ReadWriteExecute,
+                    // )
+                    // await open(
+                    //     "/another3.txt",
+                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
+                    //     Permissions.ReadWriteExecute,
+                    // )
+                } catch (error) {
+                    let e = error as Error
+                    dispatch(
+                        setError({
+                            name: e.name,
+                            message: e.message,
+                        }),
+                    )
+                }
 
                 setWaitingMessage(null)
 

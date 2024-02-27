@@ -46,11 +46,13 @@ const FileExplorer = () => {
                         if (parent) {
                             setCurrentDirectory((prevCurrentDirectory) => {
                                 return {
-                                    dirName: "/" + prevCurrentDirectory.dirName
-                                        .split("/")
-                                        .filter(v => v)
-                                        .slice(-2, -1)
-                                        .join("/"),
+                                    dirName:
+                                        "/" +
+                                        prevCurrentDirectory.dirName
+                                            .split("/")
+                                            .filter((v) => v)
+                                            .slice(-2, -1)
+                                            .join("/"),
                                     inode: parent.inode,
                                 }
                             })

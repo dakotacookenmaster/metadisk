@@ -38,7 +38,7 @@ const WaitingMessage = (props: {
                     sx={{ fontSize: "50px" }}
                     className="slowBounceAndWobble"
                 />
-                <Typography variant="body1" fontSize="20px">
+                <Typography variant="body1" fontSize="20px" sx={{ textAlign: "center" }}>
                     {message}
                 </Typography>
                 {progress !== undefined && (

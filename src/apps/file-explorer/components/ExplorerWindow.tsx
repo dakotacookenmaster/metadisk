@@ -7,6 +7,8 @@ import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
 import FileIcon from "@mui/icons-material/Description"
 import FolderIcon from "@mui/icons-material/Folder"
+import FileView from "./FileView"
+import WaitingMessage from "../../common/components/WaitingMessage"
 
 const ExplorerWindow = (props: {
     currentDirectory: { dirName: string; inode: number }
@@ -22,6 +24,7 @@ const ExplorerWindow = (props: {
     const [directory, setDirectory] = useState<DirectoryStructure | undefined>(
         undefined,
     )
+    const [waiting, setWaiting] = useState(false)
 
     const sectors = useAppSelector(selectSectors)
     const [nodes, setNodes] = useState<string[]>([])
@@ -69,7 +72,9 @@ const ExplorerWindow = (props: {
                     event.stopPropagation()
                     if (directory.type === "directory") {
                         setCurrentDirectory({
-                            dirName: `${parent === "/" ? "" : parent}/${directory.name === "/" ? "" : directory.name}`,
+                            dirName: `${parent === "/" ? "" : parent}/${
+                                directory.name === "/" ? "" : directory.name
+                            }`,
                             inode: directory.inode,
                         })
                     }
@@ -84,15 +89,23 @@ const ExplorerWindow = (props: {
 
     useEffect(() => {
         const getDirectoryTree = async () => {
+            setWaiting(true)
             const result = await listing(
                 currentDirectory.inode,
                 currentDirectory.dirName,
             ) // get the listing for the root directory
             setNodes(getNodes(result))
             setDirectory(result)
+            setWaiting(false)
         }
         getDirectoryTree()
     }, [sectors])
+
+    if(waiting) {
+        return (
+            <WaitingMessage message="Loading File Explorer..." />
+        )
+    }
 
     return (
         <Box
@@ -101,6 +114,7 @@ const ExplorerWindow = (props: {
                 height: "100%",
                 borderRadius: "5px",
                 padding: theme.spacing(2),
+                display: "flex"
             }}
         >
             {directory !== undefined && (
@@ -109,11 +123,19 @@ const ExplorerWindow = (props: {
                     expanded={nodes}
                     defaultCollapseIcon={<ExpandMore />}
                     defaultExpandIcon={<ChevronRight />}
-                    sx={{ height: "100%", width: "300px" }}
+                    sx={{
+                        height: "100%",
+                        width: "250px",
+                        borderRight: "2px solid gray",
+                    }}
                 >
                     {generateTreeStructure(directory)}
                 </TreeView>
             )}
+            <FileView
+                currentDirectory={currentDirectory}
+                setCurrentDirectory={setCurrentDirectory}
+            />
         </Box>
     )
 }

@@ -323,7 +323,7 @@ export const listing = async (
     return result
 }
 
-const readInode = async (inode: number): Promise<InodeData> => {
+export const readInode = async (inode: number): Promise<InodeData> => {
     const state = store.getState()
     const blockSize = selectBlockSize(state)
     const inodeSize = selectSuperblock(state).inodeSize

@@ -40,6 +40,11 @@ const apps: Record<
         elementFn: FileExplorer,
         muiIcon: ExploreIcon,
         enabled: false,
+    },
+    "File Explorer 2": {
+        elementFn: FileExplorer,
+        muiIcon: ExploreIcon,
+        enabled: false,
     }
 }
 

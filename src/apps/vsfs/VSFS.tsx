@@ -208,46 +208,6 @@ const VSFS = () => {
                         [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
                         Permissions.ReadWrite,
                     )
-                    // await open(
-                    //     "/another.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                    //     Permissions.ReadWriteExecute,
-                    // )
-                    // await open(
-                    //     "/file1.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
-                    //     Permissions.Read,
-                    // )
-                    // await open(
-                    //     "/new1.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                    //     Permissions.ReadWrite,
-                    // )
-                    // await open(
-                    //     "/another1.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                    //     Permissions.ReadWriteExecute,
-                    // )
-                    // await open(
-                    //     "/file2.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
-                    //     Permissions.Read,
-                    // )
-                    // await open(
-                    //     "/new2.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                    //     Permissions.ReadWrite,
-                    // )
-                    // await open(
-                    //     "/another2.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                    //     Permissions.ReadWriteExecute,
-                    // )
-                    // await open(
-                    //     "/another3.txt",
-                    //     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                    //     Permissions.ReadWriteExecute,
-                    // )
                 } catch (error) {
                     let e = error as Error
                     dispatch(
@@ -259,7 +219,6 @@ const VSFS = () => {
                 }
 
                 setWaitingMessage(null)
-
                 dispatch(setIsDiskFormatted(true))
             })()
         }

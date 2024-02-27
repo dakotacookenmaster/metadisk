@@ -151,6 +151,7 @@ const VSFS = () => {
                 )
 
                 try {
+                    setWaitingMessage({ title: "", message: "Creating some files..." })
                     await open(
                         "/file.txt",
                         [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
@@ -168,10 +169,13 @@ const VSFS = () => {
                             message: e.message,
                         }),
                     )
+                } finally {
+                    setWaitingMessage(null)
                 }
 
-                setWaitingMessage(null)
                 dispatch(setIsDiskFormatted(true))
+
+                await open("/dakota.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.Read)
             })()
         }
     }, [isFinishedConfiguringFileSystem, isAwaitingDisk])

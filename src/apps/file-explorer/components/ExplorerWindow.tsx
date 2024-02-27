@@ -1,141 +1,83 @@
-import { ChevronRight, ExpandMore } from "@mui/icons-material"
+import { NodeRendererProps, Tree } from "react-arborist"
+import { DirectoryStructure } from "../../../apis/vsfs"
+import { Description, Folder } from "@mui/icons-material"
 import { Box, useTheme } from "@mui/material"
-import { TreeItem, TreeView } from "@mui/x-tree-view"
-import { DirectoryStructure, listing } from "../../../apis/vsfs"
-import { useEffect, useState } from "react"
-import { useAppSelector } from "../../../redux/hooks/hooks"
-import { selectSectors } from "../../../redux/reducers/diskSlice"
-import FileIcon from "@mui/icons-material/Description"
-import FolderIcon from "@mui/icons-material/Folder"
-import FileView from "./FileView"
-import WaitingMessage from "../../common/components/WaitingMessage"
 
 const ExplorerWindow = (props: {
-    currentDirectory: { dirName: string; inode: number }
+    data: DirectoryStructure
     setCurrentDirectory: React.Dispatch<
-        React.SetStateAction<{
-            dirName: string
-            inode: number
-        }>
+        React.SetStateAction<string>
     >
+    waiting: "path" | "tree" | ""
 }) => {
-    const { currentDirectory, setCurrentDirectory } = props
-    const theme = useTheme()
-    const [directory, setDirectory] = useState<DirectoryStructure | undefined>(
-        undefined,
-    )
-    const [waiting, setWaiting] = useState(false)
+    const { data, setCurrentDirectory, waiting } = props
 
-    const sectors = useAppSelector(selectSectors)
-    const [nodes, setNodes] = useState<string[]>([])
-
-    const getNodes = (directory: DirectoryStructure, nodes: string[] = []) => {
-        const result = [...nodes, nodes.slice(-1).join("") + directory.name]
-
-        for (let child of directory.children) {
-            result.push(
-                ...getNodes(child, nodes).map(
-                    (value) => directory.name + value,
-                ),
-            )
-        }
-
-        return result
-    }
-
-    const generateTreeStructure = (
-        directory: DirectoryStructure,
-        parent: string = "",
+    const Node = (
+        props: NodeRendererProps<{
+            id: string
+            name: string
+            path: string
+            inode: number
+            children: DirectoryStructure[] | undefined
+        }>,
     ) => {
-        return (
-            <TreeItem
-                key={`node-${parent}${directory.name}`}
-                sx={{ userSelect: "none" }}
-                nodeId={`${parent}${directory.name}`}
-                label={directory.name}
-                icon={directory.type === "file" ? <FileIcon /> : <FolderIcon />}
-                onClick={() => {
-                    setNodes((prevNodes) => {
-                        const alreadyThere = prevNodes.find(
-                            (node) => node === `${parent}${directory.name}`,
-                        )
-                        if (alreadyThere) {
-                            return [...prevNodes].filter(
-                                (node) => node !== `${parent}${directory.name}`,
-                            )
-                        } else {
-                            return [...prevNodes, `${parent}${directory.name}`]
-                        }
-                    })
-                }}
-                onDoubleClick={(event) => {
-                    event.stopPropagation()
-                    if (directory.type === "directory") {
-                        setCurrentDirectory({
-                            dirName: `${parent === "/" ? "" : parent}/${
-                                directory.name === "/" ? "" : directory.name
-                            }`,
-                            inode: directory.inode,
-                        })
-                    }
-                }}
-            >
-                {directory.children.map((child) => {
-                    return generateTreeStructure(child, parent + directory.name)
-                })}
-            </TreeItem>
-        )
-    }
+        /* This node instance can do many things. See the API reference. */
+        const { style, dragHandle, node } = props
+        const theme = useTheme()
 
-    useEffect(() => {
-        const getDirectoryTree = async () => {
-            setWaiting(true)
-            const result = await listing(
-                currentDirectory.inode,
-                currentDirectory.dirName,
-            ) // get the listing for the root directory
-            setNodes(getNodes(result))
-            setDirectory(result)
-            setWaiting(false)
+        const handleClick = () => {
+            node.isOpen ? node.close() : node.open()
         }
-        getDirectoryTree()
-    }, [sectors])
 
-    if(waiting) {
+        const handleDoubleClick = () => {
+            if (!waiting) {
+                setCurrentDirectory(node.data.path)
+            }
+        }
+
         return (
-            <WaitingMessage message="Loading File Explorer..." />
+            <Box
+                onClick={handleClick}
+                sx={{
+                    "&:hover": { cursor: waiting ? "wait" : "pointer" },
+                    display: "flex",
+                    gap: theme.spacing(1),
+                    alignItems: "center",
+                    width: "100%",
+                }}
+                style={style}
+                ref={dragHandle}
+                onDoubleClick={handleDoubleClick}
+            >
+                {node.isLeaf ? <Description /> : <Folder />}
+                {node.data.name}
+            </Box>
         )
     }
 
     return (
         <Box
             sx={{
-                border: "1px solid rgb(255, 255, 255, 0.5)",
-                height: "100%",
-                borderRadius: "5px",
-                padding: theme.spacing(2),
-                display: "flex"
+                borderRight: "3px solid gray",
+                width: "200px",
+                overflow: "hidden",
             }}
         >
-            {directory !== undefined && (
-                <TreeView
-                    aria-label="file system navigator"
-                    expanded={nodes}
-                    defaultCollapseIcon={<ExpandMore />}
-                    defaultExpandIcon={<ChevronRight />}
-                    sx={{
-                        height: "100%",
-                        width: "250px",
-                        borderRight: "2px solid gray",
-                    }}
-                >
-                    {generateTreeStructure(directory)}
-                </TreeView>
-            )}
-            <FileView
-                currentDirectory={currentDirectory}
-                setCurrentDirectory={setCurrentDirectory}
-            />
+            <Tree
+                data={[
+                    {
+                        id: data.id,
+                        name: data.name,
+                        path: data.path,
+                        inode: data.inode,
+                        children: data.children ? [...data.children].sort((childA, childB) => -(childA.name < childB.name) || +(childA.name > childB.name)) : undefined,
+                    },
+                ]}
+                disableDrag
+                disableDrop
+            >
+                {Node}
+            </Tree>
         </Box>
     )
 }

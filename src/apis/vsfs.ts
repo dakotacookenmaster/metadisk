@@ -226,10 +226,12 @@ export interface DirectoryInfo {
     data: InodeData
 }
 export interface DirectoryStructure {
+    id: string
     name: string
+    path: string
     type: "file" | "directory"
     inode: number
-    children: DirectoryStructure[]
+    children?: DirectoryStructure[]
 }
 
 /**
@@ -292,28 +294,55 @@ interface InodeData {
  * @returns
  */
 export const listing = async (
-    inode: number,
-    dirName: string,
+    path: string,
 ): Promise<DirectoryStructure> => {
-    const primaryDirectory = await readDirectory(inode)
+        // Require them to always provide the absolute system path. Relative paths will not be supported.
+        if (path[0] !== "/") {
+            throw new InvalidPathError()
+        }
+    
+        // Get the pieces of the path
+        const directories = path.split("/").filter((v) => v)
+    
+        const rootDirectory = await readDirectory(0)
+    
+        // CHECK 1: Valid Path
+        let directoryInode = 0
+        let directory = rootDirectory
+        for (let searchDirectory of directories) {
+            const entry = directory.entries.find(
+                (entry) => entry.name === searchDirectory,
+            )
+            if (!entry) {
+                throw new Error("Invalid path")
+            }
+            directory = await readDirectory(entry.inode)
+            directoryInode = entry.inode
+        }
+
+    const directoryName = directories.slice(-1).join("") || "/"
+
     const result: DirectoryStructure = {
-        name: dirName,
+        id: `${directoryInode}-${directoryName}`,
+        name: directoryName,
+        path: "/" + directories.join("/"),
         type: "directory",
         children: [],
-        inode,
+        inode: directoryInode,
     }
 
-    for (let entry of primaryDirectory.entries) {
+    for (let entry of directory.entries) {
         const type = (await readInode(entry.inode)).type
         if (entry.name !== "." && entry.name !== "..") {
             if (type === "directory") {
-                const sublist = await listing(entry.inode, entry.name)
-                result.children.push(sublist)
+                const sublist = await listing(result.path + "/" + entry.name)
+                result.children!.push(sublist)
             } else {
-                result.children.push({
+                result.children!.push({
+                    id: `${entry.inode}-${entry.name}`,
                     name: entry.name,
+                    path: result.path + "/" + entry.name,
                     type: "file",
-                    children: [],
                     inode: entry.inode,
                 })
             }

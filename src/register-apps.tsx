@@ -41,11 +41,6 @@ const apps: Record<
         muiIcon: ExploreIcon,
         enabled: false,
     },
-    "File Explorer 2": {
-        elementFn: FileExplorer,
-        muiIcon: ExploreIcon,
-        enabled: false,
-    }
 }
 
 export default apps

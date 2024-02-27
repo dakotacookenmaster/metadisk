@@ -156,58 +156,10 @@ const VSFS = () => {
                         [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
                         Permissions.Read,
                     )
-                    await open(
-                        "/new.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR], // FIXME <-- If they open it as read / write in the flags, that should be what the file descriptor returns
-                        Permissions.ReadWrite,
-                    )
                     await mkdir("/abc", Permissions.ReadWrite)
-                    await open(
-                        "/abc/new.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await mkdir("/abc/efg", Permissions.ReadWrite)
-                    await open(
-                        "/abc/efg/new.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new1.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new2.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new3.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new4.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new5.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new6.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
-                    await open(
-                        "/abc/efg/new7.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
-                        Permissions.ReadWrite,
-                    )
+                    await mkdir("/abc/def", Permissions.ReadWrite)
+                    await mkdir("/abc/def/ghi", Permissions.ReadWrite)
+                    await mkdir("/abc/def/ghi/jkl", Permissions.ReadWrite)
                 } catch (error) {
                     let e = error as Error
                     dispatch(

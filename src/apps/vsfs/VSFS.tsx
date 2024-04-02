@@ -19,7 +19,6 @@ import {
     setTotalBlocks,
 } from "../../redux/reducers/fileSystemSlice"
 import SetUpFileSystem from "./components/SetUpFileSystem"
-import { AppDispatch } from "../../store"
 import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
 import WaitingMessage from "../common/components/WaitingMessage"
 import { useEffect, useState } from "react"
@@ -28,23 +27,7 @@ import { getCharacterEncoding } from "./components/Viewers"
 import { open } from "../../apis/vsfs"
 import { setError } from "../../redux/reducers/appSlice"
 
-export interface FileSystemSetup {
-    name: string
-    blockSize: number
-    sectorSize: number
-    sectorsPerBlock: number
-    minimumRequiredDiskSize: number
-    totalBlocks: number
-    setTotalBlocks: (value: number) => ReturnType<AppDispatch>
-    setSectorSize: (value: number) => ReturnType<AppDispatch>
-    setSectorsPerBlock: (value: number) => ReturnType<AppDispatch>
-    setIsFinishedConfiguringFileSystem: (
-        value: boolean,
-    ) => ReturnType<AppDispatch>
-    setIsAwaitingDisk: (value: boolean) => ReturnType<AppDispatch>
-}
-
-const VSFS = () => {
+export default function VSFS() {
     const theme = useTheme()
     const name = useAppSelector(selectName)
     const totalBlocks = useAppSelector(selectTotalBlocks)
@@ -73,7 +56,7 @@ const VSFS = () => {
             !isAwaitingDisk &&
             !isDiskFormatted
         ) {
-            ;(async () => {
+            (async () => {
                 // Start writing the Superblock
                 const magicNumber = superblock.magicNumber
                     .toString(2)
@@ -151,7 +134,10 @@ const VSFS = () => {
                 )
 
                 try {
-                    setWaitingMessage({ title: "", message: "Creating some files..." })
+                    setWaitingMessage({
+                        title: "",
+                        message: "Creating some files...",
+                    })
                     await open(
                         "/file.txt",
                         [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
@@ -162,7 +148,7 @@ const VSFS = () => {
                     await mkdir("/abc/def/ghi", Permissions.ReadWrite)
                     await mkdir("/abc/def/ghi/jkl", Permissions.ReadWrite)
                 } catch (error) {
-                    let e = error as Error
+                    const e = error as Error
                     dispatch(
                         setError({
                             name: e.name,
@@ -175,9 +161,14 @@ const VSFS = () => {
 
                 dispatch(setIsDiskFormatted(true))
 
-                await open("/dakota.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.Read)
+                await open(
+                    "/dakota.txt",
+                    [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
+                    Permissions.Read,
+                )
             })()
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFinishedConfiguringFileSystem, isAwaitingDisk])
 
     return (
@@ -238,5 +229,3 @@ const VSFS = () => {
         </Paper>
     )
 }
-
-export default VSFS

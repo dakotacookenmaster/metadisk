@@ -19,7 +19,6 @@ import {
     selectBlockSize,
     selectSuperblock,
 } from "../../../redux/reducers/fileSystemSlice"
-import React from "react"
 
 const InodeOverview = (props: {
     data: string
@@ -30,6 +29,7 @@ const InodeOverview = (props: {
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
     selectedInode: number | undefined
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
+    inodeBitmap: string
 }) => {
     const {
         data,
@@ -40,6 +40,7 @@ const InodeOverview = (props: {
         setSelectedInode,
         selectedInode,
         setBlockNumber,
+        inodeBitmap,
     } = props
     const superblock = useAppSelector(selectSuperblock)
     const blockSize = useAppSelector(selectBlockSize)
@@ -68,8 +69,17 @@ const InodeOverview = (props: {
     ).map((nibble) => parseInt(nibble.join(""), 2))
     const theme = useTheme()
 
-    // Inodes that don't contain any 1s can't possibly be valid data
-    const inodes = chunk(data.split(""), superblock.inodeSize).filter(v => v.includes("1"))
+    // remove any inodes that aren't available in the inode bitmap
+    const inodeNumbers: number[] = []
+    const inodes = chunk(data.split(""), superblock.inodeSize).filter(
+        (_, i) => {
+            if(inodeBitmap[i] !== "0") {
+                inodeNumbers.push(i)
+                return true
+            } 
+            return false
+        }
+    )
 
     if (selectedInode === undefined) {
         return (
@@ -100,7 +110,6 @@ const InodeOverview = (props: {
                         scrollbarWidth: "thin",
                         width: "100%",
                         maxHeight: "300px",
-
                         overflow: "auto",
                         paddingRight: theme.spacing(2),
                         display: "flex",
@@ -113,7 +122,7 @@ const InodeOverview = (props: {
                         inodes.map((_, index) => {
                             return (
                                 <Box
-                                    key={`inode-box-${index}`}
+                                    key={`inode-box-${inodeNumbers[index]}`}
                                     sx={{
                                         width: "70px",
                                         height: "70px",
@@ -135,7 +144,7 @@ const InodeOverview = (props: {
                                         setSelectedInode(index)
                                     }}
                                 >
-                                    {index + blockNumber * inodesPerBlock}
+                                    {inodeNumbers[index] + blockNumber * inodesPerBlock}
                                 </Box>
                             )
                         })
@@ -155,7 +164,9 @@ const InodeOverview = (props: {
                     <TableCell>{type}</TableCell>
                 </TableRow>
                 <TableRow>
-                    <TableCell sx={{ minWidth: "200px" }}>Read / Write / Execute</TableCell>
+                    <TableCell sx={{ minWidth: "200px" }}>
+                        Read / Write / Execute
+                    </TableCell>
                     <TableCell>
                         {read} {write} {execute}
                     </TableCell>

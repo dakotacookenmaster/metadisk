@@ -234,14 +234,60 @@ export interface DirectoryStructure {
     children?: DirectoryStructure[]
 }
 
+const isValidPath = async (
+    path: string,
+    retrieveParentInstead: boolean = false,
+): Promise<{
+    directories: string[]
+    directoryInode: number
+    directory: DirectoryInfo
+    fileOrDirName: string
+}> => {
+    // Require them to always provide the absolute system path. Relative paths will not be supported.
+    if (path[0] !== "/") {
+        throw new InvalidPathError()
+    }
+
+    // Get the pieces of the path
+    let directories = path.split("/").filter((v) => v)
+    const fileOrDirName = directories.slice(-1).join("")
+    if (retrieveParentInstead) {
+        directories = directories.slice(0, -1) // remove the last thing if it's supposed to be a file path
+    }
+
+    const rootDirectoryInodeData = await readInode(0)
+    const rootDirectory = await readDirectory(rootDirectoryInodeData)
+
+    // CHECK 1: Valid Path
+    let directoryInode = 0
+    let directory = rootDirectory
+    for (let searchDirectory of directories) {
+        const entry = directory.entries.find(
+            (entry) => entry.name === searchDirectory,
+        )
+        if (!entry) {
+            throw new Error("Invalid path")
+        }
+        const inodeData = await readInode(entry.inode)
+        directory = await readDirectory(inodeData)
+        directoryInode = entry.inode
+    }
+
+    return {
+        directories,
+        directoryInode,
+        directory,
+        fileOrDirName,
+    }
+}
+
 /**
  * Takes an inode known to be a directory and provides the entries (from all block pointers)
  * associated with that inode.
  * @param inode The directory inode you wish to read
  * @returns A promise containing an array of directory entries.
  */
-export const readDirectory = async (inode: number): Promise<DirectoryInfo> => {
-    const inodeData = await readInode(inode)
+export const readDirectory = async (inodeData: InodeData): Promise<DirectoryInfo> => {
     const blockPointers = inodeData.blockPointers.filter((v) => v) // remove null pointers
     const entries = []
     for (const pointer of blockPointers) {
@@ -261,7 +307,7 @@ export const readDirectory = async (inode: number): Promise<DirectoryInfo> => {
                 .join("")
 
             if (name === "") {
-                break
+                continue
             }
 
             entries.push({
@@ -278,6 +324,7 @@ export const readDirectory = async (inode: number): Promise<DirectoryInfo> => {
 }
 
 interface InodeData {
+    inode: number
     type: "file" | "directory"
     read: boolean
     write: boolean
@@ -293,34 +340,11 @@ interface InodeData {
  * @param inode
  * @returns
  */
-export const listing = async (
-    path: string,
-): Promise<DirectoryStructure> => {
-        // Require them to always provide the absolute system path. Relative paths will not be supported.
-        if (path[0] !== "/") {
-            throw new InvalidPathError()
-        }
-    
-        // Get the pieces of the path
-        const directories = path.split("/").filter((v) => v)
-    
-        const rootDirectory = await readDirectory(0)
-    
-        // CHECK 1: Valid Path
-        let directoryInode = 0
-        let directory = rootDirectory
-        for (let searchDirectory of directories) {
-            const entry = directory.entries.find(
-                (entry) => entry.name === searchDirectory,
-            )
-            if (!entry) {
-                throw new Error("Invalid path")
-            }
-            directory = await readDirectory(entry.inode)
-            directoryInode = entry.inode
-        }
+export const listing = async (path: string): Promise<DirectoryStructure> => {
+    const { directories, directoryInode, directory, fileOrDirName } =
+        await isValidPath(path)
 
-    const directoryName = directories.slice(-1).join("") || "/"
+    const directoryName = fileOrDirName || "/"
 
     const result: DirectoryStructure = {
         id: `${directoryInode}-${directoryName}`,
@@ -366,6 +390,7 @@ export const readInode = async (inode: number): Promise<InodeData> => {
     ).map((entry) => entry.join(""))
     const data = entries[positionInBlock]
     return {
+        inode,
         type:
             data.slice(0, 2) === "00"
                 ? "file"
@@ -382,7 +407,8 @@ export const readInode = async (inode: number): Promise<InodeData> => {
     }
 }
 
-const writeInode = async (data: InodeData, inode: number) => {
+const writeInode = async (data: InodeData) => {
+    const { inode } = data
     const state = store.getState()
     const blockSize = selectBlockSize(state)
     const inodeSize = selectSuperblock(state).inodeSize
@@ -451,7 +477,8 @@ const writeDirectory = async (
     data: DirectoryEntry,
     inode: number,
 ): Promise<void> => {
-    const directory = await readDirectory(inode)
+    const inodeData = await readInode(inode)
+    const directory = await readDirectory(inodeData)
     const directoryData = directory.data
     const numberOfInodeBlocks = parseInt(
         (await readBlock(0)).data.slice(24, 28),
@@ -494,6 +521,7 @@ const writeDirectory = async (
             // update the directory to have the new information
             await writeInode(
                 {
+                    inode,
                     type: "directory",
                     size: directoryData.size + 128,
                     createdAt: directoryData.createdAt,
@@ -503,7 +531,6 @@ const writeDirectory = async (
                     write: directoryData.write,
                     blockPointers: newBlockPointers,
                 },
-                inode,
             )
 
             // update the data bitmap
@@ -586,37 +613,18 @@ export const open = async (
     const id = selectFileDescriptorTable(store.getState()).length
 
     // Require them to always provide the absolute system path. Relative paths will not be supported.
-    if (!(path.length > 1 && path[0] === "/")) {
-        throw new InvalidPathError()
-    }
+    const {
+        directory,
+        directoryInode,
+        fileOrDirName: filename,
+    } = await isValidPath(path, true)
 
-    // Get the pieces of the path
-    const parsedPath = path.split("/").filter((v) => v)
-    const directories = parsedPath.slice(0, -1) // the directories will be everything but the last item
-    const filename = parsedPath.slice(-1).join("") // the last value should be the filename
-
-    if (filename.length === 0) {
+    if (filename!.length === 0) {
         throw new Error("Invalid filename.")
     }
 
-    if (filename.length > 13) {
+    if (filename!.length > 13) {
         throw new FilenameTooLongError()
-    }
-
-    const rootDirectory = await readDirectory(0)
-
-    // CHECK 1: Valid Path
-    let directoryInode = 0
-    let directory = rootDirectory
-    for (let searchDirectory of directories) {
-        const entry = directory.entries.find(
-            (entry) => entry.name === searchDirectory,
-        )
-        if (!entry) {
-            throw new Error("Invalid path")
-        }
-        directory = await readDirectory(entry.inode)
-        directoryInode = entry.inode
     }
 
     for (const entry of directory.entries) {
@@ -718,6 +726,7 @@ export const open = async (
         // Write the new Inode pointing to this file
         writeInode(
             {
+                inode: availableInode,
                 type: "file",
                 size: 0,
                 createdAt: new Date(),
@@ -740,14 +749,13 @@ export const open = async (
                 ].includes(mode),
                 blockPointers: [availableDataBlock + 3 + numberOfInodeBlocks],
             },
-            availableInode,
         )
 
         // Update the directory entry
         await writeDirectory(
             {
                 inode: availableInode,
-                name: filename,
+                name: filename!,
             },
             directoryInode,
         )
@@ -766,7 +774,7 @@ export const open = async (
 }
 
 const getBasicDirectoryData = (parentInode: number, inode: number) => {
-    return [
+    const value = [
         // . directory
         "00000000".repeat(12), // 12 null characters
         getCharacterEncoding(".").toString(2).padStart(8, "0"), // get . as ASCII
@@ -777,28 +785,28 @@ const getBasicDirectoryData = (parentInode: number, inode: number) => {
         getCharacterEncoding(".").toString(2).padStart(8, "0").repeat(2), // .. as ASCII
         parentInode.toString(2).padStart(24, "0"), // inode number
     ].join("")
+    console.log("VALUE:", value)
+    return value
 }
 
 export const mkdir = async (path: string, mode: Permissions): Promise<void> => {
+    const {
+        directory,
+        directoryInode,
+        fileOrDirName: folderName,
+    } = await isValidPath(path, true)
     // Require them to always provide the absolute system path. Relative paths will not be supported.
     if (!(path.length > 1 && path[0] === "/")) {
         throw new InvalidPathError()
     }
 
-    // Get the pieces of the path
-    const parsedPath = path.split("/").filter((v) => v)
-    const directories = parsedPath.slice(0, -1) // the directories will be everything but the last item
-    const folderName = parsedPath.slice(-1).join("") // the last value should be the filename
-
-    if (folderName.length === 0) {
+    if (folderName!.length === 0) {
         throw new Error("Invalid directory name.")
     }
 
-    if (folderName.length > 13) {
+    if (folderName!.length > 13) {
         throw new FilenameTooLongError()
     }
-
-    const rootDirectory = await readDirectory(0)
 
     // try to create a new file
 
@@ -811,23 +819,9 @@ export const mkdir = async (path: string, mode: Permissions): Promise<void> => {
         4. Is there enough space on disk for another directory entry?
        */
 
-    // CHECK 1: Valid Path
-    let directoryInode = 0
-    let directory = rootDirectory
-    for (let searchDirectory of directories) {
-        const entry = directory.entries.find(
-            (entry) => entry.name === searchDirectory,
-        )
-        if (!entry) {
-            throw new Error("Invalid path")
-        }
-        directory = await readDirectory(entry.inode)
-        directoryInode = entry.inode
-    }
-
     // It was a valid path, check if the folder name is already in that directory
     if (directory.entries.find((entry) => entry.name === folderName)) {
-        throw new Error("That directory alread exists.")
+        throw new Error("That directory already exists.")
     }
 
     // It was a valid path and the file didn't exist.
@@ -892,10 +886,11 @@ export const mkdir = async (path: string, mode: Permissions): Promise<void> => {
     }
 
     // Write the new Inode pointing to this file
-    writeInode(
+    await writeInode(
         {
+            inode: availableInode,
             type: "directory",
-            size: 0,
+            size: 256,
             createdAt: new Date(),
             lastAccessed: new Date(),
             read: [
@@ -916,17 +911,19 @@ export const mkdir = async (path: string, mode: Permissions): Promise<void> => {
             ].includes(mode),
             blockPointers: [availableDataBlock + 3 + numberOfInodeBlocks],
         },
-        availableInode,
     )
 
     // write the basic directories
-    await writeBlock(availableDataBlock + 3 + numberOfInodeBlocks, getBasicDirectoryData(directoryInode, availableInode))
+    await writeBlock(
+        availableDataBlock + 3 + numberOfInodeBlocks,
+        getBasicDirectoryData(directoryInode, availableInode),
+    )
 
     // Update the directory entry
     await writeDirectory(
         {
             inode: availableInode,
-            name: folderName,
+            name: folderName!,
         },
         directoryInode,
     )
@@ -936,4 +933,84 @@ export const mkdir = async (path: string, mode: Permissions): Promise<void> => {
     await updateBitmap("data", availableDataBlock, true)
 
     // The folder should have been written!
+}
+
+/**
+ * Removes an empty directory
+ * @param path The path containing the directory to remove.
+ */
+export const rmdir = async (path: string): Promise<void> => {
+    const {
+        directory,
+        fileOrDirName: directoryName,
+    } = await isValidPath(path, true)
+
+    const superblock = (await readBlock(0)).data // block 0 contains the superblock
+    const numberOfInodeBlocks = parseInt(superblock.slice(24, 28), 2) // number of inode blocks
+
+    if (path === "/") {
+        throw new Error(
+            "Permission denied: unable to delete the root directory.",
+        )
+    }
+
+    if (directoryName === ".." || directoryName === ".") {
+        throw new Error(
+            `Permission denied: cannot remove protected directory '${name}'`,
+        )
+    }
+
+    // Find the parent inode
+    const parent = await readInode(directory.data.inode)
+
+    // Read the through the parent's directory listings
+    for (let pointer of parent.blockPointers.filter((v) => v)) {
+        const directory = await readBlock(pointer)
+        const entries = chunk(directory.data.split(""), 128)
+            .map((group) => group.join(""))
+            .filter((entry) => entry !== "0".repeat(128))
+        for (let i = 0; i < entries.length; i++) {
+            const name = chunk(entries[i].slice(0, 104).split(""), 8)
+                .map((charGroup) =>
+                    convertBinaryByteStringToType(charGroup.join(""), "ascii"),
+                )
+                .filter((char) => char !== "\uE400")
+                .join("")
+
+            if (name === directoryName) {
+                const inode = parseInt(entries[i].slice(104, 128), 2)
+                const inodeData = await readInode(inode)
+                if (inodeData.type !== "directory") {
+                    throw new Error("Cannot call rmdir with a file path.")
+                }
+                const dir = (await readDirectory(inodeData))
+                const itemsInDirectory = dir.entries.length
+
+                if(itemsInDirectory > 2) {
+                    throw new Error(`Permission denied: ${name} is not an empty directory.`)
+                }
+
+                // Override the data block
+                await writeBlock(
+                    pointer,
+                    [
+                        entries.slice(0, i).join(""),
+                        "0".repeat(128),
+                        entries.slice(i + 1).join(""),
+                    ].join(""),
+                )
+
+                // update the inode bitmap
+                await updateBitmap("inode", inode, false)
+
+                // update the data bitmap
+                for(let blkPtr of dir.data.blockPointers.filter(v => v)) {
+                    console.log("BLKPTR:", blkPtr)
+                    await updateBitmap("data", blkPtr - 3 - numberOfInodeBlocks, false)
+                }
+
+                break
+            }
+        }
+    }
 }

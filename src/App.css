@@ -14,6 +14,10 @@
     font-family: "u0000", monospace;
 }
 
+div[role="tree"] {
+    height: 400px !important;
+}
+
 /* .read,
 .write,
 .seek,

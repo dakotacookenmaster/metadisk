@@ -11,6 +11,7 @@ import BitmapTabs from "./BitmapTabs"
 import { readBlock } from "../../../apis/vsfs"
 import InodeBlockTabs from "./InodeBlockTabs"
 import DataBlockTabs from "./DataBlockTabs"
+import { selectSectors } from "../../../redux/reducers/diskSlice"
 
 const FileSystemBlockLayout = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
@@ -19,9 +20,11 @@ const FileSystemBlockLayout = () => {
     const theme = useTheme()
     const [selected, setSelected] = useState<string>("Superblock")
     const [progress, setProgress] = useState<number>(0)
+    const sectors = useAppSelector(selectSectors)
     const [data, setData] = useState<string | undefined>(undefined)
     const [canMove, setCanMove] = useState(false)
     const [blockNumber, setBlockNumber] = useState(0)
+    const [inodeBitmap, setInodeBitmap] = useState("")
 
     const getLabel = (index: number) => {
         if (index === 0) {
@@ -44,6 +47,14 @@ const FileSystemBlockLayout = () => {
     }
 
     useEffect(() => {
+        ;(async () => {
+            const result = await readBlock(1) // read the inode bitmap
+            setInodeBitmap(result.data)
+        })()
+
+    }, [sectors])
+
+    useEffect(() => {
         // Start by reading from the superblock
         ;(async () => {
             const result = await readBlock(blockNumber, (progress: number) =>
@@ -52,7 +63,7 @@ const FileSystemBlockLayout = () => {
             setData(result.data)
             setCanMove(true)
         })()
-    }, [selected])
+    }, [selected, sectors])
 
     return (
         <Box sx={{ padding: theme.spacing(1) }}>
@@ -133,6 +144,7 @@ const FileSystemBlockLayout = () => {
             )}
             {selected.includes("Inode Block") && (
                 <InodeBlockTabs
+                    inodeBitmap={inodeBitmap}
                     setBlockNumber={setBlockNumber}
                     canMove={canMove}
                     data={data}

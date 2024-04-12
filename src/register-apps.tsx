@@ -39,7 +39,7 @@ const apps: Record<
     "File Explorer": {
         elementFn: FileExplorer,
         muiIcon: ExploreIcon,
-        enabled: false,
+        enabled: true,
     },
 }
 

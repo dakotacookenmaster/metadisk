@@ -23,9 +23,10 @@ import { AppDispatch } from "../../store"
 import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
 import WaitingMessage from "../common/components/WaitingMessage"
 import { useEffect, useState } from "react"
-import { OpenFlags, Permissions, mkdir, writeBlocks } from "../../apis/vsfs"
+import {
+    writeBlocks,
+} from "../../apis/vsfs"
 import { getCharacterEncoding } from "./components/Viewers"
-import { open } from "../../apis/vsfs"
 import { setError } from "../../redux/reducers/appSlice"
 
 export interface FileSystemSetup {
@@ -111,13 +112,13 @@ const VSFS = () => {
 
                 const rootInodeData: string = [
                     "01010100", // Type: 📂, Read ✅, Write ✅, Execute ❌ ==> 1 byte
-                    "000000000000000100000000", // How many bytes are in this file? FIXME ==> 32 bytes (for root directory)
+                    "000000000000000100000000", // How many bytes are in this file? ==> 3 bytes (for root directory)
                     timestamp, // What time was this file created? ==> 4 bytes
                     timestamp, // What time was this file last accessed? ==> 4 bytes
                     (3 + superblock.numberOfInodeBlocks)
                         .toString(2)
                         .padStart(4, "0") +
-                        [...Array(7)].map(() => "0".repeat(4)).join(""), // initialize block pointers FIXME ==> 4 bytes
+                        [...Array(7)].map(() => "0".repeat(4)).join(""), // initialize block pointers ==> 4 bytes
                 ].join("")
 
                 const rootDirectoryData: string = [
@@ -151,16 +152,10 @@ const VSFS = () => {
                 )
 
                 try {
-                    setWaitingMessage({ title: "", message: "Creating some files..." })
-                    await open(
-                        "/file.txt",
-                        [OpenFlags.O_CREAT, OpenFlags.O_RDONLY],
-                        Permissions.Read,
-                    )
-                    await mkdir("/abc", Permissions.ReadWrite)
-                    await mkdir("/abc/def", Permissions.ReadWrite)
-                    await mkdir("/abc/def/ghi", Permissions.ReadWrite)
-                    await mkdir("/abc/def/ghi/jkl", Permissions.ReadWrite)
+                    setWaitingMessage({
+                        title: "",
+                        message: "Creating some files...",
+                    })     
                 } catch (error) {
                     let e = error as Error
                     dispatch(
@@ -174,8 +169,6 @@ const VSFS = () => {
                 }
 
                 dispatch(setIsDiskFormatted(true))
-
-                await open("/dakota.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.Read)
             })()
         }
     }, [isFinishedConfiguringFileSystem, isAwaitingDisk])

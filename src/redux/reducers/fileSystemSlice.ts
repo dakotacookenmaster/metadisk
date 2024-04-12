@@ -46,6 +46,7 @@ const calculateInodeAndDataBlocks = (
         inodeTotalCount += inodesPerBlock
     }
     const inodeBlocks = Math.ceil(inodeTotalCount / inodesPerBlock)
+
     return {
         inodeBlocks,
         dataBlocks: totalBlocks - inodeBlocks - 3,
@@ -55,20 +56,20 @@ const calculateInodeAndDataBlocks = (
 const initialState: FileSystemState = {
     isFinishedConfiguringFileSystem: false,
     isAwaitingDisk: false,
-    sectorSize: 512,
+    sectorSize: 4096,
     sectorsPerBlock: 4,
-    blockSize: 512 * 4,
+    blockSize: 4096 * 4,
     totalBlocks: 16,
-    minimumRequiredDiskSize: 512 * 4 * 16,
+    minimumRequiredDiskSize: 4096 * 4 * 16,
     fileDescriptorTable: [null, null, null],
     isDiskFormatted: false,
     superblock: {
         name: "Very Simple File System (vsfs)",
         magicNumber: 7,
         inodeSize: 128,
-        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 16).inodeBlocks,
-        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 16).dataBlocks,
-        numberOfInodes: calculateInodeAndDataBlocks(16, 16).inodeBlocks * 4,
+        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 32).inodeBlocks,
+        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 32).dataBlocks,
+        numberOfInodes: calculateInodeAndDataBlocks(16, 32).inodeBlocks * 128,
         startIndex: 3,
     },
 }

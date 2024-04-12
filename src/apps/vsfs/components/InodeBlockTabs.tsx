@@ -48,8 +48,9 @@ export default function InodeBlockTabs(props: {
     beginOperation: () => void
     blockNumber: number
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
+    inodeBitmap: string
 }) {
-    const { data, progress, setSelected, canMove, beginOperation, blockNumber, setBlockNumber } = props
+    const { data, progress, setSelected, canMove, beginOperation, blockNumber, setBlockNumber, inodeBitmap } = props
     const [value, setValue] = React.useState(0)
     const [selectedInode, setSelectedInode] = useState<number | undefined>(undefined)
 
@@ -89,6 +90,7 @@ export default function InodeBlockTabs(props: {
             </Box>
             <CustomTabPanel value={value} index={0}>
                 <InodeOverview
+                    inodeBitmap={inodeBitmap}
                     data={data}
                     canMove={canMove}
                     setSelected={setSelected}

@@ -66,14 +66,21 @@ const FileExplorer = () => {
                     disabled={!!waiting || currentDirectory === "/"}
                     onClick={async () => {
                         setWaiting("path")
-                        setCurrentDirectory(prevCurrentDirectory => {
-                            if(prevCurrentDirectory === "/") {
+                        setCurrentDirectory((prevCurrentDirectory) => {
+                            if (prevCurrentDirectory === "/") {
                                 return prevCurrentDirectory
                             } else {
-                                return "/" + prevCurrentDirectory.split("/").filter(v => v).slice(0, -1).join('/')
+                                return (
+                                    "/" +
+                                    prevCurrentDirectory
+                                        .split("/")
+                                        .filter((v) => v)
+                                        .slice(0, -1)
+                                        .join("/")
+                                )
                             }
                         })
-                        
+
                         setWaiting("")
                     }}
                     variant="contained"
@@ -89,7 +96,10 @@ const FileExplorer = () => {
         <Paper
             sx={{
                 "&:hover, &:hover *": {
-                    cursor: waiting ? "wait" : undefined,
+                    cursor:
+                        waiting === "path" && isDiskFormatted
+                            ? "wait"
+                            : undefined,
                 },
                 height: "100%",
                 width: "100%",
@@ -115,6 +125,7 @@ const FileExplorer = () => {
                         flexDirection: "column",
                         gap: theme.spacing(2),
                         height: "100%",
+                        position: "relative",
                     }}
                 >
                     <ExplorerHeader />
@@ -128,11 +139,14 @@ const FileExplorer = () => {
                         }}
                     >
                         <ExplorerWindow
+                            setWaiting={setWaiting}
+                            currentDirectory={currentDirectory}
                             setCurrentDirectory={setCurrentDirectory}
                             data={treeData!}
                             waiting={waiting}
                         />
                         <FileView
+                            setWaiting={setWaiting}
                             data={fileData!}
                             setCurrentDirectory={setCurrentDirectory}
                             waiting={waiting}

@@ -23,11 +23,12 @@ export default function Alert() {
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
+                sx={{ width: "100%" }}
             >
                 <DialogTitle id="alert-dialog-title">
                     { error?.name }
                 </DialogTitle>
-                <DialogContent>
+                <DialogContent sx={{ minWidth: "300px" }}>
                     <DialogContentText id="alert-dialog-description">
                         { error?.message }
                     </DialogContentText>

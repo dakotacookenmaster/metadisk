@@ -24,11 +24,11 @@ export default function DiskControls(props: BoxProps) {
             label: "Slow",
         },
         {
-            value: 0.6,
+            value: 1.0,
             label: "Moderate",
         },
         {
-            value: 1.0,
+            value: 1.5,
             label: "Fast",
         },
     ]

@@ -52,7 +52,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
     return (
         <Editor 
             loading={<Typography>Loading...</Typography>}
-            height="380px" 
+            height="440px" 
             width="100%"
             defaultLanguage="text"
             options={{ 

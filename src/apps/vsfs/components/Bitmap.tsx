@@ -61,7 +61,7 @@ const Bitmap = (props: { data: string }) => {
                     })}
             </Box>
             <Pagination
-                count={pageData.length - 1}
+                count={pageData.length}
                 onChange={(_, page) => {
                     setPage(page)
                 }}

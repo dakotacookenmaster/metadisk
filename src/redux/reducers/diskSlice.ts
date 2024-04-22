@@ -32,7 +32,7 @@ const initialState: DiskState = {
     diskRotation: 0,
     isProcessing: false,
     skipWaitTime: false,
-    diskSpeed: 0.6,
+    diskSpeed: 1.5,
     currentlyServicing: [],
     trackCount: 8,
     armRotation: {

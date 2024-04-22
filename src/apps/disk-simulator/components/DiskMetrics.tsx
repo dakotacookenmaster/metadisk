@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material"
 import { useAppSelector } from "../../../redux/hooks/hooks"
-import { DiskStateType, selectDiskState } from "../../../redux/reducers/diskSlice"
+import { DiskStateType, selectDiskQueue, selectDiskState } from "../../../redux/reducers/diskSlice"
 import SaveAsIcon from "@mui/icons-material/SaveAs"
 import SearchIcon from "@mui/icons-material/Search"
 import HourglassTopIcon from "@mui/icons-material/HourglassTop"
@@ -10,6 +10,7 @@ import Tooltip from "../../common/components/Tooltip"
 
 const DiskMetrics = () => {
     const diskState = useAppSelector(selectDiskState)
+    const diskQueue = useAppSelector(selectDiskQueue)
     const getStateData = (state: DiskStateType) => {
         switch(state) {
             case "idle":
@@ -47,7 +48,7 @@ const DiskMetrics = () => {
             <Tooltip placement="right" title={layoutData.name}>
                 <Component sx={{ fontSize: "50px" }} />
             </Tooltip>
-            <Typography variant="overline" sx={{ fontWeight: "bold" }}>{ diskState }</Typography>
+            <Typography variant="overline" sx={{ fontWeight: "bold" }}>{ diskState } &#40;{diskQueue[0]?.sectorNumber}&#41;</Typography>
         </Box>
     )
 }

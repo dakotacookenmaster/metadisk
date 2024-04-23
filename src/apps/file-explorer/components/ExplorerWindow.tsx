@@ -43,7 +43,9 @@ const ExplorerWindow = (props: {
 
         const handleDoubleClick = () => {
             if (!waiting) {
-                setCurrentDirectory(node.data.path)
+                if(!node.isLeaf) {
+                    setCurrentDirectory(node.data.path)
+                }
             }
         }
 

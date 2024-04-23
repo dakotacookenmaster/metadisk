@@ -1,12 +1,10 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { AppDispatch, RootState } from "../../store"
-import {
-    CurrentlyServicingPayload,
-    ReadPayload,
-    WritePayload,
-} from "../../apis/disk"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../apps/common/constants"
 import { selectSectorsPerBlock, selectTotalBlocks } from "./fileSystemSlice"
+import DiskReadPayload from "../../apis/interfaces/disk/DiskReadPayload.interface"
+import DiskWritePayload from "../../apis/interfaces/disk/DiskWritePayload.interface"
+import CurrentlyServicingPayload from "../../apis/interfaces/disk/CurrentlyServicingPayload.interface"
 
 export type DiskStateType = "read" | "write" | "idle" | "seek" | "waiting"
 
@@ -21,7 +19,7 @@ interface DiskState {
         degrees: number
         time: number
     }
-    queue: (ReadPayload | WritePayload)[]
+    queue: (DiskReadPayload | DiskWritePayload)[]
     currentlyServicing: CurrentlyServicingPayload[]
     sectors: {
         data: string
@@ -32,7 +30,7 @@ const initialState: DiskState = {
     diskRotation: 0,
     isProcessing: false,
     skipWaitTime: false,
-    diskSpeed: 1.5,
+    diskSpeed: 1.0,
     currentlyServicing: [],
     trackCount: 8,
     armRotation: {
@@ -41,7 +39,9 @@ const initialState: DiskState = {
     },
     state: "idle",
     queue: [],
-    sectors: [],
+    sectors: [...Array(64)].map(() => ({
+        data: "0".repeat(4096),
+    })),
 }
 
 export const diskSlice = createSlice({
@@ -58,7 +58,7 @@ export const diskSlice = createSlice({
                 }
             }
         },
-        enqueue: (state, action: PayloadAction<ReadPayload | WritePayload>) => {
+        enqueue: (state, action: PayloadAction<DiskReadPayload | DiskWritePayload>) => {
             state.queue.push(action.payload)
         },
         dequeue: (state, action: PayloadAction<number>) => {
@@ -135,7 +135,7 @@ const findTrackNumber = (sector: number, getState: () => RootState) => {
 }
 
 const writeOrRead =
-    (data: ReadPayload | WritePayload) =>
+    (data: DiskReadPayload | DiskWritePayload) =>
     async (dispatch: AppDispatch, getState: () => RootState) => {
         const differenceFromArm = (sector: number) => {
             const necessaryRotation = findSectorRotation(sector, getState)
@@ -233,7 +233,7 @@ const goToSector =
     }
 
 const processItem =
-    (item: ReadPayload | WritePayload, getState: () => RootState) =>
+    (item: DiskReadPayload | DiskWritePayload, getState: () => RootState) =>
     async (dispatch: AppDispatch) => {
         dispatch(setDiskState("seek"))
 
@@ -255,7 +255,7 @@ export const processQueue =
             getState().disk.state === "idle" ||
             getState().disk.state === "waiting"
         const isProcessing = getState().disk.isProcessing
-        let diskQueue: (ReadPayload | WritePayload)[] = []
+        let diskQueue: (DiskReadPayload | DiskWritePayload)[] = []
         if (idleOrWaiting && !isProcessing) {
             dispatch(setIsProcessing(true))
             while ((diskQueue = getState().disk.queue).length > 0) {

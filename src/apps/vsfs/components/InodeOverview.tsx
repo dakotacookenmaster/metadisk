@@ -73,7 +73,7 @@ const InodeOverview = (props: {
     const inodeNumbers: number[] = []
     const inodes = chunk(data.split(""), superblock.inodeSize).filter(
         (_, i) => {
-            if(inodeBitmap[i] !== "0") {
+            if(inodeBitmap[i + blockNumber * inodesPerBlock] !== "0") {
                 inodeNumbers.push(i)
                 return true
             } 

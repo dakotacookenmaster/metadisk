@@ -1,6 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { RootState } from "../../store"
-import { OpenFlags } from "../../apis/vsfs"
 interface FileSystemState {
     sectorSize: number
     sectorsPerBlock: number
@@ -10,7 +9,7 @@ interface FileSystemState {
     isFinishedConfiguringFileSystem: boolean
     isAwaitingDisk: boolean
     isDiskFormatted: boolean
-    fileDescriptorTable: (FileDescriptor | null)[]
+    // fileDescriptorTable: (FileDescriptor | null)[]
     superblock: {
         name: string
         magicNumber: number
@@ -22,11 +21,11 @@ interface FileSystemState {
     }
 }
 
-export interface FileDescriptor {
-    path: string,
-    inode: number,
-    flags: OpenFlags[]
-}
+// export interface FileDescriptor {
+//     path: string,
+//     inode: number,
+//     flags: OpenFlags[]
+// }
 
 /**
  * Takes the total number of blocks in the system (INCLUDING the superblock, i-bmap, and d-bmap)
@@ -61,7 +60,7 @@ const initialState: FileSystemState = {
     blockSize: 4096 * 4,
     totalBlocks: 16,
     minimumRequiredDiskSize: 4096 * 4 * 16,
-    fileDescriptorTable: [null, null, null],
+    // fileDescriptorTable: [null, null, null],
     isDiskFormatted: false,
     superblock: {
         name: "Very Simple File System (vsfs)",
@@ -134,12 +133,12 @@ export const fileSystemSlice = createSlice({
         setIsDiskFormatted: (state, action: PayloadAction<boolean>) => {
             state.isDiskFormatted = action.payload
         },
-        addFileDescriptor: (state, action: PayloadAction<FileDescriptor>) => {
-            state.fileDescriptorTable.push(action.payload)
-        },
-        removeFileDescriptor: (state, action: PayloadAction<number>) => {
-            state.fileDescriptorTable = state.fileDescriptorTable.splice(action.payload, 1)
-        },
+        // addFileDescriptor: (state, action: PayloadAction<FileDescriptor>) => {
+        //     state.fileDescriptorTable.push(action.payload)
+        // },
+        // removeFileDescriptor: (state, action: PayloadAction<number>) => {
+        //     state.fileDescriptorTable = state.fileDescriptorTable.splice(action.payload, 1)
+        // },
     },
 })
 
@@ -152,8 +151,8 @@ export const {
     setTotalBlocks,
     setIsAwaitingDisk,
     setIsDiskFormatted,
-    addFileDescriptor,
-    removeFileDescriptor
+    // addFileDescriptor,
+    // removeFileDescriptor
 } = fileSystemSlice.actions
 
 export const selectSectorSize = (state: RootState) =>
@@ -175,6 +174,6 @@ export const selectIsAwaitingDisk = (state: RootState) =>
     state.fileSystem.isAwaitingDisk
 export const selectIsDiskFormatted = (state: RootState) =>
     state.fileSystem.isDiskFormatted
-export const selectFileDescriptorTable = (state: RootState) => state.fileSystem.fileDescriptorTable
+// export const selectFileDescriptorTable = (state: RootState) => state.fileSystem.fileDescriptorTable
 
 export default fileSystemSlice.reducer

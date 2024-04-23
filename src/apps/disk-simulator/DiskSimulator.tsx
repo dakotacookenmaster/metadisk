@@ -110,9 +110,10 @@ const DiskSimulator = () => {
                         <Typography sx={{ marginRight: "5px", minWidth: "90px" }}>
                             Disk Queue:{" "}
                         </Typography>
-                        {diskQueue.map((item) => {
+                        {diskQueue.map((item, index) => {
                             return (
                                 <Box
+                                    key={`queue-${index}`}
                                     sx={{
                                         border: "2px solid white",
                                         borderRadius: "10px",

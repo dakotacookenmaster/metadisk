@@ -45,7 +45,7 @@ const InodeOverview = (props: {
     const superblock = useAppSelector(selectSuperblock)
     const blockSize = useAppSelector(selectBlockSize)
     const inodesPerBlock = blockSize / superblock.inodeSize
-    const offset = selectedInode !== undefined ? selectedInode * 16 * 8 : 0 // 16 * 8 bits is the number of bytes required to represent the inode
+    const offset = selectedInode !== undefined ? selectedInode * 128 : 0 // 128 bits is the size of an inode
     const type = [<FileIcon />, <FolderIcon sx={{ color: "#F1D592" }} />][
         parseInt(data.slice(0 + offset, 2 + offset), 2)
     ]
@@ -57,10 +57,11 @@ const InodeOverview = (props: {
     const write = options[parseInt(data.slice(4 + offset, 6 + offset), 2)]
     const execute = options[parseInt(data.slice(6 + offset, 8 + offset), 2)]
     const size = getByteCount(parseInt(data.slice(8 + offset, 32 + offset), 2))
+
     const createdAt = new Date(
         parseInt(data.slice(32 + offset, 64 + offset), 2) * 1000,
     ).toLocaleString()
-    const lastAccessed = new Date(
+    const lastModified = new Date(
         parseInt(data.slice(64 + offset, 96 + offset), 2) * 1000,
     ).toLocaleString()
     const blockPointers = chunk(
@@ -91,19 +92,6 @@ const InodeOverview = (props: {
                     gap: theme.spacing(2),
                 }}
             >
-                <Typography
-                    variant="overline"
-                    sx={{
-                        fontWeight: "bold",
-                        fontSize: "13px",
-                        width: "100%",
-                        textAlign: "center",
-                        paddingRight: theme.spacing(2),
-                    }}
-                >
-                    Inode Viewer
-                </Typography>
-                <hr style={{ width: "100%", marginTop: "-10px" }} />
                 <Box
                     style={{
                         scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
@@ -180,8 +168,8 @@ const InodeOverview = (props: {
                     <TableCell>{createdAt}</TableCell>
                 </TableRow>
                 <TableRow>
-                    <TableCell>Last Accessed</TableCell>
-                    <TableCell>{lastAccessed}</TableCell>
+                    <TableCell>Last Modified</TableCell>
+                    <TableCell>{lastModified}</TableCell>
                 </TableRow>
                 <TableRow>
                     <TableCell>Block Pointers</TableCell>

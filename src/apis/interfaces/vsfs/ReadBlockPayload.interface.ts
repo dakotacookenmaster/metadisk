@@ -2,19 +2,19 @@ import DirectoryEntry from "./DirectoryEntry.interface"
 import InodeData from "./InodeData.interface"
 
 export default interface ReadBlockPayload {
-    data: {
-        superblock: {
-            magicNumber: number
-            inodeCount: number
-            inodeBlocks: number
-            dataBlocks: number
-            blockSize: number
+    readonly data: {
+        readonly superblock: {
+            readonly magicNumber: number
+            readonly inodeCount: number
+            readonly inodeBlocks: number
+            readonly dataBlocks: number
+            readonly blockSize: number
         }
-        directory: {
-            entries: DirectoryEntry[]
+        readonly directory: {
+            readonly entries: DirectoryEntry[]
         }
-        inodes: InodeData[]
-        raw: string
+        readonly inodes: InodeData[]
+        readonly raw: string
     }
-    sectors: number[]
+    readonly sectors: number[]
 }

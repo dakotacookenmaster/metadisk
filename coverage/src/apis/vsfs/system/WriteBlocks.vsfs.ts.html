@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.69% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>39/43</span>
+                <span class='fraction'>0/43</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/5</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.69% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/43</span>
+                <span class='fraction'>0/43</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -105,98 +105,98 @@
 <a name='L40'></a><a href='#L40'>40</a>
 <a name='L41'></a><a href='#L41'>41</a>
 <a name='L42'></a><a href='#L42'>42</a>
-<a name='L43'></a><a href='#L43'>43</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L43'></a><a href='#L43'>43</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">import { BadDataLengthError } from "../../api-errors/BadDataLength.error"
-import { writeBlock } from "./WriteBlock.vsfs"
-&nbsp;
-/**
- * Allows the writing of multiple blocks, providing a callback to update the invoker on progress
- * @param blocks The block numbers you want to read.
- * @param data The data you wish to write to the blocks.
- * @param progressCb A callback you can provide to allow updates based on computed progress.
- * @returns
- */
-export const writeBlocks = async (
-    blocks: number[],
-    data: string[],
-    progressCb?: (progress: number) =&gt; void,
-) =&gt; {
-    let totalCompleted = 0
-    const operations = []
-    if (blocks.length !== data.length) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { BadDataLengthError } from "../../api-errors/BadDataLength.error"<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cstat-no" title="statement not covered" >import { writeBlock } from "./WriteBlock.vsfs"</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >/**</span>
+<span class="cstat-no" title="statement not covered" > * Allows the writing of multiple blocks, providing a callback to update the invoker on progress</span>
+<span class="cstat-no" title="statement not covered" > * @param blocks The block numbers you want to read.</span>
+<span class="cstat-no" title="statement not covered" > * @param data The data you wish to write to the blocks.</span>
+<span class="cstat-no" title="statement not covered" > * @param progressCb A callback you can provide to allow updates based on computed progress.</span>
+<span class="cstat-no" title="statement not covered" > * @returns</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" >export const writeBlocks = async (</span>
+<span class="cstat-no" title="statement not covered" >    blocks: number[],</span>
+<span class="cstat-no" title="statement not covered" >    data: string[],</span>
+<span class="cstat-no" title="statement not covered" >    progressCb?: (progress: number) =&gt; void,</span>
+<span class="cstat-no" title="statement not covered" >) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    let totalCompleted = 0</span>
+<span class="cstat-no" title="statement not covered" >    const operations = []</span>
+<span class="cstat-no" title="statement not covered" >    if (blocks.length !== data.length) {</span>
 <span class="cstat-no" title="statement not covered" >        throw new BadDataLengthError(</span>
 <span class="cstat-no" title="statement not covered" >            `Block length: ${blocks.length}; Data length: ${data.length}`,</span>
 <span class="cstat-no" title="statement not covered" >        )</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-    // FIXME - errors with Promise.all
-    for (let i = 0; i &lt; blocks.length; i++) {
-        operations.push(
-            writeBlock(blocks[i], data[i], (progress) =&gt; {
-                if (progressCb) {
-                    progressCb(
-                        ((totalCompleted + progress / 100) / blocks.length) *
-                            100,
-                    )
-                }
-            }).then((result) =&gt; {
-                totalCompleted++
-                return result
-            }),
-        )
-    }
-&nbsp;
-    const result = await Promise.all(operations)
-    return result
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // FIXME - errors with Promise.all</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = 0; i &lt; blocks.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        operations.push(</span>
+<span class="cstat-no" title="statement not covered" >            writeBlock(blocks[i], data[i], (progress) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                if (progressCb) {</span>
+<span class="cstat-no" title="statement not covered" >                    progressCb(</span>
+<span class="cstat-no" title="statement not covered" >                        ((totalCompleted + progress / 100) / blocks.length) *</span>
+<span class="cstat-no" title="statement not covered" >                            100,</span>
+<span class="cstat-no" title="statement not covered" >                    )</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+<span class="cstat-no" title="statement not covered" >            }).then((result) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                totalCompleted++</span>
+<span class="cstat-no" title="statement not covered" >                return result</span>
+<span class="cstat-no" title="statement not covered" >            }),</span>
+<span class="cstat-no" title="statement not covered" >        )</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const result = await Promise.all(operations)</span>
+<span class="cstat-no" title="statement not covered" >    return result</span>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

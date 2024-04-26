@@ -49,10 +49,11 @@ export default function InodeBlockTabs(props: {
     blockNumber: number
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
     inodeBitmap: string
+    selectedInode: number | undefined
+    setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
 }) {
-    const { data, progress, setSelected, canMove, beginOperation, blockNumber, setBlockNumber, inodeBitmap } = props
+    const { data, progress, setSelected, canMove, beginOperation, blockNumber, setBlockNumber, inodeBitmap, selectedInode, setSelectedInode } = props
     const [value, setValue] = React.useState(0)
-    const [selectedInode, setSelectedInode] = useState<number | undefined>(undefined)
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
@@ -75,7 +76,7 @@ export default function InodeBlockTabs(props: {
                     onChange={handleChange}
                     aria-label="basic tabs example"
                 >
-                    <Tab label="Overview" {...a11yProps(0)} />
+                    <Tab label="Inode Viewer" {...a11yProps(0)} />
                     <Tab label="Binary" {...a11yProps(1)} />
                     <Tab label="Hex" {...a11yProps(2)} />
                     <Tab label="ASCII" {...a11yProps(3)} />

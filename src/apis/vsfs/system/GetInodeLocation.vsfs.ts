@@ -9,12 +9,12 @@ import InodeLocation from "../../interfaces/vsfs/InodeLocation.interface";
  */
 export default function getInodeLocation(inode: number): InodeLocation {
     const state = store.getState()
-    const { inodeSize, startIndex } = selectSuperblock(state)
+    const { inodeSize, inodeStartIndex } = selectSuperblock(state)
     const blockSize = selectBlockSize(state)
     const inodesPerBlock = blockSize / inodeSize
     
     return {
-        inodeBlock: Math.floor(inode / inodesPerBlock) + startIndex,
+        inodeBlock: Math.floor(inode / inodesPerBlock) + inodeStartIndex,
         inodeOffset: inode % inodesPerBlock
     }
 }

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.75% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>30/32</span>
+                <span class='fraction'>0/32</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.75% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>30/32</span>
+                <span class='fraction'>0/32</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -95,70 +95,70 @@
 <a name='L30'></a><a href='#L30'>30</a>
 <a name='L31'></a><a href='#L31'>31</a>
 <a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.error";
-import DirectoryEntry from "../../interfaces/vsfs/DirectoryEntry.interface";
-import DirectoryListing from "../../interfaces/vsfs/DirectoryListing.interface";
-import getInodeLocation from "../system/GetInodeBlock.vsfs";
-import isValidPath from "../system/IsValidPath.vsfs";
-import { readBlock } from "../system/ReadBlock.vsfs";
-&nbsp;
-/**
- * Returns a directory listing for a given directory path
- * @param pathname The directory's pathname
- */
-export default async function listing(pathname: string): Promise&lt;DirectoryListing&gt; {
-    const inodeNumber = await isValidPath(pathname)
-    const { inodeBlock, inodeOffset } = getInodeLocation(inodeNumber)
-    const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
-&nbsp;
-    if(inode.type !== "directory") <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.error";</span></span></span>
+<span class="cstat-no" title="statement not covered" >import DirectoryEntry from "../../interfaces/vsfs/DirectoryEntry.interface";</span>
+<span class="cstat-no" title="statement not covered" >import DirectoryListing from "../../interfaces/vsfs/DirectoryListing.interface";</span>
+<span class="cstat-no" title="statement not covered" >import getInodeLocation from "../system/GetInodeLocation.vsfs";</span>
+<span class="cstat-no" title="statement not covered" >import isValidPath from "../system/IsValidPath.vsfs";</span>
+<span class="cstat-no" title="statement not covered" >import { readBlock } from "../system/ReadBlock.vsfs";</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >/**</span>
+<span class="cstat-no" title="statement not covered" > * Returns a directory listing for a given directory path</span>
+<span class="cstat-no" title="statement not covered" > * @param pathname The directory's pathname</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" >export default async function listing(pathname: string): Promise&lt;DirectoryListing&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const inodeNumber = await isValidPath(pathname)</span>
+<span class="cstat-no" title="statement not covered" >    const { inodeBlock, inodeOffset } = getInodeLocation(inodeNumber)</span>
+<span class="cstat-no" title="statement not covered" >    const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if(inode.type !== "directory") {</span>
 <span class="cstat-no" title="statement not covered" >        throw new InvalidDirectoryPath()</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    const allEntries: DirectoryEntry[] = []
-    for(let pointer of inode.blockPointers) {
-        // each of these pointers should point to a directory
-        const { entries } = (await readBlock(pointer)).data.directory
-        allEntries.push(...entries)
-    }
-&nbsp;
-    return {
-        inode: inodeNumber,
-        pathname,
-        entries: allEntries
-    }
-}
+<span class="cstat-no" title="statement not covered" >    const allEntries: DirectoryEntry[] = []</span>
+<span class="cstat-no" title="statement not covered" >    for(let pointer of inode.blockPointers.filter(v =&gt; v)) {</span>
+<span class="cstat-no" title="statement not covered" >        // each of these pointers should point to a directory</span>
+<span class="cstat-no" title="statement not covered" >        const { entries } = (await readBlock(pointer)).data.directory</span>
+<span class="cstat-no" title="statement not covered" >        allEntries.push(...entries)</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    return {</span>
+<span class="cstat-no" title="statement not covered" >        inode: inodeNumber,</span>
+<span class="cstat-no" title="statement not covered" >        pathname,</span>
+<span class="cstat-no" title="statement not covered" >        entries: allEntries</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -166,7 +166,7 @@ export default async function listing(pathname: string): Promise&lt;DirectoryLis
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

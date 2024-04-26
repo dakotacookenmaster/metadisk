@@ -1,4 +1,4 @@
 export default interface InodeLocation {
-    inodeBlock: number
-    inodeOffset: number
+    readonly inodeBlock: number
+    readonly inodeOffset: number
 }

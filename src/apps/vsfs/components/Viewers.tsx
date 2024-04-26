@@ -23,6 +23,11 @@ export const characterMap = [
     "\u2261", "\u00B1", "\u2265", "\u2264", "\u2390", "\u2321", "\u00F7", "\u2248", "\u00B0", "\u2219", "\u00B7", "\u221A", "\u207F", "\u00B2", "\u25A0", "\u00A0",
 ]
 
+/**
+ * Find the numeric value associated with the given character
+ * @param char The character you want to get the number for
+ * @returns 
+ */
 export const getCharacterEncoding = (char: string): number => {
     return characterMap.findIndex(c => c === char)
 }
@@ -52,7 +57,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
     return (
         <Editor 
             loading={<Typography>Loading...</Typography>}
-            height="440px" 
+            height="400px" 
             width="100%"
             defaultLanguage="text"
             options={{ 

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>63/63</span>
+                <span class='fraction'>0/72</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>63/63</span>
+                <span class='fraction'>0/72</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -126,132 +126,159 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { getCharacterEncoding } from "../../../apps/vsfs/components/Viewers"
-import { selectBlockSize, selectSectorSize, selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
-import { store } from "../../../store"
-import { writeBlocks } from "./WriteBlocks.vsfs"
-&nbsp;
-export default async function initializeSuperblock(
-    progressCb: (progress: number) =&gt; void,
-) {
-    const state = store.getState()
-    const superblock = selectSuperblock(state)
-    const blockSize = selectBlockSize(state)
-    const sectorSize = selectSectorSize(state)
-    const magicNumber = superblock.magicNumber.toString(2).padStart(8, "0") // 7 is the magic number indicating VSFS
-    const inodeCount = superblock.numberOfInodes.toString(2).padStart(16, "0") // the number of inodes in the system (need 16 bits to encode)
-    const inodeBlocks = superblock.numberOfInodeBlocks
-        .toString(2)
-        .padStart(4, "0") // the number of blocks containing inodes
-    const dataBlocks = superblock.numberOfDataBlocks
-        .toString(2)
-        .padStart(4, "0") // the number of datablocks in the system
-&nbsp;
-    const writableBlockSize = blockSize.toString(2).padStart(24, "0")
-    const superblockData =
-        magicNumber + inodeCount + inodeBlocks + dataBlocks + writableBlockSize
-    const bitmap = "1" + "0".repeat(sectorSize - 1)
-&nbsp;
-    progressCb(0)
-&nbsp;
-    const timestamp = Math.floor(Date.now() / 1000)
-        .toString(2)
-        .padStart(32, "0")
-&nbsp;
-    const rootInodeData: string = [
-        "01010100", // Type: 📂, Read ✅, Write ✅, Execute ❌ ==&gt; 1 byte
-        "000000000000000100000000", // How many bytes are in this file? ==&gt; 3 bytes (for root directory)
-        timestamp, // What time was this file created? ==&gt; 4 bytes
-        timestamp, // What time was this file last accessed? ==&gt; 4 bytes
-        (3 + superblock.numberOfInodeBlocks).toString(2).padStart(4, "0") +
-            [...Array(7)].map(() =&gt; "0".repeat(4)).join(""), // initialize block pointers ==&gt; 4 bytes
-    ].join("")
-&nbsp;
-    const rootDirectoryData: string = [
-        // . directory
-        "00000000".repeat(12), // 12 null characters
-        getCharacterEncoding(".").toString(2).padStart(8, "0"), // get . as ASCII
-        "00000000".repeat(3), // inode number
-&nbsp;
-        // .. directory
-        "00000000".repeat(11), // 11 null characters
-        getCharacterEncoding(".").toString(2).padStart(8, "0").repeat(2), // .. as ASCII
-        "00000000".repeat(3), // inode number
-    ].join("")
-&nbsp;
-    const rootDirectoryBlock = superblock.numberOfInodeBlocks + 3
-&nbsp;
-    await writeBlocks(
-        [0, 1, 2, 3, rootDirectoryBlock],
-        [superblockData, bitmap, bitmap, rootInodeData, rootDirectoryData],
-        (progress) =&gt; {
-            progressCb(progress)
-        },
-    )
-}
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import {</span></span></span>
+<span class="cstat-no" title="statement not covered" >    selectBlockSize,</span>
+<span class="cstat-no" title="statement not covered" >    selectSectorSize,</span>
+<span class="cstat-no" title="statement not covered" >    selectSuperblock,</span>
+<span class="cstat-no" title="statement not covered" >} from "../../../redux/reducers/fileSystemSlice"</span>
+<span class="cstat-no" title="statement not covered" >import { store } from "../../../store"</span>
+<span class="cstat-no" title="statement not covered" >import Permissions from "../../enums/vsfs/Permissions.enum"</span>
+<span class="cstat-no" title="statement not covered" >import buildDirectory from "./BuildDirectory.vsfs"</span>
+<span class="cstat-no" title="statement not covered" >import buildInode from "./BuildInode.vsfs"</span>
+<span class="cstat-no" title="statement not covered" >import buildSuperblock from "./BuildSuperblock.vsfs"</span>
+<span class="cstat-no" title="statement not covered" >import { writeBlocks } from "./WriteBlocks.vsfs"</span>
+<span class="cstat-no" title="statement not covered" >/**</span>
+<span class="cstat-no" title="statement not covered" > * Initializes the superblock, the inode and data bitmaps, and the root directory</span>
+<span class="cstat-no" title="statement not covered" > * @param progressCb A callback executed whenever the initialization progress changes</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" >export default async function initializeSuperblock(</span>
+<span class="cstat-no" title="statement not covered" >    progressCb: (progress: number) =&gt; void,</span>
+<span class="cstat-no" title="statement not covered" >) {</span>
+<span class="cstat-no" title="statement not covered" >    const state = store.getState()</span>
+<span class="cstat-no" title="statement not covered" >    const superblock = selectSuperblock(state)</span>
+<span class="cstat-no" title="statement not covered" >    const blockSize = selectBlockSize(state)</span>
+<span class="cstat-no" title="statement not covered" >    const sectorSize = selectSectorSize(state)</span>
+<span class="cstat-no" title="statement not covered" >    const { inodeStartIndex } = superblock</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const superblockData = buildSuperblock({</span>
+<span class="cstat-no" title="statement not covered" >        magicNumber: superblock.magicNumber,</span>
+<span class="cstat-no" title="statement not covered" >        inodeCount: superblock.numberOfInodes,</span>
+<span class="cstat-no" title="statement not covered" >        blockSize: blockSize,</span>
+<span class="cstat-no" title="statement not covered" >        dataBlocks: superblock.numberOfDataBlocks,</span>
+<span class="cstat-no" title="statement not covered" >        inodeBlocks: superblock.numberOfInodeBlocks,</span>
+<span class="cstat-no" title="statement not covered" >        inodeStartIndex: superblock.inodeStartIndex,</span>
+<span class="cstat-no" title="statement not covered" >        sectorSize,</span>
+<span class="cstat-no" title="statement not covered" >    })</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    progressCb(0)</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const bitmap = "1" + "0".repeat(sectorSize - 1)</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const timestamp = new Date()</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const rootInodeData = buildInode({</span>
+<span class="cstat-no" title="statement not covered" >        type: "directory",</span>
+<span class="cstat-no" title="statement not covered" >        permissions: Permissions.READ_WRITE,</span>
+<span class="cstat-no" title="statement not covered" >        createdAt: timestamp,</span>
+<span class="cstat-no" title="statement not covered" >        lastAccessed: timestamp,</span>
+<span class="cstat-no" title="statement not covered" >        size: 256,</span>
+<span class="cstat-no" title="statement not covered" >        blockPointers: [3 + superblock.numberOfInodeBlocks, 0, 0, 0, 0, 0, 0],</span>
+<span class="cstat-no" title="statement not covered" >    })</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const rootDirectoryData = buildDirectory({</span>
+<span class="cstat-no" title="statement not covered" >        entries: [</span>
+<span class="cstat-no" title="statement not covered" >            {</span>
+<span class="cstat-no" title="statement not covered" >                name: ".",</span>
+<span class="cstat-no" title="statement not covered" >                inode: 0,</span>
+<span class="cstat-no" title="statement not covered" >            },</span>
+<span class="cstat-no" title="statement not covered" >            {</span>
+<span class="cstat-no" title="statement not covered" >                name: "..",</span>
+<span class="cstat-no" title="statement not covered" >                inode: 0,</span>
+<span class="cstat-no" title="statement not covered" >            },</span>
+<span class="cstat-no" title="statement not covered" >        ],</span>
+<span class="cstat-no" title="statement not covered" >    })</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const rootDirectoryBlock = superblock.numberOfInodeBlocks + inodeStartIndex</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    await writeBlocks(</span>
+<span class="cstat-no" title="statement not covered" >        [0, 1, 2, 3, rootDirectoryBlock],</span>
+<span class="cstat-no" title="statement not covered" >        [superblockData, bitmap, bitmap, rootInodeData, rootDirectoryData],</span>
+<span class="cstat-no" title="statement not covered" >        (progress) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            progressCb(progress)</span>
+<span class="cstat-no" title="statement not covered" >        },</span>
+<span class="cstat-no" title="statement not covered" >    )</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -259,7 +286,7 @@ export default async function initializeSuperblock(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

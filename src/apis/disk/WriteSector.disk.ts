@@ -21,7 +21,9 @@ export const writeSector = async (
     data: string,
 ): Promise<CurrentlyServicingPayload> => {
     // Verify that the sector exists
-    const sectors = selectSectors(store.getState())
+    const state = store.getState()
+    const sectors = selectSectors(state)
+    const sectorSize = selectSectorSize(store.getState())
 
     if (sector < 0 || sector >= sectors.length) {
         throw new InvalidSectorError(
@@ -39,7 +41,6 @@ export const writeSector = async (
     }
 
     // Guarantee the data can be written to the sector
-    const sectorSize = selectSectorSize(store.getState())
     if (data.length > sectorSize) {
         throw new SectorOverflowError(
             `Sector Size: ${sectorSize} bits, Binary Size: ${data.length} bits`,

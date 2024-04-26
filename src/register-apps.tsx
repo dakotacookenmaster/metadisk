@@ -4,8 +4,6 @@ import VSFS from "./apps/vsfs/VSFS"
 import { DiskSimulatorIcon } from "./apps/disk-simulator/DiskSimulator"
 import { SvgIconTypeMap } from "@mui/material"
 import { VSFSIcon } from "./apps/vsfs/components/VSFSIcon"
-import ExploreIcon from '@mui/icons-material/Explore'
-import FileExplorer from "./apps/file-explorer/FileExplorer"
 import { store } from "./store"
 import { setSkipWaitTime } from "./redux/reducers/diskSlice"
 
@@ -35,11 +33,6 @@ const apps: Record<
         onChange: (enabled: boolean) => {
             store.dispatch(setSkipWaitTime(!enabled))
         }
-    },
-    "File Explorer": {
-        elementFn: FileExplorer,
-        muiIcon: ExploreIcon,
-        enabled: true,
     },
 }
 

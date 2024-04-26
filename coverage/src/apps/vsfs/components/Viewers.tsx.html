@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.6% </span>
+                <span class="strong">43.37% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>42/83</span>
+                <span class='fraction'>36/83</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/5</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/4</span>
+                <span class='fraction'>1/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.6% </span>
+                <span class="strong">43.37% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>42/83</span>
+                <span class='fraction'>36/83</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -171,21 +171,21 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">41x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3328x</span>
-<span class="cline-any cline-yes">3328x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3328x</span>
-<span class="cline-any cline-yes">3328x</span>
-<span class="cline-any cline-yes">3328x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">3328x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -256,18 +256,18 @@ export const getCharacterEncoding = (char: string): number =&gt; {
     return characterMap.findIndex(c =&gt; c === char)
 }
 &nbsp;
-const getCharacter = (byte: number): string =&gt; {
-    return characterMap[byte]
-}
-export const convertBinaryByteStringToType = (byte: string, mode: "bin" | "hex" | "ascii") =&gt; {
-    if(mode === "ascii") {
-        return getCharacter(parseInt(byte, 2))
-<span class="branch-0 cbranch-no" title="branch not covered" >    } else if(mode === "hex") {</span>
+const getCharacter = <span class="fstat-no" title="function not covered" >(byte: number): string =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    return characterMap[byte]</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+export const convertBinaryByteStringToType = <span class="fstat-no" title="function not covered" >(byte: string, mode: "bin" | "hex" | "ascii") =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    if(mode === "ascii") {</span>
+<span class="cstat-no" title="statement not covered" >        return getCharacter(parseInt(byte, 2))</span>
+<span class="cstat-no" title="statement not covered" >    } else if(mode === "hex") {</span>
 <span class="cstat-no" title="statement not covered" >        return parseInt(byte, 2).toString(16).padStart(2, "0").toUpperCase()</span>
 <span class="cstat-no" title="statement not covered" >    } else {</span>
 <span class="cstat-no" title="statement not covered" >        return byte</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-}
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 const Viewer = <span class="fstat-no" title="function not covered" >(props: { data: string, mode: "bin" | "hex" | "ascii" }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const { data, mode } = props</span>
@@ -316,7 +316,7 @@ export default Viewer</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

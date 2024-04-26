@@ -1,7 +1,7 @@
 import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
 import { InvalidPathError } from "../../api-errors/InvalidPath.error"
 import DirectoryEntry from "../../interfaces/vsfs/DirectoryEntry.interface"
-import getInodeLocation from "./GetInodeBlock.vsfs"
+import getInodeLocation from "./GetInodeLocation.vsfs"
 import { readBlock } from "./ReadBlock.vsfs"
 
 /**
@@ -11,12 +11,15 @@ import { readBlock } from "./ReadBlock.vsfs"
  * @throws InvalidPathError
  * @throws FilenameTooLongError
  */
-export default async function isValidPath(pathname: string): Promise<number> {
+export default async function isValidPath(pathname: string, useParentDirectory: boolean = false): Promise<number> {
     if (pathname.length === 0 || pathname[0] !== "/") {
         throw new InvalidPathError()
     }
 
-    const path = pathname.split("/").filter((v) => v) // get rid of empty strings
+    let path = pathname.split("/").filter((v) => v) // get rid of empty strings
+    if(useParentDirectory) {
+        path = path.slice(0, -1) // remove the last item if you're just worried about the parent directory
+    }
     let position = 0
     let inodeNumber = 0 // inode 0 is the root directory
 

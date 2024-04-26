@@ -48,7 +48,7 @@ const DiskMetrics = () => {
             <Tooltip placement="right" title={layoutData.name}>
                 <Component sx={{ fontSize: "50px" }} />
             </Tooltip>
-            <Typography variant="overline" sx={{ fontWeight: "bold" }}>{ diskState } &#40;{diskQueue[0]?.sectorNumber}&#41;</Typography>
+            <Typography variant="overline" sx={{ fontWeight: "bold" }}>{ diskState } {diskQueue[0]?.sectorNumber !== undefined && `(${diskQueue[0].sectorNumber})`}</Typography>
         </Box>
     )
 }

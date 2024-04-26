@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/apis/vsfs/system/GetInodeBlock.vsfs.ts</title>
+    <title>Code coverage report for src/apis/vsfs/system/GetInodeLocation.vsfs.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../../prettify.css" />
     <link rel="stylesheet" href="../../../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">src/apis/vsfs/system</a> GetInodeBlock.vsfs.ts</h1>
+        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">src/apis/vsfs/system</a> GetInodeLocation.vsfs.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>20/20</span>
+                <span class='fraction'>10/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/20</span>
+                <span class='fraction'>10/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -92,16 +92,16 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">import { selectBlockSize, selectSuperblock } from "../../../redux/reducers/fileSystemSlice";
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { selectBlockSize, selectSuperblock } from "../../../redux/reducers/fileSystemSlice";
 import { store } from "../../../store";
 import InodeLocation from "../../interfaces/vsfs/InodeLocation.interface";
 &nbsp;
@@ -110,24 +110,24 @@ import InodeLocation from "../../interfaces/vsfs/InodeLocation.interface";
  * @param inode The inode number you want to find the location of
  * @returns 
  */
-export default function getInodeLocation(inode: number): InodeLocation {
-    const state = store.getState()
-    const { inodeSize, startIndex } = selectSuperblock(state)
-    const blockSize = selectBlockSize(state)
-    const inodesPerBlock = blockSize / inodeSize
-    
-    return {
-        inodeBlock: Math.floor(inode / inodesPerBlock) + startIndex,
-        inodeOffset: inode % inodesPerBlock
-    }
-}</pre></td></tr></table></pre>
+export default <span class="fstat-no" title="function not covered" >function getInodeLocation(inode: number): InodeLocation {</span>
+<span class="cstat-no" title="statement not covered" >    const state = store.getState()</span>
+<span class="cstat-no" title="statement not covered" >    const { inodeSize, inodeStartIndex } = selectSuperblock(state)</span>
+<span class="cstat-no" title="statement not covered" >    const blockSize = selectBlockSize(state)</span>
+<span class="cstat-no" title="statement not covered" >    const inodesPerBlock = blockSize / inodeSize</span>
+<span class="cstat-no" title="statement not covered" >    </span>
+<span class="cstat-no" title="statement not covered" >    return {</span>
+<span class="cstat-no" title="statement not covered" >        inodeBlock: Math.floor(inode / inodesPerBlock) + inodeStartIndex,</span>
+<span class="cstat-no" title="statement not covered" >        inodeOffset: inode % inodesPerBlock</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -2,12 +2,29 @@ import { Box, Pagination, useTheme } from "@mui/material"
 import { blue } from "@mui/material/colors"
 import { useState } from "react"
 import { chunk } from "lodash"
+import { useAppSelector } from "../../../redux/hooks/hooks"
+import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 
-const Bitmap = (props: { data: string }) => {
+const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
     const theme = useTheme()
-    let { data } = props
+    let { data, type } = props
     const pageData = chunk(data.split(""), 256)
     const [page, setPage] = useState(1)
+    const superblock = useAppSelector(selectSuperblock)
+    
+    const upperLimit = type === "data" ? superblock.numberOfDataBlocks : superblock.numberOfInodes
+
+    const getColor = (char: string, index: number) => {
+        if(index >= upperLimit) {
+            return "grey"
+        }
+        if(char === "0") {
+            return theme.palette.success.main
+        } else {
+            return theme.palette.error.main
+        }
+    }
+
     return (
         <Box
             style={{
@@ -49,10 +66,7 @@ const Bitmap = (props: { data: string }) => {
                                     width: "50px",
                                     height: "50px",
                                     border: "2px solid white",
-                                    background:
-                                        char === "0"
-                                            ? theme.palette.success.main
-                                            : theme.palette.error.main,
+                                    background: getColor(char, i + (page - 1) * 256)
                                 }}
                             >
                                 {i + (page - 1) * 256}

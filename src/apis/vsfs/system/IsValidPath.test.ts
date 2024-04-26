@@ -1,7 +1,7 @@
 import { expect, test } from "vitest"
-import isValidPath from "../vsfs/system/IsValidPath.vsfs"
-import { FilenameTooLongError } from "../api-errors/FilenameTooLong.error"
-import { InvalidPathError } from "../api-errors/InvalidPath.error"
+import isValidPath from "./IsValidPath.vsfs"
+import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
+import { InvalidPathError } from "../../api-errors/InvalidPath.error"
 
 test("a path containing just a / should return the root inode", () => {
     expect(isValidPath("/")).resolves.toBe(0)

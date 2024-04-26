@@ -1,3 +1,3 @@
 export default interface WriteBlockPayload {
-    sectors: number[]
+    readonly sectors: number[]
 }

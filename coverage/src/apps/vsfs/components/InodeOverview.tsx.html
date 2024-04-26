@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/259</span>
+                <span class='fraction'>0/247</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/259</span>
+                <span class='fraction'>0/247</span>
             </div>
         
             
@@ -310,19 +310,7 @@
 <a name='L245'></a><a href='#L245'>245</a>
 <a name='L246'></a><a href='#L246'>246</a>
 <a name='L247'></a><a href='#L247'>247</a>
-<a name='L248'></a><a href='#L248'>248</a>
-<a name='L249'></a><a href='#L249'>249</a>
-<a name='L250'></a><a href='#L250'>250</a>
-<a name='L251'></a><a href='#L251'>251</a>
-<a name='L252'></a><a href='#L252'>252</a>
-<a name='L253'></a><a href='#L253'>253</a>
-<a name='L254'></a><a href='#L254'>254</a>
-<a name='L255'></a><a href='#L255'>255</a>
-<a name='L256'></a><a href='#L256'>256</a>
-<a name='L257'></a><a href='#L257'>257</a>
-<a name='L258'></a><a href='#L258'>258</a>
-<a name='L259'></a><a href='#L259'>259</a>
-<a name='L260'></a><a href='#L260'>260</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L248'></a><a href='#L248'>248</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -569,19 +557,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import {</span></span></span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import {<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
 <span class="cstat-no" title="statement not covered" >    Box,</span>
 <span class="cstat-no" title="statement not covered" >    Table,</span>
 <span class="cstat-no" title="statement not covered" >    TableBody,</span>
@@ -628,7 +604,7 @@
 <span class="cstat-no" title="statement not covered" >    const superblock = useAppSelector(selectSuperblock)</span>
 <span class="cstat-no" title="statement not covered" >    const blockSize = useAppSelector(selectBlockSize)</span>
 <span class="cstat-no" title="statement not covered" >    const inodesPerBlock = blockSize / superblock.inodeSize</span>
-<span class="cstat-no" title="statement not covered" >    const offset = selectedInode !== undefined ? selectedInode * 16 * 8 : 0 // 16 * 8 bits is the number of bytes required to represent the inode</span>
+<span class="cstat-no" title="statement not covered" >    const offset = selectedInode !== undefined ? selectedInode * 128 : 0 // 128 bits is the size of an inode</span>
 <span class="cstat-no" title="statement not covered" >    const type = [&lt;FileIcon /&gt;, &lt;FolderIcon sx={{ color: "#F1D592" }} /&gt;][</span>
 <span class="cstat-no" title="statement not covered" >        parseInt(data.slice(0 + offset, 2 + offset), 2)</span>
 <span class="cstat-no" title="statement not covered" >    ]</span>
@@ -640,6 +616,7 @@
 <span class="cstat-no" title="statement not covered" >    const write = options[parseInt(data.slice(4 + offset, 6 + offset), 2)]</span>
 <span class="cstat-no" title="statement not covered" >    const execute = options[parseInt(data.slice(6 + offset, 8 + offset), 2)]</span>
 <span class="cstat-no" title="statement not covered" >    const size = getByteCount(parseInt(data.slice(8 + offset, 32 + offset), 2))</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    const createdAt = new Date(</span>
 <span class="cstat-no" title="statement not covered" >        parseInt(data.slice(32 + offset, 64 + offset), 2) * 1000,</span>
 <span class="cstat-no" title="statement not covered" >    ).toLocaleString()</span>
@@ -674,19 +651,6 @@
 <span class="cstat-no" title="statement not covered" >                    gap: theme.spacing(2),</span>
 <span class="cstat-no" title="statement not covered" >                }}</span>
 <span class="cstat-no" title="statement not covered" >            &gt;</span>
-<span class="cstat-no" title="statement not covered" >                &lt;Typography</span>
-<span class="cstat-no" title="statement not covered" >                    variant="overline"</span>
-<span class="cstat-no" title="statement not covered" >                    sx={{</span>
-<span class="cstat-no" title="statement not covered" >                        fontWeight: "bold",</span>
-<span class="cstat-no" title="statement not covered" >                        fontSize: "13px",</span>
-<span class="cstat-no" title="statement not covered" >                        width: "100%",</span>
-<span class="cstat-no" title="statement not covered" >                        textAlign: "center",</span>
-<span class="cstat-no" title="statement not covered" >                        paddingRight: theme.spacing(2),</span>
-<span class="cstat-no" title="statement not covered" >                    }}</span>
-<span class="cstat-no" title="statement not covered" >                &gt;</span>
-<span class="cstat-no" title="statement not covered" >                    Inode Viewer</span>
-<span class="cstat-no" title="statement not covered" >                &lt;/Typography&gt;</span>
-<span class="cstat-no" title="statement not covered" >                &lt;hr style={{ width: "100%", marginTop: "-10px" }} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                &lt;Box</span>
 <span class="cstat-no" title="statement not covered" >                    style={{</span>
 <span class="cstat-no" title="statement not covered" >                        scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,</span>
@@ -847,7 +811,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

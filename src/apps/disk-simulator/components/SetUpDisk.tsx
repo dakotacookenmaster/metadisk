@@ -24,6 +24,11 @@ import {
     setTrackCount,
 } from "../../../redux/reducers/diskSlice"
 
+/**
+ * Turn a number of bits into a human-readable byte count
+ * @param amount The number of bits
+ * @returns 
+ */
 export const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
     const MiB = amount / 8_388_608

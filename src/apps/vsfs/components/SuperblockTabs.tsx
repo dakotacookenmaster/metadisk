@@ -145,7 +145,7 @@ export default function SuperblockTabs(props: {
                         </Tooltip>
                         <Tooltip
                             placement="top"
-                            title="The first block that contains inodes. This is an important offset that allows the system to quickly skip other metadata."
+                            title="The total number of blocks allocated to store inodes."
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>Total Inode Blocks</TableCell>
@@ -156,7 +156,7 @@ export default function SuperblockTabs(props: {
                         </Tooltip>
                         <Tooltip
                             placement="top"
-                            title="The number of data blocks. This is the real maximum number of files or directories the system could theoretically store. Blocks (sometimes referred to in literature as 'clusters') are the smallest unit in the file system."
+                            title="The number of data blocks. This is the real maximum number of files or directories the system can store. Blocks are the smallest unit in the file system."
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>Data Blocks</TableCell>
@@ -165,7 +165,7 @@ export default function SuperblockTabs(props: {
                         </Tooltip>
                         <Tooltip
                             placement="top"
-                            title="The number of data blocks. This is the real maximum number of files or directories the system could theoretically store. Blocks (sometimes referred to in literature as 'clusters') are the smallest unit in the file system."
+                            title="The size of a logical block in the file system."
                         >
                             <TableRow sx={styles.row}>
                                 <TableCell>Block Size</TableCell>

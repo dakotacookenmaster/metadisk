@@ -67,13 +67,12 @@ const DiskSimulator = () => {
                 <Box
                     sx={{
                         minWidth: "500px",
-                        minHeight: "700px",
+                        minHeight: "650px",
                     }}
                 >
-                    <Typography variant="h5" sx={{ textAlign: "center" }}>
+                    <Typography variant="h5" sx={{ textAlign: "center", marginTop: "10px" }}>
                         Disk Simulator
                     </Typography>
-                    <hr />
                     <Box
                         sx={{
                             width: "100%",
@@ -104,7 +103,8 @@ const DiskSimulator = () => {
                             overflowX: "scroll",
                             scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                             scrollbarWidth: "thin",
-                            paddingBottom: "20px",
+                            paddingBottom: "10px",
+                            marginTop: "-30px",
                         }}
                     >
                         <Typography sx={{ marginRight: "5px", minWidth: "90px" }}>

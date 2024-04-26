@@ -17,7 +17,7 @@ interface FileSystemState {
         numberOfInodeBlocks: number
         numberOfDataBlocks: number
         numberOfInodes: number
-        startIndex: number
+        inodeStartIndex: number
     }
 }
 
@@ -37,9 +37,10 @@ interface FileSystemState {
 const calculateInodeAndDataBlocks = (
     totalBlocks: number,
     inodesPerBlock: number,
+    inodeStartIndex: number
 ) => {
     let inodeTotalCount = 0
-    let availableDataBlocks = totalBlocks - 3 // account for the superblock, i-bmap, and d-bmap
+    let availableDataBlocks = totalBlocks - inodeStartIndex // account for the superblock, i-bmap, and d-bmap
     while (inodeTotalCount < availableDataBlocks) {
         availableDataBlocks--
         inodeTotalCount += inodesPerBlock
@@ -48,7 +49,7 @@ const calculateInodeAndDataBlocks = (
 
     return {
         inodeBlocks,
-        dataBlocks: totalBlocks - inodeBlocks - 3,
+        dataBlocks: totalBlocks - inodeBlocks - inodeStartIndex,
     }
 }
 
@@ -66,10 +67,10 @@ const initialState: FileSystemState = {
         name: "Very Simple File System (vsfs)",
         magicNumber: 7,
         inodeSize: 128,
-        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 32).inodeBlocks,
-        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 32).dataBlocks,
-        numberOfInodes: calculateInodeAndDataBlocks(16, 32).inodeBlocks * 128,
-        startIndex: 3,
+        numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 32, 3).inodeBlocks,
+        numberOfDataBlocks: calculateInodeAndDataBlocks(16, 32, 3).dataBlocks,
+        numberOfInodes: calculateInodeAndDataBlocks(16, 32, 3).inodeBlocks * 128,
+        inodeStartIndex: 3,
     },
 }
 
@@ -86,6 +87,7 @@ export const fileSystemSlice = createSlice({
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
                 inodesPerBlock,
+                state.superblock.inodeStartIndex
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
@@ -101,6 +103,7 @@ export const fileSystemSlice = createSlice({
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
                 inodesPerBlock,
+                state.superblock.inodeStartIndex
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
@@ -115,6 +118,7 @@ export const fileSystemSlice = createSlice({
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
                 inodesPerBlock,
+                state.superblock.inodeStartIndex
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks

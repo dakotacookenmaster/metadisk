@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
 import BitmapTabs from "./BitmapTabs"
-import { readBlock } from "../../../apis/vsfs"
+import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
 import InodeBlockTabs from "./InodeBlockTabs"
 import DataBlockTabs from "./DataBlockTabs"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
@@ -25,6 +25,10 @@ const FileSystemBlockLayout = () => {
     const [canMove, setCanMove] = useState(false)
     const [blockNumber, setBlockNumber] = useState(0)
     const [inodeBitmap, setInodeBitmap] = useState("")
+    const [selectedInode, setSelectedInode] = useState<number | undefined>(
+        undefined,
+    )
+    const { inodeStartIndex } = useAppSelector(selectSuperblock)
 
     const getLabel = (index: number) => {
         if (index === 0) {
@@ -34,9 +38,9 @@ const FileSystemBlockLayout = () => {
         } else if (index === 2) {
             return "Data Bitmap"
         } else if (index <= 2 + numberOfInodeBlocks) {
-            return `Inode Block ${index - 3}`
+            return `Inode Block ${index - inodeStartIndex}`
         } else {
-            return `Data Block ${index - 3 - numberOfInodeBlocks}`
+            return `Data Block ${index - inodeStartIndex - numberOfInodeBlocks}`
         }
     }
 
@@ -48,19 +52,20 @@ const FileSystemBlockLayout = () => {
 
     useEffect(() => {
         ;(async () => {
-            const result = await readBlock(1) // read the inode bitmap
-            setInodeBitmap(result.data)
+            const result = (await readBlock(1)).data.raw
+            setInodeBitmap(result)
         })()
-
     }, [sectors])
 
     useEffect(() => {
         // Start by reading from the superblock
         ;(async () => {
-            const result = await readBlock(blockNumber, (progress: number) =>
-                setProgress(progress),
-            )
-            setData(result.data)
+            const result = (
+                await readBlock(blockNumber, (progress: number) =>
+                    setProgress(progress),
+                )
+            ).data.raw
+            setData(result)
             setCanMove(true)
         })()
     }, [selected, sectors])
@@ -117,6 +122,7 @@ const FileSystemBlockLayout = () => {
                             }}
                             onClick={() => {
                                 if (canMove) {
+                                    setSelectedInode(undefined)
                                     setSelected((prevLabel) => {
                                         setBlockNumber(i)
                                         const newLabel = getLabel(i)
@@ -128,7 +134,10 @@ const FileSystemBlockLayout = () => {
                                 }
                             }}
                         >
-                            {getLabel(i)}
+                            <Box sx={{display: "flex", flexDirection: "column", gap: "5px"}}>
+                                {getLabel(i)}
+                                <Typography variant="caption">{`(Block ${i})`}</Typography>
+                            </Box>
                         </Box>
                     )
                 })}
@@ -144,6 +153,8 @@ const FileSystemBlockLayout = () => {
             )}
             {selected.includes("Inode Block") && (
                 <InodeBlockTabs
+                    selectedInode={selectedInode}
+                    setSelectedInode={setSelectedInode}
                     inodeBitmap={inodeBitmap}
                     setBlockNumber={setBlockNumber}
                     canMove={canMove}
@@ -155,7 +166,12 @@ const FileSystemBlockLayout = () => {
                 />
             )}
             {selected.includes("Data Block") && (
-                <DataBlockTabs data={data} progress={progress} />
+                <DataBlockTabs
+                    key={parseInt(selected.split(" ")[2])}
+                    blockNumber={parseInt(selected.split(" ")[2])}
+                    data={data}
+                    progress={progress}
+                />
             )}
         </Box>
     )

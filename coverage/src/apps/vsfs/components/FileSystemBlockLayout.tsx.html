@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/164</span>
+                <span class='fraction'>0/165</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/164</span>
+                <span class='fraction'>0/165</span>
             </div>
         
             
@@ -227,7 +227,9 @@
 <a name='L162'></a><a href='#L162'>162</a>
 <a name='L163'></a><a href='#L163'>163</a>
 <a name='L164'></a><a href='#L164'>164</a>
-<a name='L165'></a><a href='#L165'>165</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -401,7 +403,7 @@
 <span class="cstat-no" title="statement not covered" >import { blue } from "@mui/material/colors"</span>
 <span class="cstat-no" title="statement not covered" >import SuperblockTabs from "./SuperblockTabs"</span>
 <span class="cstat-no" title="statement not covered" >import BitmapTabs from "./BitmapTabs"</span>
-<span class="cstat-no" title="statement not covered" >import { readBlock } from "../../../apis/vsfs"</span>
+<span class="cstat-no" title="statement not covered" >import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"</span>
 <span class="cstat-no" title="statement not covered" >import InodeBlockTabs from "./InodeBlockTabs"</span>
 <span class="cstat-no" title="statement not covered" >import DataBlockTabs from "./DataBlockTabs"</span>
 <span class="cstat-no" title="statement not covered" >import { selectSectors } from "../../../redux/reducers/diskSlice"</span>
@@ -418,6 +420,7 @@
 <span class="cstat-no" title="statement not covered" >    const [canMove, setCanMove] = useState(false)</span>
 <span class="cstat-no" title="statement not covered" >    const [blockNumber, setBlockNumber] = useState(0)</span>
 <span class="cstat-no" title="statement not covered" >    const [inodeBitmap, setInodeBitmap] = useState("")</span>
+<span class="cstat-no" title="statement not covered" >    const { inodeStartIndex } = useAppSelector(selectSuperblock)</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    const getLabel = (index: number) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        if (index === 0) {</span>
@@ -427,9 +430,9 @@
 <span class="cstat-no" title="statement not covered" >        } else if (index === 2) {</span>
 <span class="cstat-no" title="statement not covered" >            return "Data Bitmap"</span>
 <span class="cstat-no" title="statement not covered" >        } else if (index &lt;= 2 + numberOfInodeBlocks) {</span>
-<span class="cstat-no" title="statement not covered" >            return `Inode Block ${index - 3}`</span>
+<span class="cstat-no" title="statement not covered" >            return `Inode Block ${index - inodeStartIndex}`</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
-<span class="cstat-no" title="statement not covered" >            return `Data Block ${index - 3 - numberOfInodeBlocks}`</span>
+<span class="cstat-no" title="statement not covered" >            return `Data Block ${index - inodeStartIndex - numberOfInodeBlocks}`</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -441,8 +444,8 @@
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    useEffect(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        ;(async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >            const result = await readBlock(1) // read the inode bitmap</span>
-<span class="cstat-no" title="statement not covered" >            setInodeBitmap(result.data)</span>
+<span class="cstat-no" title="statement not covered" >            const result = (await readBlock(1)).data.raw</span>
+<span class="cstat-no" title="statement not covered" >            setInodeBitmap(result)</span>
 <span class="cstat-no" title="statement not covered" >        })()</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    }, [sectors])</span>
@@ -450,10 +453,10 @@
 <span class="cstat-no" title="statement not covered" >    useEffect(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        // Start by reading from the superblock</span>
 <span class="cstat-no" title="statement not covered" >        ;(async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >            const result = await readBlock(blockNumber, (progress: number) =&gt;</span>
+<span class="cstat-no" title="statement not covered" >            const result = (await readBlock(blockNumber, (progress: number) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >                setProgress(progress),</span>
-<span class="cstat-no" title="statement not covered" >            )</span>
-<span class="cstat-no" title="statement not covered" >            setData(result.data)</span>
+<span class="cstat-no" title="statement not covered" >            )).data.raw</span>
+<span class="cstat-no" title="statement not covered" >            setData(result)</span>
 <span class="cstat-no" title="statement not covered" >            setCanMove(true)</span>
 <span class="cstat-no" title="statement not covered" >        })()</span>
 <span class="cstat-no" title="statement not covered" >    }, [selected, sectors])</span>
@@ -548,7 +551,7 @@
 <span class="cstat-no" title="statement not covered" >                /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >            {selected.includes("Data Block") &amp;&amp; (</span>
-<span class="cstat-no" title="statement not covered" >                &lt;DataBlockTabs data={data} progress={progress} /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;DataBlockTabs key={parseInt(selected.split(" ")[2])} blockNumber={parseInt(selected.split(" ")[2])} data={data} progress={progress} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/Box&gt;</span>
 <span class="cstat-no" title="statement not covered" >    )</span>
@@ -562,7 +565,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-23T16:58:17.563Z
+                at 2024-04-26T13:19:07.941Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -146,10 +146,10 @@ const FileSystemBlockLayout = () => {
                 <SuperblockTabs data={data} progress={progress} />
             )}
             {selected === "Inode Bitmap" && (
-                <BitmapTabs data={data} progress={progress} />
+                <BitmapTabs type="inode" data={data} progress={progress} />
             )}
             {selected === "Data Bitmap" && (
-                <BitmapTabs data={data} progress={progress} />
+                <BitmapTabs type="data" data={data} progress={progress} />
             )}
             {selected.includes("Inode Block") && (
                 <InodeBlockTabs

@@ -35,8 +35,8 @@ function a11yProps(index: number) {
     }
 }
 
-export default function BitmapTabs(props: { data: string | undefined, progress: number }) {
-    const { data, progress } = props
+export default function BitmapTabs(props: { data: string | undefined, progress: number, type: "inode" | "data" }) {
+    const { data, progress, type } = props
     const [value, setValue] = React.useState(0)
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -62,7 +62,7 @@ export default function BitmapTabs(props: { data: string | undefined, progress: 
                 </Tabs>
             </Box>
             <CustomTabPanel value={value} index={0}>
-                <Bitmap data={data} />
+                <Bitmap type={type} data={data} />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
                 <Viewer data={data} mode="bin" />

@@ -62,23 +62,14 @@ export default function VSFS() {
                 })
                 await initializeSuperblock(setProgress)
                 setWaitingMessage({ title: "Initializing...", message: "Creating Some Files..."})
-                await open("/abc", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                await open("/abc1", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                await open("/abc5", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                await open("/abc6", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                await open("/abc7", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                await open("/abc8", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                await open("/abc9", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
+
+                for(let i = 0; i < 60; i++) {
+                    await open(`/abc${i}`, [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
+                    setProgress(i + 1)
+                }
+                
                 setWaitingMessage(null)
                 dispatch(setIsDiskFormatted(true))
-
-                setTimeout(async () => {
-                    await open("/abc2", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                    await open("/abc3", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                    await open("/abc4", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                    await open("/abc4", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                    await open("/abc4", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                }, 3000)
             })()
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -97,7 +97,7 @@ const InodeOverview = (props: {
                         scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                         scrollbarWidth: "thin",
                         width: "100%",
-                        maxHeight: "300px",
+                        maxHeight: "400px",
                         overflow: "auto",
                         paddingRight: theme.spacing(2),
                         display: "flex",

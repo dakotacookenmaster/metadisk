@@ -32,9 +32,10 @@ export const getCharacterEncoding = (char: string): number => {
     return characterMap.findIndex(c => c === char)
 }
 
-const getCharacter = (byte: number): string => {
+export const getCharacter = (byte: number): string => {
     return characterMap[byte]
 }
+
 export const convertBinaryByteStringToType = (byte: string, mode: "bin" | "hex" | "ascii") => {
     if(mode === "ascii") {
         return getCharacter(parseInt(byte, 2))

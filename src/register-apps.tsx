@@ -6,6 +6,8 @@ import { SvgIconTypeMap } from "@mui/material"
 import { VSFSIcon } from "./apps/vsfs/components/VSFSIcon"
 import { store } from "./store"
 import { setSkipWaitTime } from "./redux/reducers/diskSlice"
+import LineStyleIcon from '@mui/icons-material/LineStyle';
+import Editor from "./apps/editor/Editor"
 
 const apps: Record<
     string,
@@ -34,6 +36,11 @@ const apps: Record<
             store.dispatch(setSkipWaitTime(!enabled))
         }
     },
+    "Text Editor": {
+        elementFn: Editor,
+        muiIcon: LineStyleIcon,
+        enabled: false,
+    }
 }
 
 export default apps

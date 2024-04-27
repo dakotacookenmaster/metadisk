@@ -5,9 +5,8 @@ import Box from "@mui/material/Box"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
 import InodeOverview from "./InodeOverview"
-import { useState } from "react"
 import { IconButton } from "@mui/material"
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -44,6 +43,7 @@ export default function InodeBlockTabs(props: {
     data: string | undefined
     progress: number
     setSelected: React.Dispatch<React.SetStateAction<string>>
+    blockRefs: React.RefObject<unknown>[]
     canMove: boolean
     beginOperation: () => void
     blockNumber: number
@@ -52,7 +52,19 @@ export default function InodeBlockTabs(props: {
     selectedInode: number | undefined
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
 }) {
-    const { data, progress, setSelected, canMove, beginOperation, blockNumber, setBlockNumber, inodeBitmap, selectedInode, setSelectedInode } = props
+    const {
+        data,
+        progress,
+        setSelected,
+        blockRefs,
+        canMove,
+        beginOperation,
+        blockNumber,
+        setBlockNumber,
+        inodeBitmap,
+        selectedInode,
+        setSelectedInode,
+    } = props
     const [value, setValue] = React.useState(0)
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -81,13 +93,14 @@ export default function InodeBlockTabs(props: {
                     <Tab label="Hex" {...a11yProps(2)} />
                     <Tab label="ASCII" {...a11yProps(3)} />
                 </Tabs>
-                {
-                    selectedInode !== undefined && (
-                        <IconButton onClick={() => setSelectedInode(undefined) } sx={{ position: "absolute", top: 3, right: 0 }}>
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    )
-                }
+                {selectedInode !== undefined && (
+                    <IconButton
+                        onClick={() => setSelectedInode(undefined)}
+                        sx={{ position: "absolute", top: 3, right: 0 }}
+                    >
+                        <ChevronLeftIcon />
+                    </IconButton>
+                )}
             </Box>
             <CustomTabPanel value={value} index={0}>
                 <InodeOverview
@@ -95,6 +108,7 @@ export default function InodeBlockTabs(props: {
                     data={data}
                     canMove={canMove}
                     setSelected={setSelected}
+                    blockRefs={blockRefs}
                     beginOperation={beginOperation}
                     blockNumber={blockNumber}
                     selectedInode={selectedInode}

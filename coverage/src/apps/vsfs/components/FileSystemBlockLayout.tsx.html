@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/165</span>
+                <span class='fraction'>0/180</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/165</span>
+                <span class='fraction'>0/180</span>
             </div>
         
             
@@ -228,7 +228,37 @@
 <a name='L163'></a><a href='#L163'>163</a>
 <a name='L164'></a><a href='#L164'>164</a>
 <a name='L165'></a><a href='#L165'>165</a>
-<a name='L166'></a><a href='#L166'>166</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -420,6 +450,9 @@
 <span class="cstat-no" title="statement not covered" >    const [canMove, setCanMove] = useState(false)</span>
 <span class="cstat-no" title="statement not covered" >    const [blockNumber, setBlockNumber] = useState(0)</span>
 <span class="cstat-no" title="statement not covered" >    const [inodeBitmap, setInodeBitmap] = useState("")</span>
+<span class="cstat-no" title="statement not covered" >    const [selectedInode, setSelectedInode] = useState&lt;number | undefined&gt;(</span>
+<span class="cstat-no" title="statement not covered" >        undefined,</span>
+<span class="cstat-no" title="statement not covered" >    )</span>
 <span class="cstat-no" title="statement not covered" >    const { inodeStartIndex } = useAppSelector(selectSuperblock)</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    const getLabel = (index: number) =&gt; {</span>
@@ -447,15 +480,16 @@
 <span class="cstat-no" title="statement not covered" >            const result = (await readBlock(1)).data.raw</span>
 <span class="cstat-no" title="statement not covered" >            setInodeBitmap(result)</span>
 <span class="cstat-no" title="statement not covered" >        })()</span>
-<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    }, [sectors])</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    useEffect(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        // Start by reading from the superblock</span>
 <span class="cstat-no" title="statement not covered" >        ;(async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >            const result = (await readBlock(blockNumber, (progress: number) =&gt;</span>
-<span class="cstat-no" title="statement not covered" >                setProgress(progress),</span>
-<span class="cstat-no" title="statement not covered" >            )).data.raw</span>
+<span class="cstat-no" title="statement not covered" >            const result = (</span>
+<span class="cstat-no" title="statement not covered" >                await readBlock(blockNumber, (progress: number) =&gt;</span>
+<span class="cstat-no" title="statement not covered" >                    setProgress(progress),</span>
+<span class="cstat-no" title="statement not covered" >                )</span>
+<span class="cstat-no" title="statement not covered" >            ).data.raw</span>
 <span class="cstat-no" title="statement not covered" >            setData(result)</span>
 <span class="cstat-no" title="statement not covered" >            setCanMove(true)</span>
 <span class="cstat-no" title="statement not covered" >        })()</span>
@@ -513,6 +547,7 @@
 <span class="cstat-no" title="statement not covered" >                            }}</span>
 <span class="cstat-no" title="statement not covered" >                            onClick={() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >                                if (canMove) {</span>
+<span class="cstat-no" title="statement not covered" >                                    setSelectedInode(undefined)</span>
 <span class="cstat-no" title="statement not covered" >                                    setSelected((prevLabel) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >                                        setBlockNumber(i)</span>
 <span class="cstat-no" title="statement not covered" >                                        const newLabel = getLabel(i)</span>
@@ -524,7 +559,10 @@
 <span class="cstat-no" title="statement not covered" >                                }</span>
 <span class="cstat-no" title="statement not covered" >                            }}</span>
 <span class="cstat-no" title="statement not covered" >                        &gt;</span>
-<span class="cstat-no" title="statement not covered" >                            {getLabel(i)}</span>
+<span class="cstat-no" title="statement not covered" >                            &lt;Box sx={{display: "flex", flexDirection: "column", gap: "5px"}}&gt;</span>
+<span class="cstat-no" title="statement not covered" >                                {getLabel(i)}</span>
+<span class="cstat-no" title="statement not covered" >                                &lt;Typography variant="caption"&gt;{`(Block ${i})`}&lt;/Typography&gt;</span>
+<span class="cstat-no" title="statement not covered" >                            &lt;/Box&gt;</span>
 <span class="cstat-no" title="statement not covered" >                        &lt;/Box&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    )</span>
 <span class="cstat-no" title="statement not covered" >                })}</span>
@@ -533,13 +571,15 @@
 <span class="cstat-no" title="statement not covered" >                &lt;SuperblockTabs data={data} progress={progress} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >            {selected === "Inode Bitmap" &amp;&amp; (</span>
-<span class="cstat-no" title="statement not covered" >                &lt;BitmapTabs data={data} progress={progress} /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;BitmapTabs type="inode" data={data} progress={progress} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >            {selected === "Data Bitmap" &amp;&amp; (</span>
-<span class="cstat-no" title="statement not covered" >                &lt;BitmapTabs data={data} progress={progress} /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;BitmapTabs type="data" data={data} progress={progress} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >            {selected.includes("Inode Block") &amp;&amp; (</span>
 <span class="cstat-no" title="statement not covered" >                &lt;InodeBlockTabs</span>
+<span class="cstat-no" title="statement not covered" >                    selectedInode={selectedInode}</span>
+<span class="cstat-no" title="statement not covered" >                    setSelectedInode={setSelectedInode}</span>
 <span class="cstat-no" title="statement not covered" >                    inodeBitmap={inodeBitmap}</span>
 <span class="cstat-no" title="statement not covered" >                    setBlockNumber={setBlockNumber}</span>
 <span class="cstat-no" title="statement not covered" >                    canMove={canMove}</span>
@@ -551,7 +591,12 @@
 <span class="cstat-no" title="statement not covered" >                /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >            {selected.includes("Data Block") &amp;&amp; (</span>
-<span class="cstat-no" title="statement not covered" >                &lt;DataBlockTabs key={parseInt(selected.split(" ")[2])} blockNumber={parseInt(selected.split(" ")[2])} data={data} progress={progress} /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;DataBlockTabs</span>
+<span class="cstat-no" title="statement not covered" >                    key={parseInt(selected.split(" ")[2])}</span>
+<span class="cstat-no" title="statement not covered" >                    blockNumber={parseInt(selected.split(" ")[2])}</span>
+<span class="cstat-no" title="statement not covered" >                    data={data}</span>
+<span class="cstat-no" title="statement not covered" >                    progress={progress}</span>
+<span class="cstat-no" title="statement not covered" >                /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            )}</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/Box&gt;</span>
 <span class="cstat-no" title="statement not covered" >    )</span>
@@ -565,7 +610,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-26T13:19:07.941Z
+                at 2024-04-27T15:17:04.374Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

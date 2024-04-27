@@ -110,7 +110,7 @@ describe("writing too much data to a sector should throw an error", async () => 
         )
     })
     test("a large overflow should throw an error", async () => {
-        await expect(writeSector(0, "0".repeat(10000))).rejects.toThrowError(
+        await expect(writeSector(0, "0".repeat(8000))).rejects.toThrowError(
             SectorOverflowError,
         )
     })

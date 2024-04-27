@@ -4,7 +4,6 @@ import {
     TableBody,
     TableCell,
     TableRow,
-    Typography,
     useTheme,
 } from "@mui/material"
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
@@ -25,6 +24,7 @@ const InodeOverview = (props: {
     setSelected: React.Dispatch<React.SetStateAction<string>>
     canMove: boolean
     beginOperation: () => void
+    blockRefs: React.RefObject<unknown>[],
     blockNumber: number
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
     selectedInode: number | undefined
@@ -37,6 +37,7 @@ const InodeOverview = (props: {
         canMove,
         beginOperation,
         blockNumber,
+        blockRefs,
         setSelectedInode,
         selectedInode,
         setBlockNumber,
@@ -230,6 +231,8 @@ const InodeOverview = (props: {
                                                 }`,
                                             )
                                             setBlockNumber(pointer)
+                                            const ref = blockRefs[pointer].current as Element
+                                            ref.scrollIntoView({ behavior: "smooth" })
                                         }
                                     }}
                                 >

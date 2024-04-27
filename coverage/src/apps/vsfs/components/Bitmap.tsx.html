@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/73</span>
+                <span class='fraction'>0/87</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/73</span>
+                <span class='fraction'>0/87</span>
             </div>
         
             
@@ -136,7 +136,21 @@
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
 <a name='L73'></a><a href='#L73'>73</a>
-<a name='L74'></a><a href='#L74'>74</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -209,16 +223,47 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Box, Pagination, useTheme } from "@mui/material"<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { Box, Pagination, useTheme } from "@mui/material"</span></span></span>
 <span class="cstat-no" title="statement not covered" >import { blue } from "@mui/material/colors"</span>
 <span class="cstat-no" title="statement not covered" >import { useState } from "react"</span>
 <span class="cstat-no" title="statement not covered" >import { chunk } from "lodash"</span>
+<span class="cstat-no" title="statement not covered" >import { useAppSelector } from "../../../redux/hooks/hooks"</span>
+<span class="cstat-no" title="statement not covered" >import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >const Bitmap = (props: { data: string }) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >const Bitmap = (props: { data: string, type: "inode" | "data" }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const theme = useTheme()</span>
-<span class="cstat-no" title="statement not covered" >    let { data } = props</span>
+<span class="cstat-no" title="statement not covered" >    let { data, type } = props</span>
 <span class="cstat-no" title="statement not covered" >    const pageData = chunk(data.split(""), 256)</span>
 <span class="cstat-no" title="statement not covered" >    const [page, setPage] = useState(1)</span>
+<span class="cstat-no" title="statement not covered" >    const superblock = useAppSelector(selectSuperblock)</span>
+<span class="cstat-no" title="statement not covered" >    </span>
+<span class="cstat-no" title="statement not covered" >    const upperLimit = type === "data" ? superblock.numberOfDataBlocks : superblock.numberOfInodes</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const getColor = (char: string, index: number) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if(index &gt;= upperLimit) {</span>
+<span class="cstat-no" title="statement not covered" >            return "grey"</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        if(char === "0") {</span>
+<span class="cstat-no" title="statement not covered" >            return theme.palette.success.main</span>
+<span class="cstat-no" title="statement not covered" >        } else {</span>
+<span class="cstat-no" title="statement not covered" >            return theme.palette.error.main</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    return (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;Box</span>
 <span class="cstat-no" title="statement not covered" >            style={{</span>
@@ -260,10 +305,7 @@
 <span class="cstat-no" title="statement not covered" >                                    width: "50px",</span>
 <span class="cstat-no" title="statement not covered" >                                    height: "50px",</span>
 <span class="cstat-no" title="statement not covered" >                                    border: "2px solid white",</span>
-<span class="cstat-no" title="statement not covered" >                                    background:</span>
-<span class="cstat-no" title="statement not covered" >                                        char === "0"</span>
-<span class="cstat-no" title="statement not covered" >                                            ? theme.palette.success.main</span>
-<span class="cstat-no" title="statement not covered" >                                            : theme.palette.error.main,</span>
+<span class="cstat-no" title="statement not covered" >                                    background: getColor(char, i + (page - 1) * 256)</span>
 <span class="cstat-no" title="statement not covered" >                                }}</span>
 <span class="cstat-no" title="statement not covered" >                            &gt;</span>
 <span class="cstat-no" title="statement not covered" >                                {i + (page - 1) * 256}</span>
@@ -289,7 +331,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-26T13:19:07.941Z
+                at 2024-04-27T15:17:04.374Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

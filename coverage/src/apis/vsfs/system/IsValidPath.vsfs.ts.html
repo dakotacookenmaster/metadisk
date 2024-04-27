@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.04% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>29/46</span>
+                <span class='fraction'>32/64</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/8</span>
+                <span class='fraction'>6/9</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.04% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>29/46</span>
+                <span class='fraction'>32/64</span>
             </div>
         
             
@@ -109,7 +109,25 @@
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -134,6 +152,7 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -143,6 +162,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -153,6 +173,22 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
@@ -179,26 +215,44 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
 <span class="cstat-no" title="statement not covered" >    }</span>
     let position = 0
     let inodeNumber = 0 // inode 0 is the root directory
+    let found = false
 &nbsp;
     while (position !== path.length) {
         if(path[position].length &gt; 13) {
             throw new FilenameTooLongError()
 <span class="branch-0 cbranch-no" title="branch not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        const { inodeBlock, inodeOffset } = getInodeLocation(inodeNumber)</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]</span>
+<span class="cstat-no" title="statement not covered" ></span>
+        if(inode.type === "file" &amp;&amp; position !== path.length - 1) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            // a file name was provided as a piece of the path...this is an invalid path</span>
+<span class="cstat-no" title="statement not covered" >            throw new InvalidPathError()</span>
+<span class="cstat-no" title="statement not covered" >        } else if(inode.type === "file") {</span>
+<span class="cstat-no" title="statement not covered" >            // We've reached the end and this is a file. We don't want to interpret this as a directory.</span>
+<span class="cstat-no" title="statement not covered" >            // Just return the inode</span>
+<span class="cstat-no" title="statement not covered" >            return inodeNumber</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        const allEntries: DirectoryEntry[] = []</span>
 <span class="cstat-no" title="statement not covered" >        for(let pointer of inode.blockPointers) {</span>
 <span class="cstat-no" title="statement not covered" >            const { entries} = (await readBlock(pointer)).data.directory</span>
 <span class="cstat-no" title="statement not covered" >            allEntries.push(...entries)</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        found = false</span>
 <span class="cstat-no" title="statement not covered" >        for(let entry of allEntries) {</span>
 <span class="cstat-no" title="statement not covered" >            if(entry.name === path[position]) {</span>
 <span class="cstat-no" title="statement not covered" >                position++</span>
 <span class="cstat-no" title="statement not covered" >                inodeNumber = entry.inode</span>
+<span class="cstat-no" title="statement not covered" >                found = true</span>
+<span class="cstat-no" title="statement not covered" >                break</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >        throw new InvalidPathError()</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >        if(!found) {</span>
+<span class="cstat-no" title="statement not covered" >            throw new InvalidPathError()</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+    }
     return inodeNumber
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -208,7 +262,7 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-26T13:19:07.941Z
+                at 2024-04-27T15:17:04.374Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

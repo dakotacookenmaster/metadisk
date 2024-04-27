@@ -1,9 +1,21 @@
 import { getCharacterEncoding } from "../../../apps/vsfs/components/Viewers"
+import { selectBlockSize } from "../../../redux/reducers/fileSystemSlice"
+import { store } from "../../../store"
+import { DirectoryBlockOverflowError } from "../../api-errors/DirectoryBlockOverflow.error"
 import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
 import BuildDirectoryData from "../../interfaces/vsfs/BuildDirectoryData.interface"
 
-export default function buildDirectory(directory: BuildDirectoryData) {
+/**
+ * Builds the bitstring representation of a directory
+ * @param directory The directory data
+ * @returns 
+ */
+export default function buildDirectory(directory: BuildDirectoryData): string {
+    const maxEntries = selectBlockSize(store.getState()) / 128 // the max number of entries per block
     const entries = []
+    if(directory.entries.length > maxEntries) {
+        throw new DirectoryBlockOverflowError()
+    }
     for (let entry of directory.entries) {
         if (entry.name.length > 13) {
             throw new FilenameTooLongError()

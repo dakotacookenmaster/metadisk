@@ -1,10 +1,7 @@
 import { Box, Typography, useTheme } from "@mui/material"
 import { useAppSelector } from "../../../redux/hooks/hooks"
-import {
-    selectSuperblock,
-    selectTotalBlocks,
-} from "../../../redux/reducers/fileSystemSlice"
-import { useEffect, useState } from "react"
+import { selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
+import { createRef, useEffect, useMemo, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
 import BitmapTabs from "./BitmapTabs"
@@ -12,11 +9,10 @@ import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
 import InodeBlockTabs from "./InodeBlockTabs"
 import DataBlockTabs from "./DataBlockTabs"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
+import getLabel from "../../common/helpers/getLabel"
 
 const FileSystemBlockLayout = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
-    const numberOfInodeBlocks =
-        useAppSelector(selectSuperblock).numberOfInodeBlocks
     const theme = useTheme()
     const [selected, setSelected] = useState<string>("Superblock")
     const [progress, setProgress] = useState<number>(0)
@@ -28,21 +24,9 @@ const FileSystemBlockLayout = () => {
     const [selectedInode, setSelectedInode] = useState<number | undefined>(
         undefined,
     )
-    const { inodeStartIndex } = useAppSelector(selectSuperblock)
-
-    const getLabel = (index: number) => {
-        if (index === 0) {
-            return "Superblock"
-        } else if (index === 1) {
-            return "Inode Bitmap"
-        } else if (index === 2) {
-            return "Data Bitmap"
-        } else if (index <= 2 + numberOfInodeBlocks) {
-            return `Inode Block ${index - inodeStartIndex}`
-        } else {
-            return `Data Block ${index - inodeStartIndex - numberOfInodeBlocks}`
-        }
-    }
+    const blockRefs = useMemo(() => {
+        return [...Array(totalBlocks)].map((_) => createRef())
+    }, [])
 
     const beginOperation = () => {
         setData(undefined)
@@ -93,6 +77,7 @@ const FileSystemBlockLayout = () => {
                 {[...Array(totalBlocks)].map((_, i) => {
                     return (
                         <Box
+                            ref={blockRefs[i]}
                             className="block"
                             key={`block-${i}`}
                             sx={{
@@ -134,7 +119,13 @@ const FileSystemBlockLayout = () => {
                                 }
                             }}
                         >
-                            <Box sx={{display: "flex", flexDirection: "column", gap: "5px"}}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "5px",
+                                }}
+                            >
                                 {getLabel(i)}
                                 <Typography variant="caption">{`(Block ${i})`}</Typography>
                             </Box>
@@ -157,6 +148,7 @@ const FileSystemBlockLayout = () => {
                     setSelectedInode={setSelectedInode}
                     inodeBitmap={inodeBitmap}
                     setBlockNumber={setBlockNumber}
+                    blockRefs={blockRefs}
                     canMove={canMove}
                     data={data}
                     progress={progress}
@@ -170,6 +162,12 @@ const FileSystemBlockLayout = () => {
                     key={parseInt(selected.split(" ")[2])}
                     blockNumber={parseInt(selected.split(" ")[2])}
                     data={data}
+                    setSelected={setSelected}
+                    setBlockNumber={setBlockNumber}
+                    setSelectedInode={setSelectedInode}
+                    beginOperation={beginOperation}
+                    blockRefs={blockRefs}
+                    canMove={canMove}
                     progress={progress}
                 />
             )}

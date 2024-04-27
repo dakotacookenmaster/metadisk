@@ -44,7 +44,7 @@ export default async function initializeSuperblock(
         createdAt: timestamp,
         lastModified: timestamp,
         size: 256,
-        blockPointers: [3 + superblock.numberOfInodeBlocks, 0, 0, 0, 0, 0, 0],
+        blockPointers: [3 + superblock.numberOfInodeBlocks, 0, 0, 0, 0, 0, 0, 0],
     })
 
     const rootDirectoryData = buildDirectory({

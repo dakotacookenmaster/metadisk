@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/144</span>
+                <span class='fraction'>0/134</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/144</span>
+                <span class='fraction'>0/134</span>
             </div>
         
             
@@ -197,27 +197,7 @@
 <a name='L132'></a><a href='#L132'>132</a>
 <a name='L133'></a><a href='#L133'>133</a>
 <a name='L134'></a><a href='#L134'>134</a>
-<a name='L135'></a><a href='#L135'>135</a>
-<a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a>
-<a name='L138'></a><a href='#L138'>138</a>
-<a name='L139'></a><a href='#L139'>139</a>
-<a name='L140'></a><a href='#L140'>140</a>
-<a name='L141'></a><a href='#L141'>141</a>
-<a name='L142'></a><a href='#L142'>142</a>
-<a name='L143'></a><a href='#L143'>143</a>
-<a name='L144'></a><a href='#L144'>144</a>
-<a name='L145'></a><a href='#L145'>145</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L135'></a><a href='#L135'>135</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -378,7 +358,6 @@
 <span class="cstat-no" title="statement not covered" >import open from "../../apis/vsfs/posix/open.vsfs"</span>
 <span class="cstat-no" title="statement not covered" >import OpenFlags from "../../apis/enums/vsfs/OpenFlags.enum"</span>
 <span class="cstat-no" title="statement not covered" >import Permissions from "../../apis/enums/vsfs/Permissions.enum"</span>
-<span class="cstat-no" title="statement not covered" >import updateBitmap from "../../apis/vsfs/system/UpdateBitmap.vsfs"</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export default function VSFS() {</span>
 <span class="cstat-no" title="statement not covered" >    const theme = useTheme()</span>
@@ -416,22 +395,13 @@
 <span class="cstat-no" title="statement not covered" >                })</span>
 <span class="cstat-no" title="statement not covered" >                await initializeSuperblock(setProgress)</span>
 <span class="cstat-no" title="statement not covered" >                setWaitingMessage({ title: "Initializing...", message: "Creating Some Files..."})</span>
-<span class="cstat-no" title="statement not covered" >                await open("/abc", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                await open("/abc1", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >                // await open("/abc5", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                // await open("/abc6", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                // await open("/abc7", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                // await open("/abc8", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                // await open("/abc9", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
+<span class="cstat-no" title="statement not covered" >                const file1 = await open("/abc", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ)</span>
+<span class="cstat-no" title="statement not covered" >                const file2 = await open("/abc", [OpenFlags.O_RDONLY]) // this should succeed</span>
+<span class="cstat-no" title="statement not covered" >                const file3 = await open("/abc", [OpenFlags.O_RDONLY]) // this should fail</span>
+<span class="cstat-no" title="statement not covered" >                </span>
 <span class="cstat-no" title="statement not covered" >                setWaitingMessage(null)</span>
 <span class="cstat-no" title="statement not covered" >                dispatch(setIsDiskFormatted(true))</span>
-<span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >                setTimeout(async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >                    await open("/abc2", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                    await open("/abc3", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                    await open("/abc4", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)</span>
-<span class="cstat-no" title="statement not covered" >                }, 3000)</span>
 <span class="cstat-no" title="statement not covered" >            })()</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    // eslint-disable-next-line react-hooks/exhaustive-deps</span>
@@ -502,7 +472,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-26T13:19:07.941Z
+                at 2024-04-27T15:17:04.374Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

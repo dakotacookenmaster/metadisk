@@ -22,25 +22,43 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
     }
     let position = 0
     let inodeNumber = 0 // inode 0 is the root directory
+    let found = false
 
     while (position !== path.length) {
         if(path[position].length > 13) {
             throw new FilenameTooLongError()
         }
+
         const { inodeBlock, inodeOffset } = getInodeLocation(inodeNumber)
+
         const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
+
+        if(inode.type === "file" && position !== path.length - 1) {
+            // a file name was provided as a piece of the path...this is an invalid path
+            throw new InvalidPathError()
+        } else if(inode.type === "file") {
+            // We've reached the end and this is a file. We don't want to interpret this as a directory.
+            // Just return the inode
+            return inodeNumber
+        }
+
         const allEntries: DirectoryEntry[] = []
         for(let pointer of inode.blockPointers) {
             const { entries} = (await readBlock(pointer)).data.directory
             allEntries.push(...entries)
         }
+        found = false
         for(let entry of allEntries) {
             if(entry.name === path[position]) {
                 position++
                 inodeNumber = entry.inode
+                found = true
+                break
             }
         }
-        throw new InvalidPathError()
+        if(!found) {
+            throw new InvalidPathError()
+        }
     }
     return inodeNumber
 }

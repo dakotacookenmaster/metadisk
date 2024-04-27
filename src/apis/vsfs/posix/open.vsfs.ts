@@ -11,22 +11,31 @@ import { DataBlockOverflowError } from "../../api-errors/DataBlockOverflow.error
 import { writeBlock } from "../system/WriteBlock.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
 import updateBitmap from "../system/UpdateBitmap.vsfs"
-import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
+import {
+    addFileDescriptor,
+    selectFileDescriptorTable,
+    selectSuperblock,
+} from "../../../redux/reducers/fileSystemSlice"
 import { store } from "../../../store"
 import buildDirectory from "../system/BuildDirectory.vsfs"
+import FileDescriptor from "../../interfaces/vsfs/FileDescriptor.interface"
+import hasAccess from "../system/HasAccess.vsfs"
+import { AccessDeniedError } from "../../api-errors/AccessDenied.error"
+import { ModeError } from "../../api-errors/Mode.error"
 
 /**
  * A POSIX-like function to open a file (and potentially create it)
  * @param pathname The path at which to open (or create) the file
- * @param flags
- * @param mode
+ * @param flags The options for opening this file
+ * @param mode The file's permission mode, only used with creating a file
+ * @returns A file descriptor
  * @throws OpenFlagError
  */
 export default async function open(
     pathname: string,
     flags: OpenFlags[],
-    mode: Permissions,
-) {
+    mode?: Permissions,
+): Promise<number> {
     /* 
         In order to open a file, a series of checks have to be made.
 
@@ -43,6 +52,7 @@ export default async function open(
     const { numberOfInodeBlocks, inodeStartIndex } = selectSuperblock(
         store.getState(),
     )
+
     if (
         !flags.includes(OpenFlags.O_RDONLY) &&
         !flags.includes(OpenFlags.O_RDWR) &&
@@ -64,11 +74,41 @@ export default async function open(
     }
     if (flags.includes(OpenFlags.O_CREAT)) {
         /* The file needs to be created if it doesn't exist. */
+        if (mode === undefined) {
+            throw new ModeError()
+        }
 
         // Does the file already exist?
         try {
             const inode = await isValidPath(pathname)
-            // FIXME - here we'll want to add this to the file descriptor table
+            // read the inode to get its permissions
+            const { inodeBlock, inodeOffset } = getInodeLocation(inode)
+            const permissions = (await readBlock(inodeBlock)).data.inodes[
+                inodeOffset
+            ].permissions
+            const access = hasAccess(flags, permissions)
+            if (!access) {
+                throw new AccessDeniedError()
+            }
+            const fileDescriptor = {
+                inode,
+                mode: flags.find((flag) =>
+                    [
+                        OpenFlags.O_RDONLY,
+                        OpenFlags.O_WRONLY,
+                        OpenFlags.O_RDWR,
+                    ].includes(flag),
+                )! as
+                    | OpenFlags.O_RDONLY
+                    | OpenFlags.O_WRONLY
+                    | OpenFlags.O_RDWR,
+            } satisfies FileDescriptor
+
+            const nextFileDescriptor = selectFileDescriptorTable(
+                store.getState(),
+            ).length
+            store.dispatch(addFileDescriptor(fileDescriptor))
+            return nextFileDescriptor
         } catch (error) {
             if (!(error instanceof InvalidPathError)) {
                 // If the error is an invalid path, that's fine because we're trying to create the file anyways
@@ -116,6 +156,9 @@ export default async function open(
         const parentDirectoryInode = (await readBlock(inodeBlock)).data.inodes[
             inodeOffset
         ]
+
+        console.log(parentDirectoryInode)
+
         const { blockPointers: parentDirectoryBlockPointers } =
             parentDirectoryInode
 
@@ -131,10 +174,10 @@ export default async function open(
                 const { entries } = (
                     await readBlock(parentDirectoryBlockPointers[i])
                 ).data.directory
+
                 for (let j = 0; j < entries.length; j++) {
                     if (entries[j].free) {
-                        availableDirectoryBlock =
-                            i + inodeStartIndex + numberOfInodeBlocks
+                        availableDirectoryBlock = parentDirectoryBlockPointers[i]
                         availableDirectoryIndex = j
                         break
                     }
@@ -158,7 +201,7 @@ export default async function open(
                 throw new DirectoryOverflowError()
             }
 
-            // we need to allocate another block, not the same as the block allocated for the file
+            // we need to allocate another block
             const dataBitmap = (await readBlock(2)).data.raw
             for (let i = 0; i < dataBitmap.length; i++) {
                 if (dataBitmap[i] === "0" && i < dataBlocks) {
@@ -187,10 +230,9 @@ export default async function open(
             STEPS:
                 1. Update the parent directory to include a listing to the new file at the reserved inode
                 2. Update the parent directory's inode to the new size (a new entry) and a last accessed
-                2. Create the new inode entry
-                3. If a new directory block was allocated, update the data bitmap
-                4. Update the inode bitmap for the new file
-                5. Update the data bitmap for the new file
+                3. Create the new inode entry
+                4. If a new directory block was allocated, update the data bitmap
+                5. Update the inode bitmap for the new file
         */
 
         // This is the parent directory's data block
@@ -217,6 +259,7 @@ export default async function open(
             availableDirectoryIndex * 128 + 128,
         )
         const result = previousEntries + newEntry + furtherEntries
+
         await writeBlock(availableDirectoryBlock, result)
 
         // Update the parent directory's inode to a new size (new entry) and new last accessed time
@@ -300,5 +343,52 @@ export default async function open(
         await updateBitmap("inode", availableInode, "1")
 
         // Yay! The file should have been written.
+        // Add a file descriptor
+        const fileDescriptor = {
+            inode: availableInode,
+            mode: OpenFlags.O_RDWR // while the file was created with special permissions, those only apply to other file descriptors
+        } satisfies FileDescriptor
+        const nextFileDescriptor = selectFileDescriptorTable(
+            store.getState(),
+        ).length
+        store.dispatch(addFileDescriptor(fileDescriptor))
+        return nextFileDescriptor
+    } else {
+        // Does the file already exist?
+        try {
+            const inode = await isValidPath(pathname)
+            // read the inode to get its permissions
+            const { inodeBlock, inodeOffset } = getInodeLocation(inode)
+            const permissions = (await readBlock(inodeBlock)).data.inodes[
+                inodeOffset
+            ].permissions
+
+            const access = hasAccess(flags, permissions)
+
+            if (!access) {
+                throw new AccessDeniedError()
+            }
+            const fileDescriptor = {
+                inode,
+                mode: flags.find((flag) =>
+                    [
+                        OpenFlags.O_RDONLY,
+                        OpenFlags.O_WRONLY,
+                        OpenFlags.O_RDWR,
+                    ].includes(flag),
+                )! as
+                    | OpenFlags.O_RDONLY
+                    | OpenFlags.O_WRONLY
+                    | OpenFlags.O_RDWR,
+            } satisfies FileDescriptor
+
+            const nextFileDescriptor = selectFileDescriptorTable(
+                store.getState(),
+            ).length
+            store.dispatch(addFileDescriptor(fileDescriptor))
+            return nextFileDescriptor
+        } catch (error) {
+            throw error
+        }
     }
 }

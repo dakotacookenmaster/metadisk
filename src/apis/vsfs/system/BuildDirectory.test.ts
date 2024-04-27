@@ -1,7 +1,24 @@
-import { test, expect } from "vitest"
+import { test, expect, vi } from "vitest"
 import BuildDirectoryData from "../../interfaces/vsfs/BuildDirectoryData.interface"
 import buildDirectory from "./BuildDirectory.vsfs"
 import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
+import { DirectoryBlockOverflowError } from "../../api-errors/DirectoryBlockOverflow.error"
+
+vi.mock("../../../store", () => {
+    const store = {
+        getState: () => {
+            return {
+                fileSystem: {
+                    blockSize: 640 // make each block only large enough to contain 5 entries
+                }
+            }
+        }
+    }
+
+    return {
+        store
+    }
+})
 
 const emptyEntry = {
     entries: [],
@@ -41,7 +58,7 @@ const complexEntry = {
     ],
 } satisfies BuildDirectoryData
 
-const brokenEntry = {
+const entryTooLong = {
     entries: [
         {
             inode: 10,
@@ -58,6 +75,35 @@ const brokenEntry = {
         {
             inode: 7,
             name: "brokenbecausethisistoolong",
+        },
+    ],
+} satisfies BuildDirectoryData
+
+const tooManyEntries = {
+    entries: [
+        {
+            inode: 10,
+            name: "first",
+        },
+        {
+            inode: 9,
+            name: "second",
+        },
+        {
+            inode: 8,
+            name: "third",
+        },
+        {
+            inode: 7,
+            name: "fourth",
+        },
+        {
+            inode: 6,
+            name: "fifth",
+        },
+        {
+            inode: 5,
+            name: "toomany",
         },
     ],
 } satisfies BuildDirectoryData
@@ -79,5 +125,11 @@ test("it should return an appropriate binary string when many entries are provid
 })
 
 test("it should fail to write an entry if the name is too long", () => {
-    expect(() => buildDirectory(brokenEntry)).toThrow(FilenameTooLongError)
+    expect(() => buildDirectory(entryTooLong)).toThrow(FilenameTooLongError)
+})
+
+test("it should fail to write if the entries would overflow a single block", () => {
+    expect(() => buildDirectory(tooManyEntries)).toThrow(
+        DirectoryBlockOverflowError,
+    )
 })

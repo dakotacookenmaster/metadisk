@@ -59,17 +59,17 @@ export const readBlock = async (
 
             directory: {
                 entries: chunk(rawData, 128).map(entry => {
-                    const name = chunk(entry.join('').slice(0, 104), 8).map(char => convertBinaryByteStringToType(char.join(''), "ascii")).join('')
+                    const name = chunk(entry.join('').slice(0, 104), 8).map(char => convertBinaryByteStringToType(char.join(''), "ascii")).join('').replaceAll("\uE400", "")
                     return {
                         name,
                         inode: parseInt(entry.join('').slice(104, 128), 2),
-                        free: name === "\uE400".repeat(13) // if it has no name, it's a free space
+                        free: name === "" // if it has no name, it's a free space
                     }
                 })
             },
             inodes: chunk(rawData, 128).map((inode, index) => {
                 return {
-                    inode: (inodesPerBlock * block) - inodeStartIndex + index, // assuming this is an inode block, where inode blocks start at inodeStartIndex
+                    inode: (inodesPerBlock * (block - inodeStartIndex)) + index, // assuming this is an inode block, where inode blocks start at inodeStartIndex
                     permissions: [inode.join('').slice(2, 4), inode.join('').slice(4, 6), inode.join('').slice(6, 8)].join('') as Permissions,
                     type: inode.join('').slice(0, 2) === "00" ? "file" : "directory" as "file" | "directory",
                     size: parseInt(inode.join('').slice(8, 32), 2),

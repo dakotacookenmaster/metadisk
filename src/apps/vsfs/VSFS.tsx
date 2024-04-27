@@ -25,6 +25,7 @@ import initializeSuperblock from "../../apis/vsfs/system/InitializeSuperblock.vs
 import open from "../../apis/vsfs/posix/open.vsfs"
 import OpenFlags from "../../apis/enums/vsfs/OpenFlags.enum"
 import Permissions from "../../apis/enums/vsfs/Permissions.enum"
+import mkdir from "../../apis/vsfs/posix/mkdir.vsfs"
 
 export default function VSFS() {
     const theme = useTheme()
@@ -63,10 +64,13 @@ export default function VSFS() {
                 await initializeSuperblock(setProgress)
                 setWaitingMessage({ title: "Initializing...", message: "Creating Some Files..."})
 
-                for(let i = 0; i < 60; i++) {
-                    await open(`/abc${i}`, [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)
-                    setProgress(i + 1)
-                }
+                const file1 = await open("/abc", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ)
+                await mkdir("/mydir")
+                await mkdir("/mydir/anotherdir")
+                await mkdir("/mydir/anotherdir/fourth")
+                await open("/mydir/123", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ)
+                await open("/mydir/anotherdir/fourth/myfile", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_EXECUTE)
+                // await mkdir("/mydir/anotherdir/thirddir")
                 
                 setWaitingMessage(null)
                 dispatch(setIsDiskFormatted(true))

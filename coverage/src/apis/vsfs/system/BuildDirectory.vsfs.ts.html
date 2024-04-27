@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>25/25</span>
+                <span class='fraction'>37/37</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>25/25</span>
+                <span class='fraction'>37/37</span>
             </div>
         
             
@@ -88,13 +88,37 @@
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
 <a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -103,7 +127,7 @@
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">41x</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">9x</span>
@@ -114,21 +138,33 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { getCharacterEncoding } from "../../../apps/vsfs/components/Viewers"
+import { selectBlockSize } from "../../../redux/reducers/fileSystemSlice"
+import { store } from "../../../store"
+import { DirectoryBlockOverflowError } from "../../api-errors/DirectoryBlockOverflow.error"
 import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
 import BuildDirectoryData from "../../interfaces/vsfs/BuildDirectoryData.interface"
 &nbsp;
-export default function buildDirectory(directory: BuildDirectoryData) {
+/**
+ * Builds the bitstring representation of a directory
+ * @param directory The directory data
+ * @returns 
+ */
+export default function buildDirectory(directory: BuildDirectoryData): string {
+    const maxEntries = selectBlockSize(store.getState()) / 128 // the max number of entries per block
     const entries = []
+    if(directory.entries.length &gt; maxEntries) {
+        throw new DirectoryBlockOverflowError()
+    }
     for (let entry of directory.entries) {
-        if(entry.name.length &gt; 13) {
+        if (entry.name.length &gt; 13) {
             throw new FilenameTooLongError()
         }
-        
+&nbsp;
         const name = entry.name
             .split("")
-            .map((char) =&gt;
-                getCharacterEncoding(char).toString(2).padStart(8, ""),
-            )
+            .map((char) =&gt; {
+                return getCharacterEncoding(char).toString(2).padStart(8, "0")
+            })
             .join("")
             .padStart(104, "0")
         const inode = entry.inode.toString(2).padStart(24, "0")
@@ -145,7 +181,7 @@ export default function buildDirectory(directory: BuildDirectoryData) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-04-26T13:19:07.941Z
+                at 2024-04-27T15:17:04.374Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

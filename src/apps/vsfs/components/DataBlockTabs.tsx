@@ -5,13 +5,22 @@ import Box from "@mui/material/Box"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
 import getAllDirectories from "../../common/helpers/getAllDirectories"
-import { Table, TableBody, TableCell, TableHead, TableRow, useTheme } from "@mui/material"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    useTheme,
+} from "@mui/material"
 import DirectoryEntry from "../../../apis/interfaces/vsfs/DirectoryEntry.interface"
 import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
 import { blue } from "@mui/material/colors"
+import getLabel from "../../common/helpers/getLabel"
+import getInodeLocation from "../../../apis/vsfs/system/GetInodeLocation.vsfs"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -48,9 +57,15 @@ function a11yProps(index: number) {
 export default function DataBlockTabs(props: {
     data: string | undefined
     blockNumber: number
-    progress: number
+    progress: number,
+    setSelected: React.Dispatch<React.SetStateAction<string>>,
+    setBlockNumber: React.Dispatch<React.SetStateAction<number>>,
+    setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>,
+    beginOperation: () => void,
+    blockRefs: React.RefObject<unknown>[],
+    canMove: boolean
 }) {
-    const { data, progress, blockNumber } = props
+    const { data, progress, blockRefs, blockNumber, canMove, setSelected, setBlockNumber, setSelectedInode, beginOperation } = props
     const [value, setValue] = React.useState(0)
     const [dir, setDir] = React.useState(false)
     const [entries, setEntries] = React.useState<DirectoryEntry[]>([])
@@ -107,9 +122,7 @@ export default function DataBlockTabs(props: {
                     onChange={handleChange}
                     aria-label="basic tabs example"
                 >
-                    {dir && (
-                        <Tab label="Directory Viewer" {...a11yProps(0)} />
-                    )}
+                    {dir && <Tab label="Directory Viewer" {...a11yProps(0)} />}
                     <Tab label="Binary" {...a11yProps(dir ? 1 : 0)} />
                     <Tab label="Hex" {...a11yProps(dir ? 2 : 1)} />
                     <Tab label="ASCII" {...a11yProps(dir ? 3 : 2)} />
@@ -125,7 +138,7 @@ export default function DataBlockTabs(props: {
                         overflowY: "scroll",
                         scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                         scrollbarWidth: "thin",
-                        paddingRight: "20px"
+                        paddingRight: "20px",
                     }}
                 >
                     <Table sx={{ maxHeight: "20px", overflow: "hidden" }}>
@@ -145,13 +158,48 @@ export default function DataBlockTabs(props: {
                                                     key={`entry-${index}`}
                                                 >
                                                     <TableCell>
-                                                        {entry.name.replaceAll(
-                                                            "\uE400",
-                                                            "",
-                                                        )}
+                                                        {entry.name}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {entry.inode}
+                                                        <Box
+                                                            onClick={() => {
+                                                                if (canMove) {
+                                                                    setSelectedInode(entry.inode)
+                                                                    setSelected((prevLabel) => {
+                                                                        const { inodeBlock } = getInodeLocation(entry.inode)
+                                                                        setBlockNumber(inodeBlock)
+                                                                        const newLabel = getLabel(inodeBlock)
+                                                                        if (prevLabel !== newLabel) {
+                                                                            beginOperation()
+                                                                        }
+                                                                        return newLabel
+                                                                    })
+                                                                    const ref = blockRefs[index].current as Element
+                                                                    console.log("Calling scroll into view!")
+                                                                    ref.scrollIntoView({ behavior: "smooth" })
+                                                                }
+                                                            }}
+                                                            sx={{
+                                                                fontWeight: "bold",
+                                                                width: "30px",
+                                                                height: "30px",
+                                                                border: "2px solid white",
+                                                                borderRadius:
+                                                                    "5px",
+                                                                display: "flex",
+                                                                alignItems:
+                                                                    "center",
+                                                                justifyContent:
+                                                                    "center",
+                                                                "&:hover": {
+                                                                    cursor: canMove ? "pointer" : "not-allowed",
+                                                                    backgroundColor: blue[600],
+                                                                    border: "none",
+                                                                }
+                                                            }}
+                                                        >
+                                                            {entry.inode}
+                                                        </Box>
                                                     </TableCell>
                                                 </TableRow>
                                             )

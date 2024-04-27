@@ -157,8 +157,6 @@ export default async function open(
             inodeOffset
         ]
 
-        console.log(parentDirectoryInode)
-
         const { blockPointers: parentDirectoryBlockPointers } =
             parentDirectoryInode
 

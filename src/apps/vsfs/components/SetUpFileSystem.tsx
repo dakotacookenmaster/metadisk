@@ -9,7 +9,7 @@ import {
     Typography,
     useTheme,
 } from "@mui/material"
-import { FileSystemSetup } from "../VSFS"
+import FileSystemSetup from "../../../common/interfaces/FileSystemSetup.interface"
 import Tooltip from "../../common/components/Tooltip"
 
 const getByteCount = (amount: number) => {

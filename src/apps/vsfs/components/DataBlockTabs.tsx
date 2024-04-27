@@ -175,7 +175,6 @@ export default function DataBlockTabs(props: {
                                                                         return newLabel
                                                                     })
                                                                     const ref = blockRefs[index].current as Element
-                                                                    console.log("Calling scroll into view!")
                                                                     ref.scrollIntoView({ behavior: "smooth" })
                                                                 }
                                                             }}

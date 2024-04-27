@@ -35,6 +35,10 @@ const FileSystemBlockLayout = () => {
     }
 
     useEffect(() => {
+        (blockRefs[0].current as Element).scrollIntoView({ behavior: "smooth" })
+    }, [])
+
+    useEffect(() => {
         ;(async () => {
             const result = (await readBlock(1)).data.raw
             setInodeBitmap(result)

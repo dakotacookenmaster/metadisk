@@ -14,11 +14,10 @@ const WaitingMessage = (props: {
                 <>
                     <Typography
                         variant="h5"
-                        sx={{ textAlign: "center", paddingBottom: "3px" }}
+                        sx={{ textAlign: "center", paddingBottom: "3px", paddingTop: "10px" }}
                     >
                         {title}
                     </Typography>
-                    <hr />
                 </>
             )}
             <Box
@@ -30,7 +29,7 @@ const WaitingMessage = (props: {
                     marginTop: title ? undefined : "40px",
                     alignItems: "center",
                     width: "100%",
-                    height: "calc(100% - 50px)",
+                    height: "calc(100% - 180px)",
                     p: 2,
                 }}
             >

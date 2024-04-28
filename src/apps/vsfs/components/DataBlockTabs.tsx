@@ -175,7 +175,7 @@ export default function DataBlockTabs(props: {
                                                                         return newLabel
                                                                     })
                                                                     const ref = blockRefs[index].current as Element
-                                                                    ref.scrollIntoView({ behavior: "smooth" })
+                                                                    ref.scrollIntoView({ behavior: "smooth", block: "nearest" })
                                                                 }
                                                             }}
                                                             sx={{

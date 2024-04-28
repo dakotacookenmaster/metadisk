@@ -232,7 +232,7 @@ const InodeOverview = (props: {
                                             )
                                             setBlockNumber(pointer)
                                             const ref = blockRefs[pointer].current as Element
-                                            ref.scrollIntoView({ behavior: "smooth" })
+                                            ref.scrollIntoView({ behavior: "smooth", block: "nearest" })
                                         }
                                     }}
                                 >

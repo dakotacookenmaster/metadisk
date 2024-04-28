@@ -13,10 +13,10 @@ import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications"
 import ListItemText from "@mui/material/ListItemText"
-import apps from "../register-apps"
-import Tooltip from "../apps/common/components/Tooltip"
+import apps from "../../../register-apps"
+import Tooltip from "./Tooltip"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
-import { VERSION } from "../apps/common/constants"
+import { VERSION } from "../constants"
 import { useMediaQuery } from "@mui/material"
 
 const drawerWidth = 300
@@ -101,9 +101,7 @@ export default function MainWindow(props: {
     return (
         <Box sx={{ display: "flex" }}>
             <CssBaseline />
-            <AppBar position="fixed" open={true}>
-                <Toolbar />
-            </AppBar>
+            <AppBar position="fixed" open={true}></AppBar>
             <Drawer variant="permanent" open={true}>
                 <DrawerHeader>
                     <Typography
@@ -136,8 +134,11 @@ export default function MainWindow(props: {
                                     <ListItemButton
                                         onClick={() => {
                                             setApps((prevApps) => {
-                                                if(prevApps[appKey].onChange) {
-                                                    prevApps[appKey].onChange!(!prevApps[appKey].enabled)
+                                                if (prevApps[appKey].onChange) {
+                                                    prevApps[appKey].onChange!(
+                                                        !prevApps[appKey]
+                                                            .enabled,
+                                                    )
                                                 }
 
                                                 return {
@@ -254,7 +255,6 @@ export default function MainWindow(props: {
                 </List>
             </Drawer>
             <Box component="main" sx={{ minWidth: 0, flexGrow: 1, p: 3 }}>
-                <DrawerHeader />
                 <Box
                     sx={{
                         display: "flex",
@@ -273,7 +273,7 @@ export default function MainWindow(props: {
                                         width: `calc(${
                                             isLG ? "100%" : "50%"
                                         } - (${theme.spacing(1.5)} / 2))`,
-                                        minHeight: "575px",
+                                        height: "690px",
                                         display: apps[appKey].enabled
                                             ? "block"
                                             : "none",

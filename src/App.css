@@ -18,22 +18,6 @@ div[role="tree"] {
     height: 400px !important;
 }
 
-/* .read,
-.write,
-.seek,
-.idle,
-.waiting {
-    animation: rotate linear infinite forwards;
-}
-
-.sector-read,
-.sector-write,
-.sector-seek,
-.sector-idle,
-.sector-waiting {
-    animation: antirotate linear infinite forwards;
-} */
-
 @keyframes slowBounceAndWobble {
     25% {
         transform: rotate(20deg);

@@ -92,12 +92,11 @@ const SetUpDisk = () => {
             }}
         >
             <Typography
-                sx={{ width: "100%", textAlign: "center" }}
+                sx={{ width: "100%", paddingTop: "10px", textAlign: "center" }}
                 variant="h5"
             >
                 Set Up Your Disk
             </Typography>
-            <hr style={{ width: "100%", marginTop: "-5px" }} />
             <Tooltip
                 placement="top"
                 title="Tracks are the rings around the disk that the read / write head seeks. Tracks are typically thinner than the width of a human hair."

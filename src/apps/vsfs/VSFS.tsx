@@ -55,31 +55,21 @@ export default function VSFS() {
             !isAwaitingDisk &&
             !isDiskFormatted
         ) {
-            (async () => {
+            ;(async () => {
                 setProgress(0)
                 setWaitingMessage({
                     title: "Formatting Disk",
                     message: "Please wait...",
                 })
                 await initializeSuperblock(setProgress)
-                setWaitingMessage({ title: "Initializing...", message: "Creating Some Files..."})
-
-                await open("/abc", [OpenFlags.O_RDWR, OpenFlags.O_CREAT], Permissions.READ)
-                await mkdir("/mydir")
-                // await mkdir("/mydir/anotherdir")
-                // await mkdir("/mydir/anotherdir/fourth")
-                await open("/mydir/123", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
-                // await mkdir("/mydir/ab")
-                // await mkdir("/mydir/bc")
-                // await mkdir("/mydir/cd")
-                // await open("/mydir/anotherdir/fourth/myfile", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_EXECUTE)
-                // await mkdir("/mydir/anotherdir/thirddir")
-                
+                await mkdir("/abc")
+                await open("/myfile.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
+                await open("/abc/another.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
                 setWaitingMessage(null)
                 dispatch(setIsDiskFormatted(true))
             })()
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFinishedConfiguringFileSystem, isAwaitingDisk])
 
     return (

@@ -6,6 +6,7 @@ interface FileSystemState {
     sectorsPerBlock: number
     blockSize: number
     totalBlocks: number
+    openFile: string
     minimumRequiredDiskSize: number
     isFinishedConfiguringFileSystem: boolean
     isAwaitingDisk: boolean
@@ -32,7 +33,7 @@ interface FileSystemState {
 const calculateInodeAndDataBlocks = (
     totalBlocks: number,
     inodesPerBlock: number,
-    inodeStartIndex: number
+    inodeStartIndex: number,
 ) => {
     let inodeTotalCount = 0
     let availableDataBlocks = totalBlocks - inodeStartIndex // account for the superblock, i-bmap, and d-bmap
@@ -55,6 +56,7 @@ const initialState: FileSystemState = {
     sectorsPerBlock: 4,
     blockSize: 4096 * 4,
     totalBlocks: 16,
+    openFile: "",
     minimumRequiredDiskSize: 4096 * 4 * 16,
     fileDescriptorTable: [null, null, null],
     isDiskFormatted: false,
@@ -64,7 +66,8 @@ const initialState: FileSystemState = {
         inodeSize: 128,
         numberOfInodeBlocks: calculateInodeAndDataBlocks(16, 32, 3).inodeBlocks,
         numberOfDataBlocks: calculateInodeAndDataBlocks(16, 32, 3).dataBlocks,
-        numberOfInodes: calculateInodeAndDataBlocks(16, 32, 3).inodeBlocks * 128,
+        numberOfInodes:
+            calculateInodeAndDataBlocks(16, 32, 3).inodeBlocks * 128,
         inodeStartIndex: 3,
     },
 }
@@ -82,7 +85,7 @@ export const fileSystemSlice = createSlice({
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
                 inodesPerBlock,
-                state.superblock.inodeStartIndex
+                state.superblock.inodeStartIndex,
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
@@ -98,7 +101,7 @@ export const fileSystemSlice = createSlice({
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
                 inodesPerBlock,
-                state.superblock.inodeStartIndex
+                state.superblock.inodeStartIndex,
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
@@ -113,7 +116,7 @@ export const fileSystemSlice = createSlice({
             const { inodeBlocks, dataBlocks } = calculateInodeAndDataBlocks(
                 state.totalBlocks,
                 inodesPerBlock,
-                state.superblock.inodeStartIndex
+                state.superblock.inodeStartIndex,
             )
             state.superblock.numberOfInodeBlocks = inodeBlocks
             state.superblock.numberOfDataBlocks = dataBlocks
@@ -138,10 +141,11 @@ export const fileSystemSlice = createSlice({
         removeFileDescriptor: (state, action: PayloadAction<number>) => {
             state.fileDescriptorTable.splice(action.payload, 1)
         },
+        setOpenFile: (state, action: PayloadAction<string>) => {
+            state.openFile = action.payload
+        },
     },
 })
-
-
 
 export const {
     setSectorSize,
@@ -151,7 +155,8 @@ export const {
     setIsAwaitingDisk,
     setIsDiskFormatted,
     addFileDescriptor,
-    removeFileDescriptor
+    removeFileDescriptor,
+    setOpenFile,
 } = fileSystemSlice.actions
 
 export const selectSectorSize = (state: RootState) =>
@@ -173,6 +178,8 @@ export const selectIsAwaitingDisk = (state: RootState) =>
     state.fileSystem.isAwaitingDisk
 export const selectIsDiskFormatted = (state: RootState) =>
     state.fileSystem.isDiskFormatted
-export const selectFileDescriptorTable = (state: RootState) => state.fileSystem.fileDescriptorTable
+export const selectFileDescriptorTable = (state: RootState) =>
+    state.fileSystem.fileDescriptorTable
+export const selectOpenFile = (state: RootState) => state.fileSystem.openFile
 
 export default fileSystemSlice.reducer

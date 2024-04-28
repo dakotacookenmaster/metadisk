@@ -8,13 +8,16 @@ import read from "../../apis/vsfs/posix/read.vsfs"
 import write from "../../apis/vsfs/posix/write.vsfs"
 import convertBinaryStringToText from "../common/helpers/convertBinaryStringToText"
 import convertTextToBinaryString from "../common/helpers/convertTextToBinaryString"
-import { useAppDispatch } from "../../redux/hooks/hooks"
+import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import { setError } from "../../redux/reducers/appSlice"
+import close from "../../apis/vsfs/posix/close.vsfs"
+import { selectOpenFile, setOpenFile } from "../../redux/reducers/fileSystemSlice"
+import RightClick from "../file-explorer/components/RightClick"
 
 const Editor = () => {
     const theme = useTheme()
     const [saved, setSaved] = useState(true)
-    const [openFile, setOpenFile] = useState("")
+    const openFile = useAppSelector(selectOpenFile)
     const [fileData, setFileData] = useState("")
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
@@ -36,16 +39,13 @@ const Editor = () => {
                     .join("")
                 await write(fd, binaryTestText)
                 const data = await read(fd)
+                close(fd)
                 const textData = convertBinaryStringToText(data)
                 setFileData(textData)
                 setLoading(false)
             }
         })()
     }, [openFile])
-
-    useEffect(() => {
-        setSaved(false)
-    }, [fileData])
 
     const handleSave = async () => {
         // do other logic here
@@ -54,16 +54,17 @@ const Editor = () => {
             const fd = await open(openFile, [OpenFlags.O_WRONLY])
             const data = convertTextToBinaryString(fileData)
             await write(fd, data)
+            close(fd)
             setSaved(true)
-        } catch(error) {
+        } catch (error) {
             dispatch(setError(error as Error))
             setSaved(false)
         }
         setSaving(false)
     }
 
-    const handleOpen = () => {
-        setOpenFile("/mydir/123")
+    const handleClose = () => {
+        dispatch(setOpenFile(""))
     }
 
     return (
@@ -79,7 +80,7 @@ const Editor = () => {
         >
             <Typography
                 variant="h5"
-                sx={{ textAlign: "center", paddingBottom: "5px" }}
+                sx={{ textAlign: "center", paddingBottom: "5px", paddingTop: "10px", }}
             >
                 Text Editor{" "}
                 {openFile ? (
@@ -92,12 +93,12 @@ const Editor = () => {
                     ""
                 )}
             </Typography>
-            <hr style={{ color: "gray", marginBottom: "25px" }} />
             {openFile && !loading && (
                 <textarea
                     disabled={saving}
                     value={fileData}
                     onChange={(event) => {
+                        setSaved(false)
                         const { value } = event.target
                         let newValue = ""
                         for (let char of value) {
@@ -116,7 +117,7 @@ const Editor = () => {
                     }}
                     style={{
                         resize: "none",
-                        height: "490px",
+                        height: "560px",
                         boxSizing: "border-box",
                         padding: "10px",
                         width: "100%",
@@ -161,8 +162,18 @@ const Editor = () => {
                     display: "flex",
                     justifyContent: "right",
                     paddingTop: "10px",
+                    gap: theme.spacing(1)
                 }}
             >
+                <Button
+                    onClick={handleClose}
+                    variant="contained"
+                    sx={{
+                        display: openFile && !loading ? "block" : "none",
+                    }}
+                >
+                    Close
+                </Button>
                 <Button
                     onClick={handleSave}
                     variant="contained"
@@ -172,9 +183,6 @@ const Editor = () => {
                     }}
                 >
                     {saving ? "Saving..." : "Save"}
-                </Button>
-                <Button variant="contained" disabled={saving} onClick={handleOpen}>
-                    Open
                 </Button>
             </Box>
         </Paper>

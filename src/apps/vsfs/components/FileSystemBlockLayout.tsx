@@ -35,7 +35,7 @@ const FileSystemBlockLayout = () => {
     }
 
     useEffect(() => {
-        (blockRefs[0].current as Element).scrollIntoView({ behavior: "smooth" })
+        (blockRefs[0].current as Element).scrollIntoView({ behavior: "smooth", block: "nearest", })
     }, [])
 
     useEffect(() => {

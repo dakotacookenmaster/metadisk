@@ -1,4 +1,4 @@
-import { AppDispatch } from "../../store"
+import { AppDispatch } from "../../../store"
 
 export default interface FileSystemSetup {
     name: string

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import MainWindow from "./common/MainWindow"
+import MainWindow from "./apps/common/components/MainWindow"
 import allApps from "./register-apps"
 import Alert from "./apps/common/components/Alert"
 

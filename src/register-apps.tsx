@@ -8,6 +8,8 @@ import { store } from "./store"
 import { setSkipWaitTime } from "./redux/reducers/diskSlice"
 import LineStyleIcon from '@mui/icons-material/LineStyle';
 import Editor from "./apps/editor/Editor"
+import FileExplorer from "./apps/file-explorer/FileExplorer"
+import ExploreIcon from '@mui/icons-material/Explore';
 
 const apps: Record<
     string,
@@ -36,11 +38,16 @@ const apps: Record<
             store.dispatch(setSkipWaitTime(!enabled))
         }
     },
+    "File Explorer": {
+        elementFn: FileExplorer,
+        muiIcon: ExploreIcon,
+        enabled: true,
+    },
     "Text Editor": {
         elementFn: Editor,
         muiIcon: LineStyleIcon,
-        enabled: false,
-    }
+        enabled: true,
+    },
 }
 
 export default apps

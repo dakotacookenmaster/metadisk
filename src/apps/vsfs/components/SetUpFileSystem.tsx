@@ -9,7 +9,7 @@ import {
     Typography,
     useTheme,
 } from "@mui/material"
-import FileSystemSetup from "../../../common/interfaces/FileSystemSetup.interface"
+import FileSystemSetup from "../../common/interfaces/FileSystemSetup.interface"
 import Tooltip from "../../common/components/Tooltip"
 
 const getByteCount = (amount: number) => {
@@ -56,8 +56,9 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
                 width: "100%",
                 height: "100%",
                 display: "flex",
-                alignItems: "center",
+                flexDirection: "column",
                 gap: theme.spacing(2),
+                alignItems: "center",
                 flexWrap: "wrap",
             }}
         >
@@ -67,7 +68,6 @@ const SetUpFileSystem = (props: FileSystemSetup) => {
             >
                 Set Up Your File System
             </Typography>
-            <hr style={{ width: "100%", marginTop: "-5px" }} />
             <Tooltip
                 placement="top"
                 title="The name of the file system, though this value is often represented simply as a number in the superblock."

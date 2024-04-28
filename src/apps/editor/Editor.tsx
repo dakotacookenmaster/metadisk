@@ -1,16 +1,15 @@
-import {
-    Box,
-    Button,
-    Paper,
-    TextareaAutosize,
-    Typography,
-    useTheme,
-} from "@mui/material"
+import { Box, Button, Paper, Typography, useTheme } from "@mui/material"
 import { useEffect, useState } from "react"
 import { getCharacter, getCharacterEncoding } from "../vsfs/components/Viewers"
-import { useAppSelector } from "../../redux/hooks/hooks"
-import { selectFileDescriptorTable } from "../../redux/reducers/fileSystemSlice"
 import Tooltip from "../common/components/Tooltip"
+import open from "../../apis/vsfs/posix/open.vsfs"
+import OpenFlags from "../../apis/enums/vsfs/OpenFlags.enum"
+import read from "../../apis/vsfs/posix/read.vsfs"
+import write from "../../apis/vsfs/posix/write.vsfs"
+import convertBinaryStringToText from "../common/helpers/convertBinaryStringToText"
+import convertTextToBinaryString from "../common/helpers/convertTextToBinaryString"
+import { useAppDispatch } from "../../redux/hooks/hooks"
+import { setError } from "../../redux/reducers/appSlice"
 
 const Editor = () => {
     const theme = useTheme()
@@ -18,22 +17,27 @@ const Editor = () => {
     const [openFile, setOpenFile] = useState("")
     const [fileData, setFileData] = useState("")
     const [loading, setLoading] = useState(false)
-
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         setOpenFile("/abc/file.txt")
-    //     }, 3000)
-    // }, [])
+    const [saving, setSaving] = useState(false)
+    const dispatch = useAppDispatch()
 
     useEffect(() => {
         ;(async () => {
             if (openFile) {
                 setLoading(true)
-                // FIXME! I need to implement read()
-                await new Promise((resolve) =>
-                    setTimeout(() => resolve(true), 2000),
-                )
-                setFileData("This is the pretend file data that I've opened!")
+                const fd = await open(openFile, [OpenFlags.O_RDWR])
+                // let's test by writing to the file!
+                const testText =
+                    "This is some test data I want to try writing to the file."
+                const binaryTestText = testText
+                    .split("")
+                    .map((char) =>
+                        getCharacterEncoding(char).toString(2).padStart(8, "0"),
+                    )
+                    .join("")
+                await write(fd, binaryTestText)
+                const data = await read(fd)
+                const textData = convertBinaryStringToText(data)
+                setFileData(textData)
                 setLoading(false)
             }
         })()
@@ -43,9 +47,23 @@ const Editor = () => {
         setSaved(false)
     }, [fileData])
 
-    const handleSave = () => {
+    const handleSave = async () => {
         // do other logic here
-        setSaved(true)
+        setSaving(true)
+        try {
+            const fd = await open(openFile, [OpenFlags.O_WRONLY])
+            const data = convertTextToBinaryString(fileData)
+            await write(fd, data)
+            setSaved(true)
+        } catch(error) {
+            dispatch(setError(error as Error))
+            setSaved(false)
+        }
+        setSaving(false)
+    }
+
+    const handleOpen = () => {
+        setOpenFile("/mydir/123")
     }
 
     return (
@@ -76,13 +94,14 @@ const Editor = () => {
             </Typography>
             <hr style={{ color: "gray", marginBottom: "25px" }} />
             {openFile && !loading && (
-                <TextareaAutosize
+                <textarea
+                    disabled={saving}
                     value={fileData}
                     onChange={(event) => {
                         const { value } = event.target
                         let newValue = ""
                         for (let char of value) {
-                            if (char === "\n") {
+                            if (char === "\n" || char === "\u25D9") {
                                 newValue += "\n"
                             } else {
                                 let encoding = getCharacterEncoding(char)
@@ -109,6 +128,7 @@ const Editor = () => {
                         backgroundColor: "#2f2f2f",
                         color: "white",
                         borderRadius: "3px",
+                        overflowY: "scroll",
                     }}
                 />
             )}
@@ -146,12 +166,15 @@ const Editor = () => {
                 <Button
                     onClick={handleSave}
                     variant="contained"
-                    disabled={saved}
+                    disabled={saved || saving}
                     sx={{
                         display: openFile && !loading ? "block" : "none",
                     }}
                 >
-                    Save
+                    {saving ? "Saving..." : "Save"}
+                </Button>
+                <Button variant="contained" disabled={saving} onClick={handleOpen}>
+                    Open
                 </Button>
             </Box>
         </Paper>

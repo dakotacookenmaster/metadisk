@@ -10,7 +10,7 @@ import Divider from "@mui/material/Divider"
 import ListItem from "@mui/material/ListItem"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
-import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications"
+import BugReportIcon from '@mui/icons-material/BugReport';
 import ListItemText from "@mui/material/ListItemText"
 import apps from "../../../register-apps"
 import Tooltip from "./Tooltip"
@@ -196,7 +196,7 @@ export default function MainWindow(props: {
                         justifyContent: "flex-end",
                     }}
                 >
-                    <Tooltip title="Settings" placement="right">
+                    <Tooltip title="Submit an Issue" placement="right">
                         <ListItem
                             disablePadding
                             sx={{
@@ -204,6 +204,8 @@ export default function MainWindow(props: {
                             }}
                         >
                             <ListItemButton
+                                href={"https://github.com/dakotacookenmaster/metadisk/issues"}
+                                target="_blank"
                                 sx={{
                                     minHeight: 48,
                                     px: 2.5,
@@ -217,10 +219,10 @@ export default function MainWindow(props: {
                                         justifyContent: "center",
                                     }}
                                 >
-                                    <SettingsApplicationsIcon />
+                                    <BugReportIcon />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary={"Settings"}
+                                    primary={"Submit an Issue"}
                                     sx={{
                                         color: "white",
                                     }}

@@ -45,8 +45,9 @@ const InodeOverview = (props: {
     } = props
     const superblock = useAppSelector(selectSuperblock)
     const blockSize = useAppSelector(selectBlockSize)
+    const inodeStartIndex = superblock.inodeStartIndex
     const inodesPerBlock = blockSize / superblock.inodeSize
-    const offset = selectedInode !== undefined ? selectedInode * 128 : 0 // 128 bits is the size of an inode
+    const offset = selectedInode !== undefined ? (selectedInode % inodesPerBlock)* 128 : 0 // 128 bits is the size of an inode
     const type = [<FileIcon />, <FolderIcon sx={{ color: "#F1D592" }} />][
         parseInt(data.slice(0 + offset, 2 + offset), 2)
     ]
@@ -227,7 +228,7 @@ const InodeOverview = (props: {
                                             setSelected(
                                                 `Data Block ${
                                                     pointer -
-                                                    3 -
+                                                    inodeStartIndex -
                                                     superblock.numberOfInodeBlocks
                                                 }`,
                                             )

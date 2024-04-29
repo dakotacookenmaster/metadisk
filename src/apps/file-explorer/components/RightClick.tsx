@@ -31,8 +31,10 @@ export default function RightClick(props: {
             type: "file" | "directory" | "window"
         } | null>
     >
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setType: React.Dispatch<React.SetStateAction<"file" | "directory">>
 }) {
-    const { contextMenu, setContextMenu, setCurrentDirectory } = props
+    const { contextMenu, setContextMenu, setCurrentDirectory, setIsOpen, setType } = props
     const dispatch = useAppDispatch()
     const theme = useTheme()
 
@@ -99,6 +101,12 @@ export default function RightClick(props: {
         }
     }
 
+    const handleCreateFileOrDirectory = (type: "file" | "directory") => {
+        handleClose()
+        setType(type)
+        setIsOpen(true)
+    }
+
     return (
         <Menu
             open={contextMenu !== null}
@@ -129,8 +137,8 @@ export default function RightClick(props: {
             )}
             {contextMenu !== null && contextMenu.type === "window" && (
                 <div>
-                    <MenuItem onClick={handleOpen} sx={{ display: "flex", justifyContent: "space-between", gap: theme.spacing(1) }}>New File <NoteAddIcon /></MenuItem>
-                    <MenuItem onClick={handleClose} sx={{ display: "flex", justifyContent: "space-between", gap: theme.spacing(1) }}>New Directory <CreateNewFolderIcon /></MenuItem>
+                    <MenuItem onClick={() => handleCreateFileOrDirectory("file")} sx={{ display: "flex", justifyContent: "space-between", gap: theme.spacing(1) }}>New File <NoteAddIcon /></MenuItem>
+                    <MenuItem onClick={() => handleCreateFileOrDirectory("directory")} sx={{ display: "flex", justifyContent: "space-between", gap: theme.spacing(1) }}>New Directory <CreateNewFolderIcon /></MenuItem>
                 </div>
             )}
         </Menu>

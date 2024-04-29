@@ -1,5 +1,4 @@
 import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.error"
-import DirectoryEntry from "../../interfaces/vsfs/DirectoryEntry.interface"
 import DirectoryListing from "../../interfaces/vsfs/DirectoryListing.interface"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
 import isValidPath from "../system/IsValidPath.vsfs"
@@ -19,11 +18,32 @@ export default async function listing(
     if (inode.type !== "directory") {
         throw new InvalidDirectoryPath()
     }
-    const allEntries: DirectoryEntry[] = []
+    const allEntries = []
     for (let pointer of inode.blockPointers.filter((v) => v)) {
         // each of these pointers should point to a directory
         const { entries } = (await readBlock(pointer)).data.directory
-        allEntries.push(...entries)
+        const updatedEntries = await Promise.all(
+            entries
+                .filter((entry) => !entry.free)
+                .filter((entry) => entry.name !== "." && entry.name !== "..")
+                .map(async (entry) => {
+                    const {
+                        inodeBlock: entryInodeBlock,
+                        inodeOffset: entryInodeOffset,
+                    } = getInodeLocation(entry.inode)
+                    const entryInode = (await readBlock(entryInodeBlock)).data
+                        .inodes[entryInodeOffset]
+                    return {
+                        ...entry,
+                        pathname:
+                            pathname === "/"
+                                ? pathname + entry.name
+                                : pathname + "/" + entry.name,
+                        type: entryInode.type,
+                    }
+                }),
+        )
+        allEntries.push(...updatedEntries)
     }
 
     return {

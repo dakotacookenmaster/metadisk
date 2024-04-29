@@ -1,6 +1,7 @@
 import {
     Box,
     Button,
+    IconButton,
     Paper,
     TextField,
     Typography,
@@ -14,20 +15,22 @@ import {
     selectIsDiskFormatted,
     setOpenFile,
 } from "../../redux/reducers/fileSystemSlice"
-import FileHierarchy from "../common/interfaces/FileHierarchy.interface"
-import getFileHierarchy from "../common/helpers/getFileHierarchy"
 import FileIcon from "@mui/icons-material/Description"
 import FolderIcon from "@mui/icons-material/Folder"
 import Tooltip from "../common/components/Tooltip"
 import WaitingMessage from "../common/components/WaitingMessage"
 import RightClick from "./components/RightClick"
 import { selectSectors } from "../../redux/reducers/diskSlice"
+import FileOrDirectoryDialog from "../common/components/FileOrDirectoryDialog"
+import listing from "../../apis/vsfs/posix/listing.vsfs"
+import DirectoryListing from "../../apis/interfaces/vsfs/DirectoryListing.interface"
+import { CreateNewFolder, NoteAdd } from "@mui/icons-material"
 
 export default function FileExplorer() {
     const theme = useTheme()
     const [currentDirectory, setCurrentDirectory] = useState("/")
     const isDiskFormatted = useAppSelector(selectIsDiskFormatted)
-    const [hierarchy, setHierarchy] = useState<FileHierarchy | null>(null)
+    const [hierarchy, setHierarchy] = useState<DirectoryListing | null>(null)
     const [loadingHierarchy, setLoadingHierarchy] = useState(false)
     const [contextMenu, setContextMenu] = useState<null | {
         mouseX: number
@@ -37,6 +40,8 @@ export default function FileExplorer() {
     }>(null)
     const dispatch = useAppDispatch()
     const sectors = useAppSelector(selectSectors)
+    const [isOpen, setIsOpen] = useState(false)
+    const [type, setType] = useState<"file" | "directory">("file")
 
     const handleContextMenu = (
         event: any,
@@ -64,12 +69,7 @@ export default function FileExplorer() {
         ;(async () => {
             if (isDiskFormatted) {
                 setLoadingHierarchy(true)
-                const data = await getFileHierarchy({
-                    inode: 0,
-                    pathname: currentDirectory,
-                    type: "directory",
-                    children: [],
-                })
+                const data = await listing(currentDirectory)
                 setHierarchy(data)
                 setLoadingHierarchy(false)
             }
@@ -112,7 +112,9 @@ export default function FileExplorer() {
                     >
                         <Button
                             variant="contained"
-                            disabled={currentDirectory === "/" || loadingHierarchy}
+                            disabled={
+                                currentDirectory === "/" || loadingHierarchy
+                            }
                             onClick={() => {
                                 if (!loadingHierarchy) {
                                     setCurrentDirectory("/")
@@ -128,7 +130,9 @@ export default function FileExplorer() {
                         />
                         <Button
                             variant="contained"
-                            disabled={currentDirectory === "/" || loadingHierarchy}
+                            disabled={
+                                currentDirectory === "/" || loadingHierarchy
+                            }
                             onClick={() => {
                                 if (!loadingHierarchy) {
                                     setCurrentDirectory(
@@ -170,28 +174,27 @@ export default function FileExplorer() {
                     >
                         <Box
                             sx={{
-                                width: "200px",
-                                borderRight: "2px solid #4f4f4f",
-                                height: "100%",
-                            }}
-                        ></Box>
-                        <Box
-                            sx={{
                                 width: "100%",
                                 height: "100%",
-                                px: theme.spacing(1.5),
                                 display: "flex",
                                 flexWrap: "wrap",
                                 gap: theme.spacing(1),
                                 alignContent: "flex-start",
+                                position: "relative",
                             }}
                         >
-                            {hierarchy?.children
-                                .sort(
-                                    (a, b) =>
-                                        -a.pathname.split("/")[0] ||
-                                        +b.pathname.split("/")[0],
-                                )
+                            {hierarchy?.entries
+                                .sort((a, b) => {
+                                    const first = a.pathname
+                                        .split("/")
+                                        .filter((v) => v)[0]
+                                    const second = b.pathname
+                                        .split("/")
+                                        .filter((v) => v)[0]
+                                    return (
+                                        -(first < second) || +(first > second)
+                                    )
+                                })
                                 .map((child, index) => {
                                     const name = child.pathname
                                         .split("/")
@@ -214,7 +217,9 @@ export default function FileExplorer() {
                                                     border: "2px solid #4f4f4f",
                                                     borderRadius: "5px",
                                                     "&:hover": {
-                                                        cursor: loadingHierarchy ? "wait" : "pointer",
+                                                        cursor: loadingHierarchy
+                                                            ? "wait"
+                                                            : "pointer",
                                                     },
                                                 }}
                                                 onContextMenu={(event) => {
@@ -266,6 +271,40 @@ export default function FileExplorer() {
                                         </Tooltip>
                                     )
                                 })}
+                            <Box
+                                sx={{
+                                    position: "absolute",
+                                    top: "450px",
+                                    right: theme.spacing(1),
+                                    display: "flex",
+                                    gap: theme.spacing(1),
+                                }}
+                            >
+                                <Tooltip placement="top" title="New File">
+                                    <IconButton
+                                        sx={{ width: "60px", height: "60px" }}
+                                        onClick={() => {
+                                            setContextMenu(null)
+                                            setType("file")
+                                            setIsOpen(true)
+                                        }}
+                                    >
+                                        <NoteAdd fontSize="large" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip placement="top" title="New Directory">
+                                    <IconButton
+                                        sx={{ width: "60px", height: "60px" }}
+                                        onClick={() => {
+                                            setContextMenu(null)
+                                            setType("directory")
+                                            setIsOpen(true)
+                                        }}
+                                    >
+                                        <CreateNewFolder fontSize="large" />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
                         </Box>
                     </Box>
                 </>
@@ -274,6 +313,14 @@ export default function FileExplorer() {
                 setCurrentDirectory={setCurrentDirectory}
                 contextMenu={contextMenu}
                 setContextMenu={setContextMenu}
+                setIsOpen={setIsOpen}
+                setType={setType}
+            />
+            <FileOrDirectoryDialog
+                currentDirectory={currentDirectory}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                type={type}
             />
         </Paper>
     )

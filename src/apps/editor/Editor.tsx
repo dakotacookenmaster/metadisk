@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import { setError } from "../../redux/reducers/appSlice"
 import close from "../../apis/vsfs/posix/close.vsfs"
 import { selectOpenFile, setOpenFile } from "../../redux/reducers/fileSystemSlice"
+import { blue } from "@mui/material/colors"
 
 const Editor = () => {
     const theme = useTheme()
@@ -22,7 +23,7 @@ const Editor = () => {
     const [saving, setSaving] = useState(false)
     const dispatch = useAppDispatch()
     const editorRef = useRef<null | HTMLDivElement>(null)
-
+    
     useEffect(() => {
         ;(async () => {
             if (openFile) {
@@ -136,6 +137,8 @@ const Editor = () => {
                         color: "white",
                         borderRadius: "3px",
                         overflowY: "scroll",
+                        scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
+                        scrollbarWidth: "thin",
                     }}
                 />
             )}
@@ -188,7 +191,7 @@ const Editor = () => {
                         display: openFile && !loading ? "block" : "none",
                     }}
                 >
-                    {saving ? "Saving..." : "Save"}
+                    { saved ? "Saved!" : saving ? "Saving..." : "Save"}
                 </Button>
             </Box>
         </Paper>

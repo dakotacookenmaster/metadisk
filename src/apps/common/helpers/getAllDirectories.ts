@@ -26,8 +26,6 @@ const getAllDirectories = async (): Promise<Directories> => {
         }
     }
 
-    console.log("DIRECTORY BLOCK NUMBERS:", directoryBlockNumbers)
-
     return {
         blocks: directoryBlockNumbers,
     }

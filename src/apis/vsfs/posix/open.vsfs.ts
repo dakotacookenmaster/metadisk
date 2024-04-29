@@ -74,6 +74,10 @@ export default async function open(
     }
     if (flags.includes(OpenFlags.O_CREAT)) {
         /* The file needs to be created if it doesn't exist. */
+        if(pathname === "/") {
+            // you can't create a file named "/"
+            throw new InvalidPathError()
+        }
         if (mode === undefined) {
             throw new ModeError()
         }

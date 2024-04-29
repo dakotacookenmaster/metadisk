@@ -1,3 +1,5 @@
+import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
+import { store } from "../../../store"
 import { DirectoryNotEmptyError } from "../../api-errors/DirectoryNotEmpty.error"
 import buildDirectory from "../system/BuildDirectory.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
@@ -14,6 +16,9 @@ import { writeBlock } from "../system/WriteBlock.vsfs"
 export default async function rmdir(pathname: string) {
     /* Verify it's a valid path */
     const inode = await isValidPath(pathname)
+    const { inodeStartIndex, numberOfInodeBlocks } = selectSuperblock(
+        store.getState(),
+    )
 
     /* Read the inode and loop over its non-null block pointers. These will each be a 
     directory with entries. If the only two entries are . and .., keep going. If all of the
@@ -40,8 +45,8 @@ export default async function rmdir(pathname: string) {
             }
         }
     }
-
     // If we made it this far, the directory is empty
+
     // Update the parent directory and remove this entry, reducing its size
     const {
         inodeBlock: parentDirectoryInodeBlock,
@@ -54,7 +59,7 @@ export default async function rmdir(pathname: string) {
     let directoryEntries = null
     let directoryIndex = -1
     let directoryBlock = -1
-    for (let pointer of parentDirectoryInode.blockPointers) {
+    for (let pointer of parentDirectoryInode.blockPointers.filter((v) => v)) {
         const entries = (await readBlock(pointer)).data.directory.entries
         for (let i = 0; i < entries.length; i++) {
             if (
@@ -83,23 +88,41 @@ export default async function rmdir(pathname: string) {
     // Rebuild the directory from the old entries
     const previousEntries = directoryEntries.slice(0, directoryIndex)
     const furtherEntries = directoryEntries.slice(directoryIndex + 1)
-    const newEntries = [...previousEntries, ...furtherEntries]
+    const newEntries = [...previousEntries, ...furtherEntries].filter(
+        (entry) => !entry.free,
+    )
 
     const newDirectory = buildDirectory({
         entries: newEntries,
     })
 
-    // write the new directory
-    await writeBlock(directoryBlock, newDirectory)
+    // FIXME - if the directory block is empty, DEALLOCATE it, don't update it
+    let blockPointers = parentDirectoryInode.blockPointers
+    let removedBlockPointer: number | null = null
+    if (newDirectory === "") {
+        for (let pointer of blockPointers) {
+            if (pointer === directoryBlock) {
+                removedBlockPointer = pointer
+                break
+            }
+        }
+    } else {
+        // write the updated directory
+        await writeBlock(directoryBlock, newDirectory)
+    }
 
     // Update the parent directory inode with the new data and size
     const newParentDirectoryInode = buildInode({
         ...parentDirectoryInode,
         size: parentDirectoryInode.size - 128,
         lastModified: new Date(),
+        blockPointers:
+            removedBlockPointer !== null
+                ? [...blockPointers.filter((v) => v !== removedBlockPointer), 0]
+                : blockPointers,
     })
 
-    // rebuild the inode file
+    // rebuild the inode
     const previousParentDirectoryInodes = parentDirectoryData.raw.slice(
         0,
         parentDirectoryInodeOffset * 128,
@@ -115,16 +138,26 @@ export default async function rmdir(pathname: string) {
 
     await writeBlock(parentDirectoryInodeBlock, updatedParentDirectoryInodes)
 
-    // Delete the directory inode
-    const previousInodes = inodeData.raw.slice(0, 128 * inodeOffset) // get the previous inodes
-    const furtherInodes = inodeData.raw.slice(128 * inodeOffset + 128) // get the rest of the inodes
-    const emptyInode = "0".repeat(128) // fill in the inode with nulls
-
-    const updatedInode = previousInodes + emptyInode + furtherInodes
-    await writeBlock(inodeBlock, updatedInode)
-
     // Update the inode bitmap to show this inode as being free
     await updateBitmap("inode", inode, "0")
+
+    // if the directory got small enough in size to lose a block, deallocate it
+    if (removedBlockPointer !== null) {
+        await updateBitmap(
+            "data",
+            removedBlockPointer - inodeStartIndex - numberOfInodeBlocks,
+            "0",
+        )
+    }
+
+    // each of those block pointers in the deleted directory needs to be deallocated from the data bitmap
+    for (let pointer of pointers) {
+        await updateBitmap(
+            "data",
+            pointer - inodeStartIndex - numberOfInodeBlocks,
+            "0",
+        )
+    }
 
     // Yay! The folder should have been deleted!
 }

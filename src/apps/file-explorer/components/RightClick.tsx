@@ -47,7 +47,11 @@ export default function RightClick(props: {
                 try {
                     await rmdir(contextMenu.path)
                 } catch(error) {
-                    dispatch(setError(error as Error))
+                    let e = error as Error
+                    dispatch(setError({
+                        name: e.name,
+                        message: e.message,
+                    }))
                 }
             }
         }

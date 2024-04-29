@@ -12,7 +12,6 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import { setError } from "../../redux/reducers/appSlice"
 import close from "../../apis/vsfs/posix/close.vsfs"
 import { selectOpenFile, setOpenFile } from "../../redux/reducers/fileSystemSlice"
-import RightClick from "../file-explorer/components/RightClick"
 
 const Editor = () => {
     const theme = useTheme()
@@ -27,21 +26,19 @@ const Editor = () => {
         ;(async () => {
             if (openFile) {
                 setLoading(true)
-                const fd = await open(openFile, [OpenFlags.O_RDWR])
-                // let's test by writing to the file!
-                const testText =
-                    "This is some test data I want to try writing to the file."
-                const binaryTestText = testText
-                    .split("")
-                    .map((char) =>
-                        getCharacterEncoding(char).toString(2).padStart(8, "0"),
-                    )
-                    .join("")
-                await write(fd, binaryTestText)
-                const data = await read(fd)
-                close(fd)
-                const textData = convertBinaryStringToText(data)
-                setFileData(textData)
+                try {
+                    const fd = await open(openFile, [OpenFlags.O_RDONLY])
+                    const data = await read(fd)
+                    close(fd)
+                    const textData = convertBinaryStringToText(data)
+                    setFileData(textData)
+                } catch(error) {
+                    let e = error as Error
+                    dispatch(setError({
+                        name: e.name,
+                        message: e.message,
+                    }))
+                }
                 setLoading(false)
             }
         })()
@@ -57,7 +54,11 @@ const Editor = () => {
             close(fd)
             setSaved(true)
         } catch (error) {
-            dispatch(setError(error as Error))
+            let e = error as Error
+            dispatch(setError({
+                name: e.name,
+                message: e.message,
+            }))
             setSaved(false)
         }
         setSaving(false)

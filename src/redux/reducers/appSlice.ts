@@ -11,26 +11,28 @@ interface AppState {
 }
 
 const initialState: AppState = {
-    error: undefined
+    error: undefined,
 }
 
 export const diskSlice = createSlice({
     name: "app",
     initialState,
     reducers: {
-        setError: (state, action: PayloadAction<Error | undefined>) => {
+        setError: (
+            state,
+            action: PayloadAction<
+                Error | undefined
+            >,
+        ) => {
             state.error = action.payload
         },
         clearError: (state) => {
             state.error = undefined
-        }
+        },
     },
 })
 
-export const {
-    setError,
-    clearError,
-} = diskSlice.actions
+export const { setError, clearError } = diskSlice.actions
 
 export const selectError = (state: RootState) => state.app.error
 

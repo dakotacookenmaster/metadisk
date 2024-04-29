@@ -55,6 +55,8 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
         editorRef.current = editor
     }
 
+    const value = chunk(bytes.map(byte => convertBinaryByteStringToType(byte, mode)), mode === "ascii" ? 21 : mode === "hex" ? 16 : 4).map(byteGroup => byteGroup.join(" ")).join("\n")
+
     return (
         <Editor 
             loading={<Typography>Loading...</Typography>}
@@ -80,7 +82,7 @@ const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
             }}
             theme="vs-dark" 
             onMount={handleMount}
-            value={chunk(bytes.map(byte => convertBinaryByteStringToType(byte, mode)), mode === "ascii" ? 21 : mode === "hex" ? 16 : 4).map(byteGroup => byteGroup.join(" ")).join("\n")}
+            value={value}
         />
     )
 }

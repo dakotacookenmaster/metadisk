@@ -96,6 +96,8 @@ export default function DataBlockTabs(props: {
                     }
                 }
                 setEntries(valid)
+            } else {
+                setDir(false)
             }
             setFinished(true)
         })()

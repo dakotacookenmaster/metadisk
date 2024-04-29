@@ -22,10 +22,10 @@ import FileSystemBlockLayout from "./components/FileSystemBlockLayout"
 import WaitingMessage from "../common/components/WaitingMessage"
 import { useEffect, useState } from "react"
 import initializeSuperblock from "../../apis/vsfs/system/InitializeSuperblock.vsfs"
-import open from "../../apis/vsfs/posix/open.vsfs"
-import OpenFlags from "../../apis/enums/vsfs/OpenFlags.enum"
-import Permissions from "../../apis/enums/vsfs/Permissions.enum"
 import mkdir from "../../apis/vsfs/posix/mkdir.vsfs"
+import Permissions from "../../apis/enums/vsfs/Permissions.enum"
+import OpenFlags from "../../apis/enums/vsfs/OpenFlags.enum"
+import open from "../../apis/vsfs/posix/open.vsfs"
 
 export default function VSFS() {
     const theme = useTheme()
@@ -63,7 +63,11 @@ export default function VSFS() {
                 })
                 await initializeSuperblock(setProgress)
                 await mkdir("/abc")
-                await open("/myfile.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
+                await mkdir("/def")
+                await mkdir("/ghi")
+                // await mkdir("/jkl")
+                // await mkdir("/mno")
+                await open("/myfile.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ)
                 await open("/abc/another.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
                 setWaitingMessage(null)
                 dispatch(setIsDiskFormatted(true))

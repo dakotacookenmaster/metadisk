@@ -28,6 +28,7 @@ export default function FileExplorer() {
     const [currentDirectory, setCurrentDirectory] = useState("/")
     const isDiskFormatted = useAppSelector(selectIsDiskFormatted)
     const [hierarchy, setHierarchy] = useState<FileHierarchy | null>(null)
+    const [loadingHierarchy, setLoadingHierarchy] = useState(false)
     const [contextMenu, setContextMenu] = useState<null | {
         mouseX: number
         mouseY: number
@@ -62,7 +63,7 @@ export default function FileExplorer() {
     useEffect(() => {
         ;(async () => {
             if (isDiskFormatted) {
-                setHierarchy(null)
+                setLoadingHierarchy(true)
                 const data = await getFileHierarchy({
                     inode: 0,
                     pathname: currentDirectory,
@@ -70,6 +71,7 @@ export default function FileExplorer() {
                     children: [],
                 })
                 setHierarchy(data)
+                setLoadingHierarchy(false)
             }
         })()
     }, [currentDirectory, isDiskFormatted, sectors])
@@ -80,7 +82,10 @@ export default function FileExplorer() {
                 width: "100%",
                 padding: theme.spacing(2),
                 "&:hover": {
-                    cursor: !hierarchy && isDiskFormatted ? "wait" : "default",
+                    cursor:
+                        loadingHierarchy && isDiskFormatted
+                            ? "wait"
+                            : "default",
                 },
             }}
         >
@@ -107,9 +112,11 @@ export default function FileExplorer() {
                     >
                         <Button
                             variant="contained"
-                            disabled={currentDirectory === "/"}
+                            disabled={currentDirectory === "/" || loadingHierarchy}
                             onClick={() => {
-                                setCurrentDirectory("/")
+                                if (!loadingHierarchy) {
+                                    setCurrentDirectory("/")
+                                }
                             }}
                         >
                             <HomeIcon />
@@ -121,18 +128,22 @@ export default function FileExplorer() {
                         />
                         <Button
                             variant="contained"
-                            disabled={currentDirectory === "/"}
+                            disabled={currentDirectory === "/" || loadingHierarchy}
                             onClick={() => {
-                                setCurrentDirectory((prevCurrentDirectory) => {
-                                    return (
-                                        "/" +
-                                        prevCurrentDirectory
-                                            .split("/")
-                                            .filter((v) => v)
-                                            .slice(0, -1)
-                                            .join("/")
+                                if (!loadingHierarchy) {
+                                    setCurrentDirectory(
+                                        (prevCurrentDirectory) => {
+                                            return (
+                                                "/" +
+                                                prevCurrentDirectory
+                                                    .split("/")
+                                                    .filter((v) => v)
+                                                    .slice(0, -1)
+                                                    .join("/")
+                                            )
+                                        },
                                     )
-                                })
+                                }
                             }}
                         >
                             <KeyboardBackspaceIcon />
@@ -147,9 +158,15 @@ export default function FileExplorer() {
                             padding: theme.spacing(1.5),
                             display: "flex",
                         }}
-                        onContextMenu={(event) =>
-                            handleContextMenu(event, currentDirectory, "window")
-                        }
+                        onContextMenu={(event) => {
+                            if (!loadingHierarchy) {
+                                handleContextMenu(
+                                    event,
+                                    currentDirectory,
+                                    "window",
+                                )
+                            }
+                        }}
                     >
                         <Box
                             sx={{
@@ -196,30 +213,34 @@ export default function FileExplorer() {
                                                     border: "2px solid #4f4f4f",
                                                     borderRadius: "5px",
                                                     "&:hover": {
-                                                        cursor: "pointer",
+                                                        cursor: loadingHierarchy ? "wait" : "pointer",
                                                     },
                                                 }}
-                                                onContextMenu={(event) =>
-                                                    handleContextMenu(
-                                                        event,
-                                                        child.pathname,
-                                                        child.type,
-                                                    )
-                                                }
-                                                onDoubleClick={() => {
-                                                    if (
-                                                        child.type ===
-                                                        "directory"
-                                                    ) {
-                                                        setCurrentDirectory(
+                                                onContextMenu={(event) => {
+                                                    if (!loadingHierarchy) {
+                                                        handleContextMenu(
+                                                            event,
                                                             child.pathname,
+                                                            child.type,
                                                         )
-                                                    } else {
-                                                        dispatch(
-                                                            setOpenFile(
+                                                    }
+                                                }}
+                                                onDoubleClick={() => {
+                                                    if (!loadingHierarchy) {
+                                                        if (
+                                                            child.type ===
+                                                            "directory"
+                                                        ) {
+                                                            setCurrentDirectory(
                                                                 child.pathname,
-                                                            ),
-                                                        )
+                                                            )
+                                                        } else {
+                                                            dispatch(
+                                                                setOpenFile(
+                                                                    child.pathname,
+                                                                ),
+                                                            )
+                                                        }
                                                     }
                                                 }}
                                             >

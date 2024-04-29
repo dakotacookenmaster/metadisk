@@ -13,7 +13,7 @@ import { readBlock } from "./ReadBlock.vsfs"
  */
 export default async function isValidPath(pathname: string, useParentDirectory: boolean = false): Promise<number> {
     if (pathname.length === 0 || pathname[0] !== "/") {
-        throw new InvalidPathError(pathname)
+        throw new InvalidPathError()
     }
 
     let path = pathname.split("/").filter((v) => v) // get rid of empty strings
@@ -35,7 +35,7 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
 
         if(inode.type === "file" && position !== path.length - 1) {
             // a file name was provided as a piece of the path...this is an invalid path
-            throw new InvalidPathError(pathname)
+            throw new InvalidPathError()
         } else if(inode.type === "file") {
             // We've reached the end and this is a file. We don't want to interpret this as a directory.
             // Just return the inode
@@ -57,7 +57,7 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
             }
         }
         if(!found) {
-            throw new InvalidPathError(pathname)
+            throw new InvalidPathError()
         }
     }
     return inodeNumber

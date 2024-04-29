@@ -4,6 +4,7 @@ import { useAppDispatch } from "../../../redux/hooks/hooks"
 import { setOpenFile } from "../../../redux/reducers/fileSystemSlice"
 import rmdir from "../../../apis/vsfs/posix/rmdir.vsfs"
 import { setError } from "../../../redux/reducers/appSlice"
+import unlink from "../../../apis/vsfs/posix/unlink.vsfs"
 
 export default function RightClick(props: {
     contextMenu: {
@@ -34,8 +35,13 @@ export default function RightClick(props: {
             handleClose()
             if (contextMenu.type === "directory") {
                 setCurrentDirectory(contextMenu.path)
-            } else {
+            } else if(contextMenu.type === "file") {
                 dispatch(setOpenFile(contextMenu.path))
+            } else {
+                dispatch(setError({
+                    name: "Error",
+                    message: "You cannot call open from the window context."
+                }))
             }
         }
     }
@@ -53,6 +59,22 @@ export default function RightClick(props: {
                         message: e.message,
                     }))
                 }
+            } else if(contextMenu.type === "file") {
+                handleClose()
+                try {
+                    await unlink(contextMenu.path)
+                } catch(error) {
+                    let e = error as Error
+                    dispatch(setError({
+                        name: e.name,
+                        message: e.message
+                    }))
+                }
+            } else {
+                dispatch(setError({
+                    name: "Error",
+                    message: "You cannot call unlink from the window context."
+                }))
             }
         }
     }

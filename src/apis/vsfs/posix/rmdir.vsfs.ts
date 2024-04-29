@@ -1,6 +1,7 @@
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import { store } from "../../../store"
 import { DirectoryNotEmptyError } from "../../api-errors/DirectoryNotEmpty.error"
+import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.error"
 import buildDirectory from "../system/BuildDirectory.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
@@ -26,6 +27,12 @@ export default async function rmdir(pathname: string) {
     Otherwise, throw an error. */
     const { inodeBlock, inodeOffset } = getInodeLocation(inode)
     const inodeData = (await readBlock(inodeBlock)).data
+
+    // Verify it's a directory
+    if(inodeData.inodes[inodeOffset].type !== "directory") {
+        throw new InvalidDirectoryPath()
+    }
+
     const pointers = inodeData.inodes[inodeOffset].blockPointers.filter(
         (v) => v,
     )

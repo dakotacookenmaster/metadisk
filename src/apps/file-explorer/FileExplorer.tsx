@@ -183,6 +183,7 @@ export default function FileExplorer() {
                                 display: "flex",
                                 flexWrap: "wrap",
                                 gap: theme.spacing(1),
+                                alignContent: "flex-start",
                             }}
                         >
                             {hierarchy?.children

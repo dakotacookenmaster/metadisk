@@ -146,7 +146,7 @@ const InodeOverview = (props: {
     }
 
     return (
-        <Table sx={{ overflow: "auto" }}>
+        <Table sx={{ overflow: "auto", tableLayout: "fixed", }}>
             <TableBody>
                 <TableRow>
                     <TableCell>Type</TableCell>
@@ -200,8 +200,9 @@ const InodeOverview = (props: {
                                 <Box
                                     key={`${pointer}-${index}`}
                                     sx={{
-                                        width: "30px",
-                                        height: "30px",
+                                        minWidth: "29px",
+                                        minHeight: "29px",
+                                        height: "29px",
                                         border: "2px solid white",
                                         borderRadius: "5px",
                                         fontFamily: "u0000",

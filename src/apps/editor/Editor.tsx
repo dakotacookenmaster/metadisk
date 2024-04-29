@@ -1,5 +1,5 @@
 import { Box, Button, Paper, Typography, useTheme } from "@mui/material"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getCharacter, getCharacterEncoding } from "../vsfs/components/Viewers"
 import Tooltip from "../common/components/Tooltip"
 import open from "../../apis/vsfs/posix/open.vsfs"
@@ -21,10 +21,14 @@ const Editor = () => {
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const dispatch = useAppDispatch()
+    const editorRef = useRef<null | HTMLDivElement>(null)
 
     useEffect(() => {
         ;(async () => {
             if (openFile) {
+                if(editorRef.current) {
+                    editorRef.current.scrollIntoView({ behavior: 'smooth' })
+                }
                 setLoading(true)
                 try {
                     const fd = await open(openFile, [OpenFlags.O_RDONLY])
@@ -70,6 +74,7 @@ const Editor = () => {
 
     return (
         <Paper
+            ref={editorRef}
             sx={{
                 pt: theme.spacing(1.3),
                 pb: theme.spacing(2),

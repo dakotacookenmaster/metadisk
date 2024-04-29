@@ -1,8 +1,3 @@
-@font-face {
-    font-family: "u0000";
-    src: url("/u0000.woff2") format("woff2");
-}
-
 @keyframes rotate {
     100% {
         transform: rotate(360deg);

@@ -48,24 +48,6 @@ const DiskPlatter = () => {
         }
     }, [diskSpeed])
 
-    // useAnimationFrame(() => {
-
-    //     if (
-    //         platterRef.current &&
-    //         sectorRefs.every((sectorRef) => sectorRef.current)
-    //     ) {
-    //         for (let value = 0; value < diskSpeed; value++) {
-    //             rotation.current = (rotation.current + 1) /* diskSpeed */ % 360
-    //             console.log("CURRENT ROTATION:", rotation.current)
-    //             platterRef.current.style.transform = `rotate(${rotation.current}deg)`
-    //             sectorRefs.forEach((sectorRef) => {
-    //                 sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
-    //             })
-    //             dispatch(setDiskRotation(rotation.current))
-    //         }
-    //     }
-    // })
-
     return (
         <Box
             ref={platterRef}

@@ -13,7 +13,6 @@ interface DiskState {
     isProcessing: boolean
     trackCount: number
     diskSpeed: number
-    diskRotation: number
     skipWaitTime: boolean
     armRotation: {
         degrees: number
@@ -27,7 +26,6 @@ interface DiskState {
 }
 
 const initialState: DiskState = {
-    diskRotation: 0,
     isProcessing: false,
     skipWaitTime: false,
     diskSpeed: 0.6,
@@ -90,9 +88,6 @@ export const diskSlice = createSlice({
         },
         setTrackCount: (state, action: PayloadAction<number>) => {
             state.trackCount = action.payload
-        },
-        setDiskRotation: (state, action: PayloadAction<number>) => {
-            state.diskRotation = action.payload
         },
         setSectors: (state, action: PayloadAction<{ data: string }[]>) => {
             state.sectors = action.payload
@@ -294,7 +289,6 @@ export const {
     dequeue,
     removeFromCurrentlyServicing,
     setTrackCount,
-    setDiskRotation,
     setSectors,
     setArmRotation,
     writeSector,
@@ -311,7 +305,6 @@ export const selectCurrentlyServicing = (state: RootState) =>
     state.disk.currentlyServicing
 export const selectSectors = (state: RootState) => state.disk.sectors
 export const selectTrackCount = (state: RootState) => state.disk.trackCount
-export const selectDiskRotation = (state: RootState) => state.disk.diskRotation
 export const selectArmRotation = (state: RootState) => state.disk.armRotation
 export const selectDiskSpeed = (state: RootState) => state.disk.diskSpeed
 export const selectSkipWaitTime = (state: RootState) => state.disk.skipWaitTime

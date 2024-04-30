@@ -312,12 +312,14 @@ export default function FileExplorer() {
             <RightClick
                 setCurrentDirectory={setCurrentDirectory}
                 contextMenu={contextMenu}
+                setLoadingHierarchy={setLoadingHierarchy}
                 setContextMenu={setContextMenu}
                 setIsOpen={setIsOpen}
                 setType={setType}
             />
             <FileOrDirectoryDialog
                 currentDirectory={currentDirectory}
+                setLoadingHierarchy={setLoadingHierarchy}
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
                 type={type}

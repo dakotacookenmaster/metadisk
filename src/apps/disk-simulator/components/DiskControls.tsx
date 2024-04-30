@@ -9,27 +9,27 @@ import { useState } from "react"
 
 export default function DiskControls(props: BoxProps) {
     const dispatch = useAppDispatch()
-    const [value, setValue] = useState("Moderate")
+    const [value, setValue] = useState("Fast")
     const marks = [
         {
-            value: 0.1,
+            value: 0.03,
             label: "Uber Slow",
         },
         {
-            value: 0.3,
-            label: "Very Slow",
-        },
-        {
-            value: 0.5,
+            value: 0.1,
             label: "Slow",
         },
         {
-            value: 1.0,
+            value: 0.3,
             label: "Moderate",
         },
         {
-            value: 1.5,
+            value: 0.6,
             label: "Fast",
+        },
+        {
+            value: 1.0,
+            label: "Very Fast",
         },
     ]
 

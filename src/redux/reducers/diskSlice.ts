@@ -5,6 +5,7 @@ import { selectSectorsPerBlock, selectTotalBlocks } from "./fileSystemSlice"
 import DiskReadPayload from "../../apis/interfaces/disk/DiskReadPayload.interface"
 import DiskWritePayload from "../../apis/interfaces/disk/DiskWritePayload.interface"
 import CurrentlyServicingPayload from "../../apis/interfaces/disk/CurrentlyServicingPayload.interface"
+import { i } from "vitest/dist/reporters-LqC_WI4d.js"
 
 export type DiskStateType = "read" | "write" | "idle" | "seek" | "waiting"
 
@@ -30,7 +31,7 @@ const initialState: DiskState = {
     diskRotation: 0,
     isProcessing: false,
     skipWaitTime: false,
-    diskSpeed: 1.0,
+    diskSpeed: 0.6,
     currentlyServicing: [],
     trackCount: 8,
     armRotation: {
@@ -58,7 +59,10 @@ export const diskSlice = createSlice({
                 }
             }
         },
-        enqueue: (state, action: PayloadAction<DiskReadPayload | DiskWritePayload>) => {
+        enqueue: (
+            state,
+            action: PayloadAction<DiskReadPayload | DiskWritePayload>,
+        ) => {
             state.queue.push(action.payload)
         },
         dequeue: (state, action: PayloadAction<number>) => {
@@ -108,7 +112,7 @@ export const diskSlice = createSlice({
         },
         setSkipWaitTime: (state, action: PayloadAction<boolean>) => {
             state.skipWaitTime = action.payload
-        }
+        },
     },
 })
 
@@ -134,33 +138,34 @@ const findTrackNumber = (sector: number, getState: () => RootState) => {
     return trackNumber
 }
 
+const getNextSectorOnTrack = (sector: number, getState: () => RootState) => {
+    const state = getState()
+    const totalSectors = selectTotalBlocks(state) * selectSectorsPerBlock(state)
+
+    let nextSector = sector + 1
+    if (nextSector === totalSectors) {
+        nextSector = 0
+    }
+
+    return nextSector
+}
+
 const writeOrRead =
     (data: DiskReadPayload | DiskWritePayload) =>
     async (dispatch: AppDispatch, getState: () => RootState) => {
         const differenceFromArm = (sector: number) => {
             const necessaryRotation = findSectorRotation(sector, getState)
-            return Math.abs(getState().disk.diskRotation - necessaryRotation)
-        }
-
-        const getNextSectorOnTrack = (sector: number) => {
-            const state = getState()
-            const totalSectors =
-                selectTotalBlocks(state) * selectSectorsPerBlock(state)
-
-            let nextSector = sector + 1
-            if (nextSector === totalSectors) {
-                nextSector = 0
-            }
-
-            return nextSector
+            let rotation: string | null | number = localStorage.getItem('rotation')
+            rotation = rotation !== null ? +rotation : 0
+            return Math.abs(rotation - necessaryRotation)
         }
 
         // While the arm is away from the sector, don't do anything
         if (!selectSkipWaitTime(getState())) {
-            while (differenceFromArm(data.sectorNumber) >= 4) {
-                await new Promise((resolve) =>
-                    setTimeout(() => resolve(true), 1),
-                ) // Wait and try again
+            while (differenceFromArm(data.sectorNumber) >= 3) {
+                await new Promise((resolve) => {
+                    setTimeout(() => resolve(true))
+                }) // Wait and try again
             }
         }
 
@@ -176,10 +181,12 @@ const writeOrRead =
 
         if (!selectSkipWaitTime(getState())) {
             while (
-                differenceFromArm(getNextSectorOnTrack(data.sectorNumber)) >= 3
+                differenceFromArm(
+                    getNextSectorOnTrack(data.sectorNumber, getState),
+                ) >= 3
             ) {
                 await new Promise((resolve) =>
-                    setTimeout(() => resolve(true), 1),
+                    setTimeout(() => resolve(true)),
                 ) // wait for the arm to move away from the sector
             }
         }
@@ -249,8 +256,7 @@ const processItem =
     }
 
 export const processQueue =
-    () =>
-    async (dispatch: AppDispatch, getState: () => RootState) => {
+    () => async (dispatch: AppDispatch, getState: () => RootState) => {
         const idleOrWaiting =
             getState().disk.state === "idle" ||
             getState().disk.state === "waiting"
@@ -267,7 +273,7 @@ export const processQueue =
                 dispatch(setDiskState("waiting"))
 
                 await new Promise((resolve) =>
-                    // Wait a bit. If nothing else gets queued after one second, it's probably reasonable to assume
+                    // Wait a bit. If nothing else gets queued after 300 ms, it's probably reasonable to assume
                     // the disk is idle, so you don't have to worry about jumping.
                     setTimeout(
                         () => {
@@ -296,7 +302,7 @@ export const {
     setIsProcessing,
     addToCurrentlyServicing,
     setDiskSpeed,
-    setSkipWaitTime
+    setSkipWaitTime,
 } = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk

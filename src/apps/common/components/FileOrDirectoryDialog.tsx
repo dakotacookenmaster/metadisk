@@ -11,14 +11,17 @@ import Permissions from "../../../apis/enums/vsfs/Permissions.enum"
 import { useAppDispatch } from "../../../redux/hooks/hooks"
 import { setError } from "../../../redux/reducers/appSlice"
 import mkdir from "../../../apis/vsfs/posix/mkdir.vsfs"
+import { getCharacter, getCharacterEncoding } from "../../vsfs/components/Viewers"
 
 export default function FileOrDirectoryDialog(props: {
     isOpen: boolean
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setLoadingHierarchy: React.Dispatch<React.SetStateAction<boolean>>
     type: "file" | "directory"
     currentDirectory: string
 }) {
-    const { isOpen, setIsOpen, type, currentDirectory } = props
+    const { isOpen, setIsOpen, type, currentDirectory, setLoadingHierarchy } =
+        props
     const [name, setName] = React.useState("")
     const dispatch = useAppDispatch()
 
@@ -26,6 +29,7 @@ export default function FileOrDirectoryDialog(props: {
         setIsOpen(false)
         if (type === "file") {
             try {
+                setLoadingHierarchy(true)
                 await open(
                     currentDirectory === "/"
                         ? currentDirectory + name
@@ -33,6 +37,7 @@ export default function FileOrDirectoryDialog(props: {
                     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
                     Permissions.READ_WRITE_EXECUTE,
                 )
+                setLoadingHierarchy(false)
             } catch (error) {
                 let e = error as Error
                 dispatch(
@@ -41,14 +46,17 @@ export default function FileOrDirectoryDialog(props: {
                         message: e.message,
                     }),
                 )
+                setLoadingHierarchy(false)
             }
         } else {
             try {
+                setLoadingHierarchy(true)
                 await mkdir(
                     currentDirectory === "/"
                         ? currentDirectory + name
                         : currentDirectory + "/" + name,
                 )
+                setLoadingHierarchy(false)
             } catch (error) {
                 let e = error as Error
                 dispatch(
@@ -57,6 +65,7 @@ export default function FileOrDirectoryDialog(props: {
                         message: e.message,
                     }),
                 )
+                setLoadingHierarchy(false)
             }
         }
         setName("")
@@ -80,7 +89,15 @@ export default function FileOrDirectoryDialog(props: {
                         fullWidth
                         onChange={(event) => {
                             const { value } = event.target
-                            setName(value)
+                            const codifiedName = value.split("").map((char) => {
+                                const encoding = getCharacterEncoding(char)
+                                if(encoding === -1) {
+                                    return "?"
+                                } else {
+                                    return getCharacter(encoding)
+                                }
+                            }).join('')
+                            setName(codifiedName)
                         }}
                     />
                 </DialogContent>

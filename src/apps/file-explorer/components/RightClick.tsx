@@ -32,9 +32,10 @@ export default function RightClick(props: {
         } | null>
     >
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setLoadingHierarchy: React.Dispatch<React.SetStateAction<boolean>>
     setType: React.Dispatch<React.SetStateAction<"file" | "directory">>
 }) {
-    const { contextMenu, setContextMenu, setCurrentDirectory, setIsOpen, setType } = props
+    const { contextMenu, setContextMenu, setCurrentDirectory, setIsOpen, setType, setLoadingHierarchy } = props
     const dispatch = useAppDispatch()
     const theme = useTheme()
 
@@ -66,7 +67,9 @@ export default function RightClick(props: {
             if (contextMenu.type === "directory") {
                 handleClose()
                 try {
+                    setLoadingHierarchy(true)
                     await rmdir(contextMenu.path)
+                    setLoadingHierarchy(false)
                 } catch (error) {
                     let e = error as Error
                     dispatch(
@@ -75,11 +78,14 @@ export default function RightClick(props: {
                             message: e.message,
                         }),
                     )
+                    setLoadingHierarchy(false)
                 }
             } else if (contextMenu.type === "file") {
                 handleClose()
                 try {
+                    setLoadingHierarchy(true)
                     await unlink(contextMenu.path)
+                    setLoadingHierarchy(false)
                 } catch (error) {
                     let e = error as Error
                     dispatch(
@@ -88,6 +94,7 @@ export default function RightClick(props: {
                             message: e.message,
                         }),
                     )
+                    setLoadingHierarchy(false)
                 }
             } else {
                 dispatch(

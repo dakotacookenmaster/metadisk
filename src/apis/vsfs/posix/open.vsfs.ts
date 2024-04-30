@@ -22,6 +22,7 @@ import FileDescriptor from "../../interfaces/vsfs/FileDescriptor.interface"
 import hasAccess from "../system/HasAccess.vsfs"
 import { AccessDeniedError } from "../../api-errors/AccessDenied.error"
 import { ModeError } from "../../api-errors/Mode.error"
+import { OpenDirectoryError } from "../../api-errors/OpenDirectory.error"
 
 /**
  * A POSIX-like function to open a file (and potentially create it)
@@ -87,9 +88,13 @@ export default async function open(
             const inode = await isValidPath(pathname)
             // read the inode to get its permissions
             const { inodeBlock, inodeOffset } = getInodeLocation(inode)
-            const permissions = (await readBlock(inodeBlock)).data.inodes[
+            const inodeData = (await readBlock(inodeBlock)).data.inodes[
                 inodeOffset
-            ].permissions
+            ]
+            if(inodeData.type !== "file") {
+                throw new OpenDirectoryError()
+            }
+            const permissions = inodeData.permissions
             const access = hasAccess(flags, permissions)
             if (!access) {
                 throw new AccessDeniedError()

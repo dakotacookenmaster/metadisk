@@ -11,7 +11,7 @@ import {
     selectSectorsPerBlock,
     selectTotalBlocks,
 } from "../../../redux/reducers/fileSystemSlice"
-import React, { useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../common/constants"
 
 const DiskPlatter = () => {
@@ -25,31 +25,54 @@ const DiskPlatter = () => {
     const sectorRefs = [...Array(sectorsPerTrack * trackCount)].map(() =>
         useRef<HTMLElement | null>(null),
     )
-    const diskState = useAppSelector(selectDiskState)
     const diskSpeed = useAppSelector(selectDiskSpeed)
     const dispatch = useAppDispatch()
     const theme = useTheme()
     const rotation = useRef(0)
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (
+                platterRef.current &&
+                sectorRefs.every((sectorRef) => sectorRef.current)
+            ) {
+                for (let value = 0; value < 2; value++) {
+                    rotation.current = (rotation.current + diskSpeed) % 360
+                    platterRef.current.style.transform = `rotate(${rotation.current}deg)`
+                    sectorRefs.forEach((sectorRef) => {
+                        sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
+                    })
+                    localStorage.setItem("rotation", `${rotation.current}`)
+                }
+            }
+        })
 
-    useAnimationFrame(() => {
-        if (
-            platterRef.current &&
-            sectorRefs.every((sectorRef) => sectorRef.current)
-        ) {
-            rotation.current = (rotation.current + diskSpeed) % 360
-            platterRef.current.style.transform = `rotate(${rotation.current}deg)`
-            sectorRefs.forEach((sectorRef) => {
-                sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
-            })
-            dispatch(setDiskRotation(rotation.current))
+        return () => {
+            clearInterval(interval)
         }
-    })
+    }, [diskSpeed])
+
+    // useAnimationFrame(() => {
+
+    //     if (
+    //         platterRef.current &&
+    //         sectorRefs.every((sectorRef) => sectorRef.current)
+    //     ) {
+    //         for (let value = 0; value < diskSpeed; value++) {
+    //             rotation.current = (rotation.current + 1) /* diskSpeed */ % 360
+    //             console.log("CURRENT ROTATION:", rotation.current)
+    //             platterRef.current.style.transform = `rotate(${rotation.current}deg)`
+    //             sectorRefs.forEach((sectorRef) => {
+    //                 sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
+    //             })
+    //             dispatch(setDiskRotation(rotation.current))
+    //         }
+    //     }
+    // })
 
     return (
         <Box
             ref={platterRef}
-            className={diskState}
             sx={{
                 width: "500px",
                 height: "500px",

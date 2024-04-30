@@ -1,11 +1,8 @@
 import { Box, useTheme } from "@mui/material"
-import { useAnimationFrame } from "framer-motion"
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks/hooks"
+import { useAppSelector } from "../../../redux/hooks/hooks"
 import {
     selectDiskSpeed,
-    selectDiskState,
     selectTrackCount,
-    setDiskRotation,
 } from "../../../redux/reducers/diskSlice"
 import {
     selectSectorsPerBlock,
@@ -26,7 +23,6 @@ const DiskPlatter = () => {
         useRef<HTMLElement | null>(null),
     )
     const diskSpeed = useAppSelector(selectDiskSpeed)
-    const dispatch = useAppDispatch()
     const theme = useTheme()
     const rotation = useRef(0)
 

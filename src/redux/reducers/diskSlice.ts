@@ -5,7 +5,6 @@ import { selectSectorsPerBlock, selectTotalBlocks } from "./fileSystemSlice"
 import DiskReadPayload from "../../apis/interfaces/disk/DiskReadPayload.interface"
 import DiskWritePayload from "../../apis/interfaces/disk/DiskWritePayload.interface"
 import CurrentlyServicingPayload from "../../apis/interfaces/disk/CurrentlyServicingPayload.interface"
-import { i } from "vitest/dist/reporters-LqC_WI4d.js"
 
 export type DiskStateType = "read" | "write" | "idle" | "seek" | "waiting"
 

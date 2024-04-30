@@ -32,14 +32,12 @@ const DiskPlatter = () => {
                 platterRef.current &&
                 sectorRefs.every((sectorRef) => sectorRef.current)
             ) {
-                for (let value = 0; value < 2; value++) {
-                    rotation.current = (rotation.current + diskSpeed) % 360
-                    platterRef.current.style.transform = `rotate(${rotation.current}deg)`
-                    sectorRefs.forEach((sectorRef) => {
-                        sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
-                    })
-                    localStorage.setItem("rotation", `${rotation.current}`)
-                }
+                rotation.current = (rotation.current + diskSpeed * 2) % 360
+                platterRef.current.style.transform = `rotate(${rotation.current}deg)`
+                sectorRefs.forEach((sectorRef) => {
+                    sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
+                })
+                localStorage.setItem("rotation", `${rotation.current}`)
             }
         })
 

@@ -25,13 +25,14 @@ import FileOrDirectoryDialog from "../common/components/FileOrDirectoryDialog"
 import listing from "../../apis/vsfs/posix/listing.vsfs"
 import DirectoryListing from "../../apis/interfaces/vsfs/DirectoryListing.interface"
 import { CreateNewFolder, NoteAdd } from "@mui/icons-material"
+import { v4 as uuid } from "uuid"
 
 export default function FileExplorer() {
     const theme = useTheme()
     const [currentDirectory, setCurrentDirectory] = useState("/")
     const isDiskFormatted = useAppSelector(selectIsDiskFormatted)
     const [hierarchy, setHierarchy] = useState<DirectoryListing | null>(null)
-    const [loadingHierarchy, setLoadingHierarchy] = useState(false)
+    const [loadingHierarchy, setLoadingHierarchy] = useState<string[]>([])
     const [contextMenu, setContextMenu] = useState<null | {
         mouseX: number
         mouseY: number
@@ -68,10 +69,16 @@ export default function FileExplorer() {
     useEffect(() => {
         ;(async () => {
             if (isDiskFormatted) {
-                setLoadingHierarchy(true)
+                const task = uuid()
+                setLoadingHierarchy((prevLoadingHierarchy) => [
+                    ...prevLoadingHierarchy,
+                    task,
+                ])
                 const data = await listing(currentDirectory)
                 setHierarchy(data)
-                setLoadingHierarchy(false)
+                setLoadingHierarchy((prevLoadingHierarchy) =>
+                    prevLoadingHierarchy.filter((id) => id !== task),
+                )
             }
         })()
     }, [currentDirectory, isDiskFormatted, sectors])
@@ -83,7 +90,7 @@ export default function FileExplorer() {
                 padding: theme.spacing(2),
                 "&:hover": {
                     cursor:
-                        loadingHierarchy && isDiskFormatted
+                        loadingHierarchy.length > 0 && isDiskFormatted
                             ? "wait"
                             : "default",
                 },
@@ -113,10 +120,11 @@ export default function FileExplorer() {
                         <Button
                             variant="contained"
                             disabled={
-                                currentDirectory === "/" || loadingHierarchy
+                                currentDirectory === "/" ||
+                                loadingHierarchy.length !== 0
                             }
                             onClick={() => {
-                                if (!loadingHierarchy) {
+                                if (loadingHierarchy.length === 0) {
                                     setCurrentDirectory("/")
                                 }
                             }}
@@ -131,10 +139,11 @@ export default function FileExplorer() {
                         <Button
                             variant="contained"
                             disabled={
-                                currentDirectory === "/" || loadingHierarchy
+                                currentDirectory === "/" ||
+                                loadingHierarchy.length !== 0
                             }
                             onClick={() => {
-                                if (!loadingHierarchy) {
+                                if (loadingHierarchy.length === 0) {
                                     setCurrentDirectory(
                                         (prevCurrentDirectory) => {
                                             return (
@@ -163,7 +172,7 @@ export default function FileExplorer() {
                             display: "flex",
                         }}
                         onContextMenu={(event) => {
-                            if (!loadingHierarchy) {
+                            if (loadingHierarchy.length === 0) {
                                 handleContextMenu(
                                     event,
                                     currentDirectory,
@@ -217,13 +226,13 @@ export default function FileExplorer() {
                                                     border: "2px solid #4f4f4f",
                                                     borderRadius: "5px",
                                                     "&:hover": {
-                                                        cursor: loadingHierarchy
+                                                        cursor: loadingHierarchy.length !== 0
                                                             ? "wait"
                                                             : "pointer",
                                                     },
                                                 }}
                                                 onContextMenu={(event) => {
-                                                    if (!loadingHierarchy) {
+                                                    if (loadingHierarchy.length === 0) {
                                                         handleContextMenu(
                                                             event,
                                                             child.pathname,
@@ -232,7 +241,7 @@ export default function FileExplorer() {
                                                     }
                                                 }}
                                                 onDoubleClick={() => {
-                                                    if (!loadingHierarchy) {
+                                                    if (loadingHierarchy.length === 0) {
                                                         if (
                                                             child.type ===
                                                             "directory"
@@ -282,6 +291,7 @@ export default function FileExplorer() {
                             >
                                 <Tooltip placement="top" title="New File">
                                     <IconButton
+                                        disabled={loadingHierarchy.length !== 0}
                                         sx={{ width: "60px", height: "60px" }}
                                         onClick={() => {
                                             setContextMenu(null)
@@ -294,6 +304,7 @@ export default function FileExplorer() {
                                 </Tooltip>
                                 <Tooltip placement="top" title="New Directory">
                                     <IconButton
+                                        disabled={loadingHierarchy.length !== 0}
                                         sx={{ width: "60px", height: "60px" }}
                                         onClick={() => {
                                             setContextMenu(null)

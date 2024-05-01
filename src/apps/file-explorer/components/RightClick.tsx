@@ -14,6 +14,7 @@ import { blue } from "@mui/material/colors"
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
 import React from "react"
+import { v4 as uuid } from "uuid"
 
 export default function RightClick(props: {
     contextMenu: {
@@ -32,7 +33,7 @@ export default function RightClick(props: {
         } | null>
     >
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
-    setLoadingHierarchy: React.Dispatch<React.SetStateAction<boolean>>
+    setLoadingHierarchy: React.Dispatch<React.SetStateAction<string[]>>
     setType: React.Dispatch<React.SetStateAction<"file" | "directory">>
 }) {
     const { contextMenu, setContextMenu, setCurrentDirectory, setIsOpen, setType, setLoadingHierarchy } = props
@@ -66,10 +67,11 @@ export default function RightClick(props: {
         if (contextMenu) {
             if (contextMenu.type === "directory") {
                 handleClose()
+                const task = uuid()
                 try {
-                    setLoadingHierarchy(true)
+                    setLoadingHierarchy(prevLoadingHierarchy => [...prevLoadingHierarchy, task])
                     await rmdir(contextMenu.path)
-                    setLoadingHierarchy(false)
+                    setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
                 } catch (error) {
                     let e = error as Error
                     dispatch(
@@ -78,14 +80,15 @@ export default function RightClick(props: {
                             message: e.message,
                         }),
                     )
-                    setLoadingHierarchy(false)
+                    setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
                 }
             } else if (contextMenu.type === "file") {
                 handleClose()
+                const task = uuid()
                 try {
-                    setLoadingHierarchy(true)
+                    setLoadingHierarchy(prevLoadingHierarchy => [...prevLoadingHierarchy, task])
                     await unlink(contextMenu.path)
-                    setLoadingHierarchy(false)
+                    setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
                 } catch (error) {
                     let e = error as Error
                     dispatch(
@@ -94,7 +97,7 @@ export default function RightClick(props: {
                             message: e.message,
                         }),
                     )
-                    setLoadingHierarchy(false)
+                    setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
                 }
             } else {
                 dispatch(

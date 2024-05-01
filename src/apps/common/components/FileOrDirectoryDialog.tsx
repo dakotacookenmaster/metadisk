@@ -12,11 +12,12 @@ import { useAppDispatch } from "../../../redux/hooks/hooks"
 import { setError } from "../../../redux/reducers/appSlice"
 import mkdir from "../../../apis/vsfs/posix/mkdir.vsfs"
 import { getCharacter, getCharacterEncoding } from "../../vsfs/components/Viewers"
+import { v4 as uuid } from "uuid"
 
 export default function FileOrDirectoryDialog(props: {
     isOpen: boolean
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
-    setLoadingHierarchy: React.Dispatch<React.SetStateAction<boolean>>
+    setLoadingHierarchy: React.Dispatch<React.SetStateAction<string[]>>
     type: "file" | "directory"
     currentDirectory: string
 }) {
@@ -28,8 +29,9 @@ export default function FileOrDirectoryDialog(props: {
     const handleClose = async () => {
         setIsOpen(false)
         if (type === "file") {
+            const task = uuid()
             try {
-                setLoadingHierarchy(true)
+                setLoadingHierarchy(prevLoadingHierarchy => [...prevLoadingHierarchy, task])
                 await open(
                     currentDirectory === "/"
                         ? currentDirectory + name
@@ -37,7 +39,7 @@ export default function FileOrDirectoryDialog(props: {
                     [OpenFlags.O_CREAT, OpenFlags.O_RDWR],
                     Permissions.READ_WRITE_EXECUTE,
                 )
-                setLoadingHierarchy(false)
+                setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
             } catch (error) {
                 let e = error as Error
                 dispatch(
@@ -46,17 +48,18 @@ export default function FileOrDirectoryDialog(props: {
                         message: e.message,
                     }),
                 )
-                setLoadingHierarchy(false)
+                setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
             }
         } else {
+            const task = uuid()
             try {
-                setLoadingHierarchy(true)
+                setLoadingHierarchy(prevLoadingHierarchy => [...prevLoadingHierarchy, task])
                 await mkdir(
                     currentDirectory === "/"
                         ? currentDirectory + name
                         : currentDirectory + "/" + name,
                 )
-                setLoadingHierarchy(false)
+                setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
             } catch (error) {
                 let e = error as Error
                 dispatch(
@@ -65,7 +68,7 @@ export default function FileOrDirectoryDialog(props: {
                         message: e.message,
                     }),
                 )
-                setLoadingHierarchy(false)
+                setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
             }
         }
         setName("")

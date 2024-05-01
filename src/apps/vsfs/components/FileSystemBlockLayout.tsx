@@ -71,7 +71,7 @@ const FileSystemBlockLayout = () => {
             <Box
                 sx={{
                     display: "flex",
-                    overflowX: "scroll",
+                    overflowX: "auto",
                     marginTop: theme.spacing(2),
                     paddingBottom: theme.spacing(2),
                     scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,

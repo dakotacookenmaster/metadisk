@@ -100,7 +100,7 @@ const DiskSimulator = () => {
                             display: "flex",
                             gap: "5px",
                             alignItems: "center",
-                            overflowX: "scroll",
+                            overflowX: "auto",
                             scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                             scrollbarWidth: "thin",
                             paddingBottom: "10px",

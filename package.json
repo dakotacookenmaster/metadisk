@@ -25,6 +25,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@testing-library/react": "^15.0.6",
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
@@ -37,6 +38,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "jsdom": "^24.0.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.0",
     "vitest": "^1.5.0"

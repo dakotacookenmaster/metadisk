@@ -1,4 +1,4 @@
-import { describe, test, expect, vi } from "vitest"
+import { describe, test } from "vitest"
 import { render } from "@testing-library/react"
 import Bitmap from "./Bitmap"
 

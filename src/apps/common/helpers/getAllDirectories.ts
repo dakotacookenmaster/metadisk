@@ -1,22 +1,24 @@
 import Directories from "../interfaces/Directories.interface"
 import { store } from "../../../store"
-import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
+import { selectBlockSize, selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import { readBlocks } from "../../../apis/vsfs/system/ReadBlocks.vsfs"
 import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
 
 const getAllDirectories = async (): Promise<Directories> => {
     const state = store.getState()
-    const { inodeStartIndex, numberOfInodeBlocks } = selectSuperblock(state)
+    const { inodeStartIndex, numberOfInodeBlocks, inodeSize } = selectSuperblock(state)
+    const blockSize = selectBlockSize(state)
     const inodeBlockNumbers = [...Array(numberOfInodeBlocks)].map(
         (_, index) => index + inodeStartIndex,
     )
+    const inodesPerBlock = blockSize / inodeSize
 
     const inodeBlocks = await readBlocks(inodeBlockNumbers)
     const inodeBitmap = (await readBlock(1)).data.raw
     const directoryBlockNumbers = []
-    for (let inodeBlock of inodeBlocks) {
+    for (const [inodeBlockIndex, inodeBlock] of inodeBlocks.entries()) {
         for (let inode of inodeBlock.data.inodes.filter(
-            (_, index) => inodeBitmap[index] === "1",
+            (_, index) => inodeBitmap[index + inodeBlockIndex * inodesPerBlock] === "1",
         )) {
             if (inode.type === "directory") {
                 directoryBlockNumbers.push(

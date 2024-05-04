@@ -55,6 +55,7 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
                     .map((char, i) => {
                         return (
                             <Box
+                                data-testid={`bit-${i}`}
                                 key={`bit-${i}`}
                                 style={{
                                     display: "flex",

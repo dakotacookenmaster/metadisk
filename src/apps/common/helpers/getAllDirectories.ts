@@ -4,6 +4,9 @@ import { selectBlockSize, selectSuperblock } from "../../../redux/reducers/fileS
 import { readBlocks } from "../../../apis/vsfs/system/ReadBlocks.vsfs"
 import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
 
+/**
+ * Determines which blocks contain directory information, and returns those block numbers
+ */
 const getAllDirectories = async (): Promise<Directories> => {
     const state = store.getState()
     const { inodeStartIndex, numberOfInodeBlocks, inodeSize } = selectSuperblock(state)

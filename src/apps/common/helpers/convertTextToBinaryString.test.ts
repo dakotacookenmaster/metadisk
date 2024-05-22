@@ -19,7 +19,7 @@ describe("it should convert ASCII text into the IBM Code Page 437 binary equival
         expect(getCharacterEncoding).toBeCalledTimes(1)
         expect(getCharacterEncoding).toBeCalledWith("\uE400")
     })
-    test("a newline character (\n)", () => {
+    test("a newline character (\\n)", () => {
         expect(convertTextToBinaryString("\n")).toBe("00001010")
         expect(getCharacterEncoding).toBeCalledTimes(1)
         expect(getCharacterEncoding).toBeCalledWith("\u25D9")

@@ -51,7 +51,7 @@ export default function VSFS() {
             !isAwaitingDisk &&
             !isDiskFormatted
         ) {
-            ;(async () => {
+            (async () => {
                 setProgress(0)
                 setWaitingMessage({
                     title: "Formatting Disk",

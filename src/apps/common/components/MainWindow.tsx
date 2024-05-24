@@ -35,10 +35,7 @@ const closedMixin = (theme: Theme): CSSObject => ({
         duration: theme.transitions.duration.leavingScreen,
     }),
     overflowX: "hidden",
-    width: `calc(${theme.spacing(7)} + 1px)`,
-    [theme.breakpoints.up("sm")]: {
-        width: `calc(${theme.spacing(8)} + 1px)`,
-    },
+    width: `calc(${theme.spacing(8)} + 1px)`,
 })
 
 const DrawerHeader = styled("div")(({ theme }) => ({
@@ -264,7 +261,6 @@ export default function MainWindow(props: {
                     }}
                 >
                     {Object.keys(apps)
-                        // .filter((appKey) => apps[appKey].enabled)
                         .map((appKey) => {
                             const Element = apps[appKey].elementFn
                             return (

@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material"
 import { useAppSelector } from "../../../redux/hooks/hooks"
-import { selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
+import { selectSectorsPerBlock, selectTotalBlocks, setSectorsPerBlock } from "../../../redux/reducers/fileSystemSlice"
 import { createRef, useEffect, useMemo, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
@@ -17,6 +17,7 @@ const FileSystemBlockLayout = () => {
     const [selected, setSelected] = useState<string>("Superblock")
     const [progress, setProgress] = useState<number>(0)
     const sectors = useAppSelector(selectSectors)
+    const sectorsPerBlock = useAppSelector(selectSectorsPerBlock)
     const [data, setData] = useState<string | undefined>(undefined)
     const [canMove, setCanMove] = useState(false)
     const [blockNumber, setBlockNumber] = useState(0)
@@ -131,7 +132,8 @@ const FileSystemBlockLayout = () => {
                                 }}
                             >
                                 {getLabel(i)}
-                                <Typography variant="caption">{`(Block ${i})`}</Typography>
+                                <Typography variant="caption">{`Block ${i}`}</Typography>
+                                <Typography variant="caption" fontSize="10px">{`Sectors ${i * sectorsPerBlock} - ${(i + 1) * sectorsPerBlock - 1}`}</Typography>
                             </Box>
                         </Box>
                     )

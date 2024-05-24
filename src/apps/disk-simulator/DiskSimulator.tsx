@@ -17,7 +17,7 @@ import DiskMetrics from "./components/DiskMetrics"
 import DiskControls from "./components/DiskControls"
 import { blue } from "@mui/material/colors"
 
-export const DiskSimulatorIcon = (props: any) => {
+export const DiskSimulatorIcon = (props: object) => {
     return (
         <>
             <svg width={0} height={0}>

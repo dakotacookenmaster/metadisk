@@ -18,7 +18,7 @@ import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
-import { blue } from "@mui/material/colors"
+import { blue, green } from "@mui/material/colors"
 import getLabel from "../../common/helpers/getLabel"
 import getInodeLocation from "../../../apis/vsfs/system/GetInodeLocation.vsfs"
 
@@ -186,7 +186,7 @@ export default function DataBlockTabs(props: {
                                                                 height: "30px",
                                                                 border: "2px solid white",
                                                                 borderRadius:
-                                                                    "5px",
+                                                                    "100%",
                                                                 display: "flex",
                                                                 alignItems:
                                                                     "center",
@@ -194,7 +194,7 @@ export default function DataBlockTabs(props: {
                                                                     "center",
                                                                 "&:hover": {
                                                                     cursor: canMove ? "pointer" : "not-allowed",
-                                                                    backgroundColor: blue[600],
+                                                                    backgroundColor: green[600],
                                                                     border: "none",
                                                                 }
                                                             }}

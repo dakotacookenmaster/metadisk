@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material"
 import { useAppSelector } from "../../../redux/hooks/hooks"
-import { selectSectorsPerBlock, selectTotalBlocks, setSectorsPerBlock } from "../../../redux/reducers/fileSystemSlice"
+import { selectSectorsPerBlock, selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
 import { createRef, useEffect, useMemo, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
@@ -133,7 +133,12 @@ const FileSystemBlockLayout = () => {
                             >
                                 {getLabel(i)}
                                 <Typography variant="caption">{`Block ${i}`}</Typography>
-                                <Typography variant="caption" fontSize="10px">{`Sectors ${i * sectorsPerBlock} - ${(i + 1) * sectorsPerBlock - 1}`}</Typography>
+                                { sectorsPerBlock > 1 ? (
+                                    <Typography variant="caption" fontSize="10px">{`Sectors ${i * sectorsPerBlock} - ${(i + 1) * sectorsPerBlock - 1}`}</Typography>
+                                ) : (
+                                    <Typography variant="caption" fontSize="10px">{`Sector ${i}`}</Typography>
+                                )}
+                                
                             </Box>
                         </Box>
                     )

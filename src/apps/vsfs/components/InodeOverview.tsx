@@ -12,7 +12,7 @@ import FileIcon from "@mui/icons-material/Description"
 import FolderIcon from "@mui/icons-material/Folder"
 import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
 import { chunk } from "lodash"
-import { blue } from "@mui/material/colors"
+import { blue, green } from "@mui/material/colors"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import {
     selectBlockSize,
@@ -116,7 +116,7 @@ const InodeOverview = (props: {
                                     sx={{
                                         width: "70px",
                                         height: "70px",
-                                        borderRadius: "10px",
+                                        borderRadius: "100%",
                                         border: "3px solid white",
                                         fontSize: "18px",
                                         fontWeight: "bold",
@@ -124,8 +124,7 @@ const InodeOverview = (props: {
                                         alignItems: "center",
                                         justifyContent: "center",
                                         "&:hover": {
-                                            background:
-                                                theme.palette.primary.main,
+                                            background: green[600],
                                             border: "none",
                                             cursor: "pointer",
                                         },

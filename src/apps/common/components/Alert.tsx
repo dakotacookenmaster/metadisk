@@ -34,7 +34,17 @@ export default function Alert() {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="contained" onClick={handleClose} autoFocus>
+                    <Button 
+                        variant="contained" 
+                        onClick={handleClose} 
+                        autoFocus 
+                        ref={button => {
+                            setTimeout(() => {
+                                if(button) {
+                                    button.focus()
+                                }
+                            }, 100)
+                        }}>
                         OK
                     </Button>
                 </DialogActions>

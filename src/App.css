@@ -39,3 +39,7 @@ div[role="tree"] {
 .block:last-child {
     border-radius: 0px 5px 5px 0px;
 }
+
+.loop {
+    animation: rotate 1s linear infinite;
+}

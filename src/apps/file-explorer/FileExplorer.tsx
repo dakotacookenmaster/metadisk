@@ -8,7 +8,7 @@ import {
     useTheme,
 } from "@mui/material"
 import HomeIcon from "@mui/icons-material/Home"
-import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace"
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import { useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import {
@@ -25,7 +25,9 @@ import FileOrDirectoryDialog from "../common/components/FileOrDirectoryDialog"
 import listing from "../../apis/vsfs/posix/listing.vsfs"
 import DirectoryListing from "../../apis/interfaces/vsfs/DirectoryListing.interface"
 import { CreateNewFolder, NoteAdd } from "@mui/icons-material"
+import LoopIcon from "@mui/icons-material/Loop"
 import { v4 as uuid } from "uuid"
+import { blue } from "@mui/material/colors"
 
 export default function FileExplorer() {
     const theme = useTheme()
@@ -99,12 +101,27 @@ export default function FileExplorer() {
             <Typography
                 variant="h5"
                 sx={{
+                    display: "flex",
+                    gap: theme.spacing(1),
                     paddingTop: "5px",
                     paddingBottom: "10px",
-                    textAlign: "center",
+                    justifyContent: "center"
                 }}
             >
-                File Explorer
+                File Explorer{" "}
+                {loadingHierarchy.length > 0 ? (
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <LoopIcon color="primary" fontSize="medium" className="loop" />
+                    </Box>
+                ) : (
+                    ""
+                )}
             </Typography>
             {!hierarchy && !isDiskFormatted ? (
                 <WaitingMessage message="Loading File Explorer..." />
@@ -159,7 +176,7 @@ export default function FileExplorer() {
                                 }
                             }}
                         >
-                            <KeyboardBackspaceIcon />
+                            <ArrowUpwardIcon />
                         </Button>
                     </Box>
                     <Box
@@ -185,101 +202,123 @@ export default function FileExplorer() {
                             sx={{
                                 width: "100%",
                                 height: "100%",
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: theme.spacing(1),
-                                alignContent: "flex-start",
                                 position: "relative",
                             }}
                         >
-                            {hierarchy?.entries
-                                .sort((a, b) => {
-                                    const first = a.pathname
-                                        .split("/")
-                                        .filter((v) => v)[0]
-                                    const second = b.pathname
-                                        .split("/")
-                                        .filter((v) => v)[0]
-                                    return (
-                                        -(first < second) || +(first > second)
-                                    )
-                                })
-                                .map((child, index) => {
-                                    const name = child.pathname
-                                        .split("/")
-                                        .splice(-1)[0]
-                                    return (
-                                        <Tooltip
-                                            placement="top"
-                                            title={name}
-                                            key={`entry-${index}`}
-                                        >
-                                            <Box
-                                                sx={{
-                                                    userSelect: "none",
-                                                    display: "flex",
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                    flexDirection: "column",
-                                                    width: "100px",
-                                                    height: "100px",
-                                                    border: "2px solid #4f4f4f",
-                                                    borderRadius: "5px",
-                                                    "&:hover": {
-                                                        cursor: loadingHierarchy.length !== 0
-                                                            ? "wait"
-                                                            : "pointer",
-                                                    },
-                                                }}
-                                                onContextMenu={(event) => {
-                                                    if (loadingHierarchy.length === 0) {
-                                                        handleContextMenu(
-                                                            event,
-                                                            child.pathname,
-                                                            child.type,
-                                                        )
-                                                    }
-                                                }}
-                                                onDoubleClick={() => {
-                                                    if (loadingHierarchy.length === 0) {
+                            <Box
+                                sx={{
+                                    width: "100%",
+                                    height: "430px",
+                                    overflowY: "auto",
+                                    scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
+                                    scrollbarWidth: "thin",
+                                    position: "relative",
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: theme.spacing(1),
+                                    alignContent: "flex-start",
+                                }}
+                            >
+                                {hierarchy?.entries
+                                    .sort((a, b) => {
+                                        const first = a.pathname
+                                            .split("/")
+                                            .filter((v) => v)[0]
+                                        const second = b.pathname
+                                            .split("/")
+                                            .filter((v) => v)[0]
+                                        return (
+                                            -(first < second) ||
+                                            +(first > second)
+                                        )
+                                    })
+                                    .map((child, index) => {
+                                        const name = child.pathname
+                                            .split("/")
+                                            .splice(-1)[0]
+                                        return (
+                                            <Tooltip
+                                                placement="top"
+                                                title={name}
+                                                key={`entry-${index}`}
+                                            >
+                                                <Box
+                                                    sx={{
+                                                        userSelect: "none",
+                                                        display: "flex",
+                                                        justifyContent:
+                                                            "center",
+                                                        alignItems: "center",
+                                                        flexDirection: "column",
+                                                        width: "100px",
+                                                        height: "100px",
+                                                        border: "2px solid #4f4f4f",
+                                                        borderRadius: "5px",
+                                                        "&:hover": {
+                                                            cursor:
+                                                                loadingHierarchy.length !==
+                                                                0
+                                                                    ? "wait"
+                                                                    : "pointer",
+                                                        },
+                                                    }}
+                                                    onContextMenu={(event) => {
                                                         if (
-                                                            child.type ===
-                                                            "directory"
+                                                            loadingHierarchy.length ===
+                                                            0
                                                         ) {
-                                                            setCurrentDirectory(
+                                                            handleContextMenu(
+                                                                event,
                                                                 child.pathname,
-                                                            )
-                                                        } else {
-                                                            dispatch(
-                                                                setOpenFile(
-                                                                    child.pathname,
-                                                                ),
+                                                                child.type,
                                                             )
                                                         }
-                                                    }
-                                                }}
-                                            >
-                                                {child.type === "file" ? (
-                                                    <FileIcon />
-                                                ) : (
-                                                    <FolderIcon />
-                                                )}
-                                                <Typography
-                                                    sx={{
-                                                        width: "75px",
-                                                        textOverflow:
-                                                            "ellipsis",
-                                                        overflow: "hidden",
-                                                        whiteSpace: "nowrap",
-                                                        textAlign: "center",
+                                                    }}
+                                                    onDoubleClick={() => {
+                                                        if (
+                                                            loadingHierarchy.length ===
+                                                            0
+                                                        ) {
+                                                            if (
+                                                                child.type ===
+                                                                "directory"
+                                                            ) {
+                                                                setCurrentDirectory(
+                                                                    child.pathname,
+                                                                )
+                                                            } else {
+                                                                dispatch(
+                                                                    setOpenFile(
+                                                                        child.pathname,
+                                                                    ),
+                                                                )
+                                                            }
+                                                        }
                                                     }}
                                                 >
-                                                    {name}
-                                                </Typography>
-                                            </Box>
-                                        </Tooltip>
-                                    )
-                                })}
+                                                    {child.type === "file" ? (
+                                                        <FileIcon />
+                                                    ) : (
+                                                        <FolderIcon />
+                                                    )}
+                                                    <Typography
+                                                        sx={{
+                                                            width: "75px",
+                                                            textOverflow:
+                                                                "ellipsis",
+                                                            overflow: "hidden",
+                                                            whiteSpace:
+                                                                "nowrap",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        {name}
+                                                    </Typography>
+                                                </Box>
+                                            </Tooltip>
+                                        )
+                                    })}
+                            </Box>
                             <Box
                                 sx={{
                                     position: "absolute",

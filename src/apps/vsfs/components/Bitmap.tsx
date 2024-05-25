@@ -39,7 +39,7 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
                     paddingRight: theme.spacing(2),
                     justifyContent: "center",
                     maxHeight: "350px",
-                    overflowY: "scroll",
+                    overflowY: "auto",
                     scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                     scrollbarWidth: "thin",
                     display: "flex",

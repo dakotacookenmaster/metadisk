@@ -136,7 +136,7 @@ const Editor = () => {
                         backgroundColor: "#2f2f2f",
                         color: "white",
                         borderRadius: "3px",
-                        overflowY: "scroll",
+                        overflowY: "auto",
                         scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                         scrollbarWidth: "thin",
                     }}

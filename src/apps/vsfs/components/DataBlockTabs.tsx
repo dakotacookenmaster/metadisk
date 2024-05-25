@@ -137,7 +137,7 @@ export default function DataBlockTabs(props: {
                     style={{
                         height: "400px",
                         maxHeight: "100%",
-                        overflowY: "scroll",
+                        overflowY: "auto",
                         scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                         scrollbarWidth: "thin",
                         paddingRight: "20px",

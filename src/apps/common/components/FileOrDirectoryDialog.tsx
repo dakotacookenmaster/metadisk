@@ -130,7 +130,10 @@ export default function FileOrDirectoryDialog(props: {
                                 .split("")
                                 .map((char) => {
                                     const encoding = getCharacterEncoding(char)
-                                    if (encoding === -1) {
+                                    if(char === "/") {
+                                        return ""
+                                    }
+                                    else if (encoding === -1) {
                                         return "?"
                                     } else {
                                         return getCharacter(encoding)

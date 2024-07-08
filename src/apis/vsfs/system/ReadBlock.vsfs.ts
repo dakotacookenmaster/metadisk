@@ -30,7 +30,6 @@ export const readBlock = async (
 
     let progress = 0
 
-    // FIXME - handle errors with Promise.all
     const result = await Promise.all(
         [...Array(sectorsPerBlock)].map((_, i) =>
             readSector(i + block * sectorsPerBlock).then((data) => {

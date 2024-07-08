@@ -21,7 +21,6 @@ export const writeBlocks = async (
         )
     }
 
-    // FIXME - errors with Promise.all
     for (let i = 0; i < blocks.length; i++) {
         operations.push(
             writeBlock(blocks[i], data[i], (progress) => {

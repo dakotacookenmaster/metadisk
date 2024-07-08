@@ -203,6 +203,7 @@ export default async function mkdir(pathname: string) {
         availableDirectoryIndex * 128 + 128,
     )
     const result = previousEntries + newEntry + furtherEntries
+
     await writeBlock(availableDirectoryBlock, result)
 
     // Update the parent directory's inode to a new size (new entry) and new last accessed time
@@ -228,6 +229,7 @@ export default async function mkdir(pathname: string) {
     const oldParentDirectoryInodeBlock = (
         await readBlock(oldParentDirectoryInodeBlockNumber)
     ).data.raw
+
     const priorParentDirectoryInodes = oldParentDirectoryInodeBlock.slice(
         0,
         128 * oldParentDirectoryInodeOffset,

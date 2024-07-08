@@ -96,7 +96,6 @@ export default async function unlink(pathname: string) {
         entries: newEntries,
     })
 
-    // FIXME - if the directory block is empty, DEALLOCATE it, don't update it
     let blockPointers = parentDirectoryInode.blockPointers
     let removedBlockPointer: number | null = null
     if (newDirectory === "") {

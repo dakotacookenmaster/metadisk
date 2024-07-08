@@ -15,7 +15,6 @@ export const readBlocks = async (
     const operations = []
     for (let block of blocks) {
         operations.push(
-            // FIXME - errors with Promise.all
             readBlock(block, (progress) => {
                 totalCompleted++
                 if (progressCb) {

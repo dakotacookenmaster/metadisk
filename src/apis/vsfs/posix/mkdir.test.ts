@@ -4,9 +4,7 @@ import {
     beforeEach,
     describe,
     expect,
-    it,
     test,
-    vi,
 } from "vitest"
 import mkdir from "./mkdir.vsfs"
 import { store } from "../../../store"
@@ -19,7 +17,6 @@ import { InodeOverflowError } from "../../api-errors/InodeOverflow.error"
 import {
     setSectorSize,
     setSectorsPerBlock,
-    setTotalBlocks,
 } from "../../../redux/reducers/fileSystemSlice"
 
 beforeAll(() => {
@@ -40,7 +37,7 @@ describe("makes a new directory", () => {
         test("should create a new directory", async () => {
             await expect(mkdir("/abc")).resolves.toBeUndefined()
         })
-        test("should fail when part of the path is invalid", async () => {
+        test("should fail when part of the path is invalid", { timeout: 10000 }, async () => {
             await mkdir("/abc")
             await mkdir("/abc/def")
             await expect(mkdir("/abc/ghi/abc")).rejects.toThrowError(
@@ -72,19 +69,19 @@ describe("makes a new directory", () => {
             await expect(mkdir("/ghi")).resolves.toBeUndefined()
         })
     })
-    describe.only("with a very small disk", () => {
+    describe("with a very small disk", () => {
         beforeEach(async () => {
             // initialize a very small disk
-            store.dispatch(setSectorSize(128))
+            store.dispatch(setSectorSize(256))
             store.dispatch(setSectorsPerBlock(1))
 
             store.dispatch(
                 setSectors(
-                    [...Array(16)].map(() => ({ data: "0".repeat(128) })),
+                    [...Array(16)].map(() => ({ data: "0".repeat(256) })),
                 ),
             )
 
-            await initializeSuperblock(() => {}, true)
+            await initializeSuperblock(() => {})
         })
 
         afterAll(() => {

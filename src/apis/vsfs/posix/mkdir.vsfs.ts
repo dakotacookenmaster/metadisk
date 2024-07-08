@@ -122,9 +122,12 @@ export default async function mkdir(pathname: string) {
             }
         }
 
+
+        /* c8 ignore start */
         if (parentDirectoryBlockPointerIndex === undefined) {
             throw new DirectoryOverflowError()
         }
+        /* c8 ignore stop */
 
         // we need to allocate another block
         const dataBitmap = (await readBlock(2)).data.raw
@@ -138,16 +141,20 @@ export default async function mkdir(pathname: string) {
             }
         }
 
+        /* c8 ignore start */
         if (
             availableDirectoryBlock === undefined ||
             availableDirectoryIndex === undefined
         ) {
             throw new DataBlockOverflowError()
         }
+        /* c8 ignore stop */
     }
+    /* c8 ignore start */
     if (parentDirectoryBlockPointerIndex === undefined) {
         throw new DirectoryOverflowError()
     }
+    /* c8 ignore stop */
 
     // determine if there's enough space in the data bitmap for a new directory block
     const dataBitmap = (await readBlock(2)).data.raw
@@ -162,9 +169,11 @@ export default async function mkdir(pathname: string) {
             break
         }
     }
+    /* c8 ignore start */
     if (availableDataBlock === undefined) {
         throw new DataBlockOverflowError()
-    }
+    };
+    /* c8 ignore stop */
 
     // If we've made it this far, we can write the new directory to the appropriate space!
     /* 

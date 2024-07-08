@@ -42,12 +42,11 @@ export const readSector = async (
     let cs: CurrentlyServicingPayload | undefined
 
     // spin-wait for the data going into the queue to be processed
-    /* c8 ignore next */
+    /* c8 ignore start */
     while (!(cs = store.getState().disk.currentlyServicing?.find(item => item.requestId === id))) {
-        /* c8 ignore next */
         await new Promise((resolve) => setTimeout(resolve, 50)) // Wait 50ms and then check again
-        /* c8 ignore next */
     }
+    /* c8 ignore stop */
 
     store.dispatch(removeFromCurrentlyServicing(cs!.requestId))
 

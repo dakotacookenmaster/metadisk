@@ -58,7 +58,7 @@ const initialState: FileSystemState = {
     totalBlocks: 16,
     openFile: "",
     minimumRequiredDiskSize: 4096 * 4 * 16,
-    fileDescriptorTable: [null, null, null],
+    fileDescriptorTable: [null, null, null].concat([...Array(calculateInodeAndDataBlocks(16, 32, 3).inodeBlocks * 128)].map(() => null)),
     isDiskFormatted: false,
     superblock: {
         name: "Very Simple File System (vsfs)",
@@ -136,10 +136,11 @@ export const fileSystemSlice = createSlice({
             state.isDiskFormatted = action.payload
         },
         addFileDescriptor: (state, action: PayloadAction<FileDescriptor>) => {
-            state.fileDescriptorTable.push(action.payload)
+            const freeSpot = state.fileDescriptorTable.findIndex((fd, index) => fd === null && ![0, 1, 2].includes(index))
+            state.fileDescriptorTable[freeSpot] = action.payload
         },
         removeFileDescriptor: (state, action: PayloadAction<number>) => {
-            state.fileDescriptorTable.splice(action.payload, 1)
+            state.fileDescriptorTable[action.payload] = null
         },
         setOpenFile: (state, action: PayloadAction<string>) => {
             state.openFile = action.payload

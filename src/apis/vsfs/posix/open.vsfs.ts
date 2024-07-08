@@ -28,7 +28,7 @@ import { OpenDirectoryError } from "../../api-errors/OpenDirectory.error"
  * A POSIX-like function to open a file (and potentially create it)
  * @param pathname The path at which to open (or create) the file
  * @param flags The options for opening this file
- * @param mode The file's permission mode, only used with creating a file
+ * @param mode The file's permission mode, only used when creating a file
  * @returns A file descriptor
  * @throws OpenFlagError
  */
@@ -357,20 +357,25 @@ export default async function open(
         } satisfies FileDescriptor
         const nextFileDescriptor = selectFileDescriptorTable(
             store.getState(),
-        ).length
+        ).findIndex((fd, index) => fd === null && ![0, 1, 2].includes(index))
         store.dispatch(addFileDescriptor(fileDescriptor))
         return nextFileDescriptor
     } else {
         // Does the file already exist?
         try {
             const inode = await isValidPath(pathname)
-            // read the inode to get its permissions
+            // read the inode to get its permissions and type
             const { inodeBlock, inodeOffset } = getInodeLocation(inode)
-            const permissions = (await readBlock(inodeBlock)).data.inodes[
+            const inodeData = (await readBlock(inodeBlock)).data.inodes[
                 inodeOffset
-            ].permissions
+            ]
 
-            const access = hasAccess(flags, permissions)
+            // Is it a file?
+            if(inodeData.type !== "file") {
+                throw new OpenDirectoryError()
+            }
+
+            const access = hasAccess(flags, inodeData.permissions)
 
             if (!access) {
                 throw new AccessDeniedError()

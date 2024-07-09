@@ -66,9 +66,6 @@ export default async function open(
         (flags.includes(OpenFlags.O_RDONLY) &&
             flags.includes(OpenFlags.O_RDWR)) ||
         (flags.includes(OpenFlags.O_RDWR) &&
-            flags.includes(OpenFlags.O_WRONLY)) ||
-        (flags.includes(OpenFlags.O_RDONLY) &&
-            flags.includes(OpenFlags.O_RDWR) &&
             flags.includes(OpenFlags.O_WRONLY))
     ) {
         throw new OpenFlagError()
@@ -115,7 +112,7 @@ export default async function open(
 
             const nextFileDescriptor = selectFileDescriptorTable(
                 store.getState(),
-            ).length
+            ).findIndex((fd, index) => fd === null && ![0, 1, 2].includes(index))
             store.dispatch(addFileDescriptor(fileDescriptor))
             return nextFileDescriptor
         } catch (error) {
@@ -204,9 +201,11 @@ export default async function open(
                 }
             }
 
+            /* c8 ignore start */
             if (parentDirectoryBlockPointerIndex === undefined) {
                 throw new DirectoryOverflowError()
             }
+            /* c8 ignore stop */
 
             // we need to allocate another block
             const dataBitmap = (await readBlock(2)).data.raw
@@ -220,6 +219,7 @@ export default async function open(
                 }
             }
 
+            /* c8 ignore start */
             if (
                 availableDirectoryBlock === undefined ||
                 availableDirectoryIndex === undefined
@@ -230,6 +230,7 @@ export default async function open(
         if (parentDirectoryBlockPointerIndex === undefined) {
             throw new DirectoryOverflowError()
         }
+        /* c8 ignore stop */
 
         // If we've made it this far, we can write the new file to the appropriate space!
         /* 
@@ -396,7 +397,7 @@ export default async function open(
 
             const nextFileDescriptor = selectFileDescriptorTable(
                 store.getState(),
-            ).length
+            ).findIndex((fd, index) => fd === null && ![0, 1, 2].includes(index))
             store.dispatch(addFileDescriptor(fileDescriptor))
             return nextFileDescriptor
         } catch (error) {

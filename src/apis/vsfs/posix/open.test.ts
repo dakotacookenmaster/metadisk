@@ -11,7 +11,9 @@ import { AccessDeniedError } from "../../api-errors/AccessDenied.error"
 import { ModeError } from "../../api-errors/Mode.error"
 import { OpenFlagError } from "../../api-errors/OpenFlag.error"
 import { OpenDirectoryError } from "../../api-errors/OpenDirectory.error"
-import { setSectorSize, setSectorsPerBlock } from "../../../redux/reducers/fileSystemSlice"
+import { selectFileDescriptorTable, setSectorSize, setSectorsPerBlock } from "../../../redux/reducers/fileSystemSlice"
+import mkdir from "./mkdir.vsfs"
+import { InodeOverflowError } from "../../api-errors/InodeOverflow.error"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
@@ -40,7 +42,7 @@ describe("opens a file", () => {
             await expect(open("/abc", [OpenFlags.O_WRONLY])).rejects.toThrowError(AccessDeniedError)
         })
         test("fails to create a file if permissions aren't supplied", async () => {
-            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDWR])).rejects.toThrowError(ModeError)
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_WRONLY])).rejects.toThrowError(ModeError)
         })
         test("fails to create a file if additional flags aren't supplied", async () => {
             await expect(open("/abc", [OpenFlags.O_CREAT], Permissions.READ_WRITE_EXECUTE)).rejects.toThrowError(OpenFlagError)
@@ -50,6 +52,36 @@ describe("opens a file", () => {
         })
         test("fails to open a directory path", async () => {
             await expect(open("/", [OpenFlags.O_WRONLY])).rejects.toThrowError(OpenDirectoryError)
+        })
+        test("fails to create a file if conflicting flags are supplied", async () => {
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY, OpenFlags.O_WRONLY], Permissions.READ_WRITE_EXECUTE)).rejects.toThrowError(OpenFlagError)
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY, OpenFlags.O_RDWR], Permissions.READ_WRITE_EXECUTE)).rejects.toThrowError(OpenFlagError)
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDWR, OpenFlags.O_WRONLY], Permissions.READ_WRITE_EXECUTE)).rejects.toThrowError(OpenFlagError)
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY, OpenFlags.O_WRONLY, OpenFlags.O_RDWR], Permissions.READ_WRITE_EXECUTE)).rejects.toThrowError(OpenFlagError)
+        })
+        test("successfully returns a file descriptor when a file already exists, using the O_CREAT flag", async () => {
+            const fd = await open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ_WRITE_EXECUTE)
+            const fd2 = await open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ_WRITE_EXECUTE)
+
+            const fdTable = selectFileDescriptorTable(store.getState())
+
+            expect(fdTable[fd]).toBeDefined()
+            expect(fdTable[fd]).not.toBeNull()
+            expect(fdTable[fd2]).toBeDefined()
+            expect(fdTable[fd2]).not.toBeNull()
+
+            expect(fdTable[fd]!.inode).toEqual(fdTable[fd2]!.inode)
+        })
+        test("fails to open an existing directory (that's not the / address)", async () => {
+            await mkdir("/abc")
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.EXECUTE)).rejects.toThrowError(OpenDirectoryError)
+        })
+        test("fails to open a file (with the O_CREAT flag) that already exists and doesn't have read permissions", async () => {
+            // open a file for reading that will eventually only have execute permissions
+            await open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.EXECUTE)
+
+            // this should fail, as the file already exists and cannot be opened for reading
+            await expect(open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.EXECUTE)).rejects.toThrowError(AccessDeniedError)
         })
     })
     describe("small disk size", async () => {
@@ -68,6 +100,13 @@ describe("opens a file", () => {
             for(let i = 0; i < 5; i++) {
                 await expect(open(`/${i}`, [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ)).resolves.toBeGreaterThan(2)
             }
+        })
+
+        test("fails when there aren't enough inodes to create a new file", { timeout: 30000 }, async () => {
+            for(let i = 0; i < 9; i++) {
+                await expect(open(`/${i}`, [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ)).resolves.toBeGreaterThan(2)
+            }
+            await expect(open(`/last`, [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ)).rejects.toThrowError(InodeOverflowError)
         })
     })
     

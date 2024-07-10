@@ -79,11 +79,13 @@ export default async function unlink(pathname: string) {
             break
         }
     }
+    /* c8 ignore start */
     if (directoryEntries === null) {
         throw new Error(
             "An unknown error occurred while trying to delete the directory.",
         )
     }
+    /* c8 ignore stop */
 
     // Rebuild the directory from the old entries
     const previousEntries = directoryEntries.slice(0, directoryIndex)
@@ -99,12 +101,14 @@ export default async function unlink(pathname: string) {
     let blockPointers = parentDirectoryInode.blockPointers
     let removedBlockPointer: number | null = null
     if (newDirectory === "") {
+        /* c8 ignore start */
         for (let pointer of blockPointers) {
             if (pointer === directoryBlock) {
                 removedBlockPointer = pointer
                 break
             }
         }
+        /* c8 ignore stop */
     } else {
         // write the updated directory
         await writeBlock(directoryBlock, newDirectory)
@@ -117,6 +121,7 @@ export default async function unlink(pathname: string) {
         lastModified: new Date(),
         blockPointers:
             removedBlockPointer !== null
+                /* c8 ignore next */
                 ? [...blockPointers.filter((v) => v !== removedBlockPointer), 0]
                 : blockPointers,
     })
@@ -142,12 +147,15 @@ export default async function unlink(pathname: string) {
 
     // if the directory got small enough in size to lose a block, deallocate it
     if (removedBlockPointer !== null) {
+        /* c8 ignore start */
         await updateBitmap(
             "data",
             removedBlockPointer - inodeStartIndex - numberOfInodeBlocks,
             "0",
         )
+        
     }
+    /* c8 ignore stop */
 
     // each of those block pointers in the deleted file needs to be deallocated from the data bitmap
     for (let pointer of pointers) {

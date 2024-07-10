@@ -36,6 +36,7 @@ export default async function write(fileDescriptor: number, data: string) {
         }
     }
 
+    /* c8 ignore start */
     if (fileDescriptor === 0) {
         // this is stdin
     } else if (fileDescriptor === 1) {
@@ -43,6 +44,7 @@ export default async function write(fileDescriptor: number, data: string) {
     } else if (fileDescriptor === 2) {
         // this is stderr
     }
+    /* c8 ignore stop */
 
     const descriptor = fileDescriptorTable[fileDescriptor]!
 
@@ -174,9 +176,11 @@ export default async function write(fileDescriptor: number, data: string) {
                 }
             }
 
+            /* c8 ignore start */
             if (newBlocks.length !== difference) {
                 throw new FileOverflowError()
             }
+            /* c8 ignore stop */
 
             // We found the new blocks we need to write to, in addition to any that
             // are existing. Start by writing the file

@@ -11,7 +11,7 @@ describe("it should convert decimal numbers to binary", () => {
     test("large number and default size", () => {
         expect(dec2bin(128)).toBe("10000000")
     })
-    test("large number and size of 16 size", () => {
+    test("large number and size of 16", () => {
         expect(dec2bin(1024, 16)).toBe("0000010000000000")
     })
 })

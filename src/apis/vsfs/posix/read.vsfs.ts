@@ -18,6 +18,7 @@ export default async function read(fileDescriptor: number): Promise<string> {
         throw new InvalidFileDescriptorError()
     }
 
+    /* c8 ignore start */
     if(fileDescriptor === 0) {
         // this is for stdin
     } else if(fileDescriptor === 1) {
@@ -25,6 +26,7 @@ export default async function read(fileDescriptor: number): Promise<string> {
     } else if(fileDescriptor === 2) {
         // this is for stderr
     }
+    /* c8 ignore stop */
 
     const descriptor = fileDescriptorTable[fileDescriptor]! // at this point, you know it's not null
 

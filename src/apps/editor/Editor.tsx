@@ -37,6 +37,7 @@ const Editor = () => {
                     close(fd)
                     const textData = convertBinaryStringToText(data)
                     setFileData(textData)
+                /* c8 ignore start */
                 } catch(error) {
                     let e = error as Error
                     dispatch(setError({
@@ -44,6 +45,7 @@ const Editor = () => {
                         message: e.message,
                     }))
                 }
+                /* c8 ignore stop */
                 setLoading(false)
             }
         })()
@@ -58,6 +60,7 @@ const Editor = () => {
             await write(fd, data)
             close(fd)
             setSaved(true)
+        /* c8 ignore start */
         } catch (error) {
             let e = error as Error
             dispatch(setError({
@@ -66,6 +69,7 @@ const Editor = () => {
             }))
             setSaved(false)
         }
+        /* c8 ignore stop */
         setSaving(false)
     }
 

@@ -1,4 +1,4 @@
-import { Box, Pagination, useTheme } from "@mui/material"
+import { Box, Pagination, PaginationItem, useTheme } from "@mui/material"
 import { blue } from "@mui/material/colors"
 import { useState } from "react"
 import { chunk } from "lodash"
@@ -55,7 +55,7 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
                     .map((char, i) => {
                         return (
                             <Box
-                                data-testid={`bit-${i}`}
+                                data-testid={`bit-${((page - 1) * 256) + i}`}
                                 key={`bit-${i}`}
                                 style={{
                                     display: "flex",
@@ -77,6 +77,9 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
             </Box>
             <Pagination
                 count={pageData.length}
+                renderItem={(params) => {
+                    return <PaginationItem data-testid={params.type} {...params} />
+                }}
                 onChange={(_, page) => {
                     setPage(page)
                 }}

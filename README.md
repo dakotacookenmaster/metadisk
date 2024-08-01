@@ -39,7 +39,7 @@ Here's an example of a new app being registered:
 ```TypeScript
 {
   // other apps above
-    "Disk Simulator": {
+    "My Custom App Name": {
         elementFn: MyCustomApp,
         muiIcon: MyCustomAppIcon,
         enabled: true,

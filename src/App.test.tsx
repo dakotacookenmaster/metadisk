@@ -1,11 +1,10 @@
-import { cleanup, fireEvent, render, screen, waitForElementToBeRemoved } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import App from "./App"
 import { ThemeProvider } from "@mui/material"
 import theme from "./apps/common/theme"
 import { Provider } from "react-redux"
 import { store } from "./store"
-import apps from "./register-apps"
 
 afterEach(cleanup)
 

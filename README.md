@@ -40,8 +40,8 @@ Here's an example of a new app being registered:
 {
   // other apps above
     "Disk Simulator": {
-        elementFn: DiskSimulator,
-        muiIcon: DiskSimulatorIcon,
+        elementFn: MyCustomApp,
+        muiIcon: MyCustomAppIcon,
         enabled: true,
         onChange: (enabled: boolean) => {
             // any logic here to execute when the `enabled` value is changed

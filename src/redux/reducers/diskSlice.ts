@@ -149,18 +149,21 @@ const writeOrRead =
     async (dispatch: AppDispatch, getState: () => RootState) => {
         const differenceFromArm = (sector: number) => {
             const necessaryRotation = findSectorRotation(sector, getState)
-            let rotation: string | null | number = localStorage.getItem('rotation')
+            let rotation: string | null | number =
+                localStorage.getItem("rotation")
             rotation = rotation !== null ? +rotation : 0
             return Math.abs(rotation - necessaryRotation)
         }
 
         // While the arm is away from the sector, don't do anything
-        if (!selectSkipWaitTime(getState())) {
-            while (differenceFromArm(data.sectorNumber) >= 3) {
-                await new Promise((resolve) => {
-                    setTimeout(() => resolve(true))
-                }) // Wait and try again
+        while (differenceFromArm(data.sectorNumber) >= 3) {
+            if (selectSkipWaitTime(getState())) {
+                // if the wait time changed in between the request and processing, break
+                break
             }
+            await new Promise((resolve) => {
+                setTimeout(() => resolve(true))
+            }) // Wait and try again
         }
 
         // Only set the state to the action after when within the range of the appropriate rotation
@@ -173,16 +176,16 @@ const writeOrRead =
             )
         }
 
-        if (!selectSkipWaitTime(getState())) {
-            while (
-                differenceFromArm(
-                    getNextSectorOnTrack(data.sectorNumber, getState),
-                ) >= 3
-            ) {
-                await new Promise((resolve) =>
-                    setTimeout(() => resolve(true)),
-                ) // wait for the arm to move away from the sector
+        while (
+            differenceFromArm(
+                getNextSectorOnTrack(data.sectorNumber, getState),
+            ) >= 3
+        ) {
+            if (selectSkipWaitTime(getState())) {
+                // if the wait time changed in between the request and processing, break
+                break
             }
+            await new Promise((resolve) => setTimeout(() => resolve(true))) // wait for the arm to move away from the sector
         }
 
         // When the read / write has happened, notify all subscribers that it has been serviced

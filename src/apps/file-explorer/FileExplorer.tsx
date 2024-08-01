@@ -330,6 +330,7 @@ export default function FileExplorer() {
                             >
                                 <Tooltip placement="top" title="New File">
                                     <IconButton
+                                        data-testid="New File Button"
                                         disabled={loadingHierarchy.length !== 0}
                                         sx={{ width: "60px", height: "60px" }}
                                         onClick={() => {
@@ -343,6 +344,7 @@ export default function FileExplorer() {
                                 </Tooltip>
                                 <Tooltip placement="top" title="New Directory">
                                     <IconButton
+                                        data-testid="New Directory Button"
                                         disabled={loadingHierarchy.length !== 0}
                                         sx={{ width: "60px", height: "60px" }}
                                         onClick={() => {

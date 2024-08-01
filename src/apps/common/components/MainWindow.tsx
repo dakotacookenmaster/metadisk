@@ -32,15 +32,6 @@ const openedMixin = (theme: Theme): CSSObject => ({
     overflowX: "hidden",
 })
 
-const closedMixin = (theme: Theme): CSSObject => ({
-    transition: theme.transitions.create("width", {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    overflowX: "hidden",
-    width: `calc(${theme.spacing(8)} + 1px)`,
-})
-
 const DrawerHeader = styled("div")(({ theme }) => ({
     display: "flex",
     alignItems: "center",
@@ -82,10 +73,6 @@ const Drawer = styled(MuiDrawer, {
     ...(open && {
         ...openedMixin(theme),
         "& .MuiDrawer-paper": openedMixin(theme),
-    }),
-    ...(!open && {
-        ...closedMixin(theme),
-        "& .MuiDrawer-paper": closedMixin(theme),
     }),
 }))
 
@@ -278,6 +265,7 @@ export default function MainWindow(props: {
                             const Element = apps[appKey].elementFn
                             return (
                                 <Box
+                                    data-testid={appKey}
                                     key={appKey}
                                     sx={{
                                         width: `calc(${

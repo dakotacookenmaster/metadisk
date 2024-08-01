@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { Provider } from "react-redux"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { store } from "../../store"
@@ -48,5 +48,15 @@ describe("renders the disk simulator", () => {
 
         const end = await screen.findByText("N/A")
         expect(end).toBeInTheDocument()
+    })
+
+    test("changing the speed to the next level should work", async () => {
+        const slider = await screen.findByTestId("slider")
+        const grabber = slider.querySelector("span:last-child input")
+        expect(grabber).toBeInTheDocument()
+        fireEvent.change(grabber!, { target: { value: 4 } })
+        expect(grabber).toHaveValue("4")
+        const text = await screen.findByText("Very Fast")
+        expect(text).toBeInTheDocument()
     })
 })

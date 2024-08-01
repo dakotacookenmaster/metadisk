@@ -36,7 +36,8 @@ export default function Alert() {
                 <DialogActions>
                     <Button 
                         variant="contained" 
-                        onClick={handleClose} 
+                        onClick={handleClose}
+                        data-testid="Close Alert"
                         autoFocus 
                         ref={button => {
                             setTimeout(() => {

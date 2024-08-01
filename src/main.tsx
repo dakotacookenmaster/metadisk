@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import ReactDOM from "react-dom/client"
 import App from "./App.tsx"
 import "./App.css"
@@ -17,3 +18,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </ThemeProvider>
     </ReduxProvider>,
 )
+/* c8 ignore stop */

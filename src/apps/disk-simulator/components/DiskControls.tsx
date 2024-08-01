@@ -53,9 +53,12 @@ export default function DiskControls(props: BoxProps) {
                 <Slider
                     aria-label="Disk Speed"
                     defaultValue={3}
-                    valueLabelFormat={(value: number) => marks[value].label}
+                    valueLabelFormat={(value: number) => {
+                        return marks[value].label
+                    }}
                     getAriaValueText={valuetext}
                     sx={{ width: "120px", marginTop: "-10px" }}
+                    data-testid={"slider"}
                     step={1}
                     min={0}
                     max={4}

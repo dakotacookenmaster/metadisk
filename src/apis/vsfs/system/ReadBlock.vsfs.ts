@@ -50,7 +50,7 @@ export const readBlock = async (
         data: {
             superblock: {
                 magicNumber: parseInt(rawData.slice(0, 8), 2), // the first byte is the magic number
-                inodeCount: parseInt(rawData.slice(8, 24), 2), // the second byte is the number of inodes
+                inodeCount: parseInt(rawData.slice(8, 24), 2), // the next two bytes represent the number of inodes
                 inodeBlocks: parseInt(rawData.slice(24, 28), 2), // the next nibble is the number of inode blocks
                 dataBlocks: parseInt(rawData.slice(28, 32), 2), // the next nibble is the number of data blocks
                 blockSize: parseInt(rawData.slice(32, 56), 2) // the last 3 bytes are the block size

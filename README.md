@@ -31,3 +31,22 @@ export default {
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
 - Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
 
+# Setup Instructions for Adding Additional Modules
+Adding additional modules for Metadisk is relatively straightforward. Using the existing APIs and the existing Redux stores, you can build custom React apps (essentially a 'root' component for your app). Once you've constructed your app, simply modify the `register-apps.tsx` file with a new object that includes the name of the App, the app as a function, an icon to display for the app, whether or not the app should be enabled by default, and an optional `onChange` to determine what happens when the app is sent to the background.
+
+Here's an example of a new app being registered:
+
+```TypeScript
+{
+  // other apps above
+    "Disk Simulator": {
+        elementFn: DiskSimulator,
+        muiIcon: DiskSimulatorIcon,
+        enabled: true,
+        onChange: (enabled: boolean) => {
+            // any logic here to execute when the `enabled` value is changed
+        }
+    }
+}
+```
+

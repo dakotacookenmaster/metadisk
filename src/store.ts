@@ -8,6 +8,14 @@ export const store = configureStore({
         fileSystem: fileSystemReducer,
         disk: diskReducer,
         app: appReducer
+    },
+    middleware: (getDefaultMiddleware) => {
+        return getDefaultMiddleware({
+            serializableCheck: {
+                ignoredPaths: ['disk.sectors', 'disk.currentlyServicing', 'disk.queue'],
+                ignoredActionPaths: ['payload']
+            }
+        })
     }
 })
 export type RootState = ReturnType<typeof store.getState>

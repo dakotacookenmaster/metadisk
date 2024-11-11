@@ -1,4 +1,3 @@
-import splitIntoBytes from "../../common/helpers/splitIntoBytes"
 import Editor from "@monaco-editor/react"
 import { useRef } from "react"
 import { chunk } from "lodash"
@@ -46,16 +45,16 @@ export const convertBinaryByteStringToType = (byte: string, mode: "bin" | "hex" 
     }
 }
 
-const Viewer = (props: { data: string, mode: "bin" | "hex" | "ascii" }) => {
+const Viewer = (props: { data: Uint8Array, mode: "bin" | "hex" | "ascii" }) => {
     const { data, mode } = props
-    const bytes = splitIntoBytes(data)
+    const bytes = Array.from(data)
     const editorRef = useRef<null | typeof Editor>(null)
 
     const handleMount = (editor: typeof Editor) => {
         editorRef.current = editor
     }
 
-    const value = chunk(bytes.map(byte => convertBinaryByteStringToType(byte, mode)), mode === "ascii" ? 21 : mode === "hex" ? 16 : 4).map(byteGroup => byteGroup.join(" ")).join("\n")
+    const value = chunk(bytes.map(byte => convertBinaryByteStringToType(byte.toString(2).padStart(8, "0"), mode)), mode === "ascii" ? 21 : mode === "hex" ? 16 : 4).map(byteGroup => byteGroup.join(" ")).join("\n")
 
     return (
         <Editor 

@@ -1,14 +1,14 @@
 import { Box, Pagination, PaginationItem, useTheme } from "@mui/material"
 import { blue } from "@mui/material/colors"
 import { useState } from "react"
-import { chunk } from "lodash"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
+import Uint8ArrayChunk from "../../../apis/helpers/Uint8ArrayChunk.helper"
 
-const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
+const Bitmap = (props: { data: Uint8Array, type: "inode" | "data" }) => {
     const theme = useTheme()
     let { data, type } = props
-    const pageData = chunk(data.split(""), 256)
+    const pageData = Uint8ArrayChunk(data, 32)
     const [page, setPage] = useState(1)
     const superblock = useAppSelector(selectSuperblock)
     
@@ -49,10 +49,12 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
                     width: "100%",
                 }}
             >
-                {pageData[page - 1]
-                    .join("")
-                    .split("")
+                {Array.from(pageData[page - 1])
+                    .map((value) => value.toString(2).padStart(8, "0"))
+                    .reduce((accumulator, value) => accumulator + value, "")
+                    .split('')
                     .map((char, i) => {
+                        console.log(char)
                         return (
                             <Box
                                 data-testid={`bit-${((page - 1) * 256) + i}`}

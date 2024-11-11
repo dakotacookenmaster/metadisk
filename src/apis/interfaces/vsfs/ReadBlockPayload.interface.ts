@@ -14,7 +14,7 @@ export default interface ReadBlockPayload {
             readonly entries: DirectoryEntry[]
         }
         readonly inodes: InodeData[]
-        readonly raw: string
+        readonly raw: Uint8Array
     }
     readonly sectors: number[]
 }

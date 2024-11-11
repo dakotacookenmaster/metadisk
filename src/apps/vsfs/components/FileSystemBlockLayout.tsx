@@ -18,10 +18,10 @@ const FileSystemBlockLayout = () => {
     const [progress, setProgress] = useState<number>(0)
     const sectors = useAppSelector(selectSectors)
     const sectorsPerBlock = useAppSelector(selectSectorsPerBlock)
-    const [data, setData] = useState<string | undefined>(undefined)
+    const [data, setData] = useState<Uint8Array | undefined>(undefined)
     const [canMove, setCanMove] = useState(false)
     const [blockNumber, setBlockNumber] = useState(0)
-    const [inodeBitmap, setInodeBitmap] = useState("")
+    const [inodeBitmap, setInodeBitmap] = useState(new Uint8Array(0))
     const [selectedInode, setSelectedInode] = useState<number | undefined>(
         undefined,
     )

@@ -1,6 +1,6 @@
-export default interface CurrentlyServicingPayload {
+export default interface CurrentlyServicingPayload<T extends "read" | "write"> {
     requestId: string
-    type: "read" | "write"
+    type: T extends "read" ? "read" : "write"
     sectorNumber: number
-    data?: string
+    data: T extends "read" ? Uint8Array : undefined
 }

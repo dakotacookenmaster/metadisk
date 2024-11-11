@@ -40,7 +40,7 @@ function a11yProps(index: number) {
 }
 
 export default function InodeBlockTabs(props: {
-    data: string | undefined
+    data: Uint8Array | undefined
     progress: number
     setSelected: React.Dispatch<React.SetStateAction<string>>
     blockRefs: React.RefObject<unknown>[]
@@ -48,7 +48,7 @@ export default function InodeBlockTabs(props: {
     beginOperation: () => void
     blockNumber: number
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
-    inodeBitmap: string
+    inodeBitmap: Uint8Array
     selectedInode: number | undefined
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
 }) {

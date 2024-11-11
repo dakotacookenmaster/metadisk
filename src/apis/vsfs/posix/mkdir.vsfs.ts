@@ -6,6 +6,7 @@ import { InodeOverflowError } from "../../api-errors/InodeOverflow.error"
 import { InvalidPathError } from "../../api-errors/InvalidPath.error"
 import { NameAlreadyExistsError } from "../../api-errors/NameAlreadyExists.error"
 import Permissions from "../../enums/vsfs/Permissions.enum"
+import getBitValueInByte from "../../helpers/getBitValueInByte.helper"
 import buildDirectory from "../system/BuildDirectory.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
@@ -61,16 +62,18 @@ export default async function mkdir(pathname: string) {
         .slice(-1)[0]
 
     // Verify that there's enough space in the inode bitmap for another inode for this directory
-    const { inodeCount, dataBlocks } = (await readBlock(0)).data.superblock // block 0 is the superblock
+    const { inodeCount, dataBlocks, blockSize } = (await readBlock(0)).data.superblock // block 0 is the superblock
     const inodeBitmap = (await readBlock(1)).data.raw // block 1 is the inode bitmap
 
     let availableInode
     // Find the next available inode spot
     for (let i = 0; i < inodeBitmap.length; i++) {
-        if (inodeBitmap[i] === "0" && i < inodeCount) {
-            // There was an available inode!
-            availableInode = i
-            break
+        for (let j = 0; j < 8; j++) {
+            if (getBitValueInByte(inodeBitmap[i], j) === false && (i < inodeCount)) {
+                // There was an available inode!
+                availableInode = i
+                break
+            }
         }
     }
     if (availableInode === undefined) {
@@ -132,12 +135,14 @@ export default async function mkdir(pathname: string) {
         // we need to allocate another block
         const dataBitmap = (await readBlock(2)).data.raw
         for (let i = 0; i < dataBitmap.length; i++) {
-            if (dataBitmap[i] === "0" && i < dataBlocks) {
-                availableDirectoryBlock =
-                    i + inodeStartIndex + numberOfInodeBlocks
-                availableDirectoryIndex = 0 // it's a new block, so write to the first directory entry
-                allocatedNewDirectoryBlock = true
-                break
+            for (let j = 0; j < 8; j++) {
+                if (getBitValueInByte(dataBitmap[i], j) === false && ((i * 8) + j < dataBlocks)) {
+                    availableDirectoryBlock =
+                        (i * 8) + j + inodeStartIndex + numberOfInodeBlocks
+                    availableDirectoryIndex = 0 // it's a new block, so write to the first directory entry
+                    allocatedNewDirectoryBlock = true
+                    break
+                }
             }
         }
 
@@ -158,15 +163,18 @@ export default async function mkdir(pathname: string) {
 
     // determine if there's enough space in the data bitmap for a new directory block
     const dataBitmap = (await readBlock(2)).data.raw
+
     for (let i = 0; i < dataBitmap.length; i++) {
-        if (
-            dataBitmap[i] === "0" &&
-            i < dataBlocks &&
-            i + inodeStartIndex + numberOfInodeBlocks !==
+        for (let j = 0; j < 8; j++) {
+            if (
+                (getBitValueInByte(dataBitmap[i], j) === false) &&
+                ((i * 8) + j < dataBlocks) &&
+                ((i * 8) + j + inodeStartIndex + numberOfInodeBlocks) !==
                 availableDirectoryBlock
-        ) {
-            availableDataBlock = i + inodeStartIndex + numberOfInodeBlocks
-            break
+            ) {
+                availableDataBlock = (i * 8) + j + inodeStartIndex + numberOfInodeBlocks
+                break
+            }
         }
     }
     /* c8 ignore start */
@@ -196,7 +204,7 @@ export default async function mkdir(pathname: string) {
     // Using the available directory index, we can update this block, knowing that a directory entry is 128 bits
     const previousEntries = availableDirectoryBlockData.slice(
         0,
-        availableDirectoryIndex * 128,
+        availableDirectoryIndex * 16,
     )
 
     const newEntry = buildDirectory({
@@ -209,9 +217,13 @@ export default async function mkdir(pathname: string) {
     })
 
     const furtherEntries = availableDirectoryBlockData.slice(
-        availableDirectoryIndex * 128 + 128,
+        availableDirectoryIndex * 16 + 16,
     )
-    const result = previousEntries + newEntry + furtherEntries
+
+    const result = new Uint8Array(blockSize / 8)
+    result.set(previousEntries, 0)
+    result.set(newEntry, availableDirectoryIndex * 16)
+    result.set(furtherEntries, availableDirectoryIndex * 16 + 16)
 
     await writeBlock(availableDirectoryBlock, result)
 
@@ -241,21 +253,24 @@ export default async function mkdir(pathname: string) {
 
     const priorParentDirectoryInodes = oldParentDirectoryInodeBlock.slice(
         0,
-        128 * oldParentDirectoryInodeOffset,
+        16 * oldParentDirectoryInodeOffset,
     )
 
     const restParentDirectoryInodes = oldParentDirectoryInodeBlock.slice(
-        128 * oldParentDirectoryInodeOffset + 128,
+        16 * oldParentDirectoryInodeOffset + 16,
     )
-    const completeNewParent =
-        priorParentDirectoryInodes +
-        updatedParentDirectoryInode +
-        restParentDirectoryInodes
+
+    const completeNewParent = new Uint8Array(blockSize / 8)
+    completeNewParent.set(priorParentDirectoryInodes, 0)
+    completeNewParent.set(updatedParentDirectoryInode, oldParentDirectoryInodeOffset * 16)
+    completeNewParent.set(restParentDirectoryInodes, oldParentDirectoryInodeOffset * 16 + 16)
+
 
     await writeBlock(inodeBlock, completeNewParent)
 
     // Create a new inode entry
     const date = new Date()
+
     const newInodeData = buildInode({
         type: "directory",
         size: 256,
@@ -272,12 +287,16 @@ export default async function mkdir(pathname: string) {
 
     const oldInodeBlock = (await readBlock(availableInodeBlock)).data.raw
 
-    const priorInodes = oldInodeBlock.slice(0, 128 * availableInodeBlockOffset)
+    const priorInodes = oldInodeBlock.slice(0, 16 * availableInodeBlockOffset)
 
     const restInodes = oldInodeBlock.slice(
-        128 * availableInodeBlockOffset + 128,
+        16 * availableInodeBlockOffset + 16,
     )
-    const completeNewInode = priorInodes + newInodeData + restInodes
+
+    const completeNewInode = new Uint8Array(blockSize / 8)
+    completeNewInode.set(priorInodes, 0)
+    completeNewInode.set(newInodeData, availableInodeBlockOffset * 16)
+    completeNewInode.set(restInodes, availableInodeBlockOffset * 16 + 16)
 
     await writeBlock(availableInodeBlock, completeNewInode)
 
@@ -286,7 +305,7 @@ export default async function mkdir(pathname: string) {
         await updateBitmap(
             "data",
             availableDirectoryBlock - inodeStartIndex - numberOfInodeBlocks,
-            "1",
+            1,
         )
     }
 
@@ -308,10 +327,10 @@ export default async function mkdir(pathname: string) {
     await writeBlock(availableDataBlock, directoryEntries)
 
     // Update the data bitmap
-    await updateBitmap("data", availableDataBlock - inodeStartIndex - numberOfInodeBlocks, "1")
+    await updateBitmap("data", availableDataBlock - inodeStartIndex - numberOfInodeBlocks, 1)
 
     // Update the inode bitmap for the new directory
-    await updateBitmap("inode", availableInode, "1")
+    await updateBitmap("inode", availableInode, 1)
 
     // Yay! The directory should have been written.
 }

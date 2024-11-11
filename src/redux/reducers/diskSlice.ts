@@ -19,10 +19,8 @@ interface DiskState {
         time: number
     }
     queue: (DiskReadPayload | DiskWritePayload)[]
-    currentlyServicing: CurrentlyServicingPayload[]
-    sectors: {
-        data: string
-    }[]
+    currentlyServicing: CurrentlyServicingPayload<"read" | "write">[]
+    sectors: Uint8Array[]
 }
 
 const initialState: DiskState = {
@@ -37,9 +35,7 @@ const initialState: DiskState = {
     },
     state: "idle",
     queue: [],
-    sectors: [...Array(64)].map(() => ({
-        data: "0".repeat(4096),
-    })),
+    sectors: [...new Array(64)].map(() => new Uint8Array(512)) // 64 sectors with 4096 bits => 512 bytes
 }
 
 export const diskSlice = createSlice({
@@ -67,7 +63,7 @@ export const diskSlice = createSlice({
         },
         addToCurrentlyServicing: (
             state,
-            action: PayloadAction<CurrentlyServicingPayload>,
+            action: PayloadAction<CurrentlyServicingPayload<"read" | "write">>,
         ) => {
             state.currentlyServicing.push(action.payload)
         },
@@ -81,15 +77,15 @@ export const diskSlice = createSlice({
         },
         writeSector: (
             state,
-            action: PayloadAction<{ sector: number; data: string }>,
+            action: PayloadAction<{ sector: number; data: Uint8Array }>,
         ) => {
             const { sector, data } = action.payload
-            state.sectors[sector].data = data
+            state.sectors[sector] = data
         },
         setTrackCount: (state, action: PayloadAction<number>) => {
             state.trackCount = action.payload
         },
-        setSectors: (state, action: PayloadAction<{ data: string }[]>) => {
+        setSectors: (state, action: PayloadAction<Uint8Array[]>) => {
             state.sectors = action.payload
         },
         setArmRotation: (
@@ -196,7 +192,7 @@ const writeOrRead =
                 type: data.type,
                 data:
                     data.type === "read"
-                        ? getState().disk.sectors[data.sectorNumber].data
+                        ? getState().disk.sectors[data.sectorNumber]
                         : undefined,
             }),
         )

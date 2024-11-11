@@ -1,4 +1,3 @@
-import { chunk } from "lodash"
 import {
     selectBlockSize,
     selectFileDescriptorTable,
@@ -7,7 +6,6 @@ import {
 import { store } from "../../../store"
 import { AccessDeniedError } from "../../api-errors/AccessDenied.error"
 import { FileOverflowError } from "../../api-errors/FileOverflow.error"
-import { InvalidBinaryStringError } from "../../api-errors/InvalidBinaryString.error"
 import { InvalidFileDescriptorError } from "../../api-errors/InvalidFileDescriptor.error"
 import OpenFlags from "../../enums/vsfs/OpenFlags.enum"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
@@ -16,24 +14,19 @@ import { writeBlock } from "../system/WriteBlock.vsfs"
 import { writeBlocks } from "../system/WriteBlocks.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
 import updateBitmap from "../system/UpdateBitmap.vsfs"
+import Uint8ArrayChunk from "../../helpers/Uint8ArrayChunk.helper"
+import getBitValueInByte from "../../helpers/getBitValueInByte.helper"
 
 /**
  * A POSIX-like function that allows writing data to a file, given a file descriptor
  * @param fileDescriptor The file descriptor pointing to the file you want to write to
  * @param data The binary-encoded data you wish to write to this file
  */
-export default async function write(fileDescriptor: number, data: string) {
+export default async function write(fileDescriptor: number, data: Uint8Array) {
     const state = store.getState()
     const fileDescriptorTable = selectFileDescriptorTable(state)
     if (fileDescriptor < 0 || fileDescriptor > fileDescriptorTable.length - 1) {
         throw new InvalidFileDescriptorError()
-    }
-
-    for (let char of data) {
-        if (char !== "0" && char !== "1") {
-            // this is invalid binary data
-            throw new InvalidBinaryStringError()
-        }
     }
 
     /* c8 ignore start */
@@ -71,9 +64,7 @@ export default async function write(fileDescriptor: number, data: string) {
 
         // It's not immediately too large, though we could run into allocation issues later
         // Begin by splitting the data into chunks and determining how many blocks we'll need
-        const segments = chunk(data, blockSize).map((segment) =>
-            segment.join(""),
-        )
+        const segments = Uint8ArrayChunk(data, blockSize)
 
         // Find out how many blocks we'll need
         const necessaryBlocks = segments.length
@@ -100,10 +91,13 @@ export default async function write(fileDescriptor: number, data: string) {
 
             // read the old inode block to rebuild it
             const oldInodeBlock = (await readBlock(inodeBlock)).data.raw
-            const previousInodes = oldInodeBlock.slice(0, inodeOffset * 128)
-            const furtherInodes = oldInodeBlock.slice(inodeOffset * 128 + 128)
+            const previousInodes = oldInodeBlock.slice(0, inodeOffset * 16)
+            const furtherInodes = oldInodeBlock.slice(inodeOffset * 16 + 16)
 
-            const newInodeBlock = previousInodes + updatedInode + furtherInodes
+            const newInodeBlock = new Uint8Array(previousInodes.length + updatedInode.length + furtherInodes.length)
+            newInodeBlock.set(previousInodes, 0)
+            newInodeBlock.set(updatedInode, inodeOffset * 16)
+            newInodeBlock.set(furtherInodes, inodeOffset * 16 + 16)
 
             // write the updated inode
             await writeBlock(inodeBlock, newInodeBlock)
@@ -136,10 +130,13 @@ export default async function write(fileDescriptor: number, data: string) {
 
             // read the old inode block to rebuild it
             const oldInodeBlock = (await readBlock(inodeBlock)).data.raw
-            const previousInodes = oldInodeBlock.slice(0, inodeOffset * 128)
-            const furtherInodes = oldInodeBlock.slice(inodeOffset * 128 + 128)
+            const previousInodes = oldInodeBlock.slice(0, inodeOffset * 16)
+            const furtherInodes = oldInodeBlock.slice(inodeOffset * 16 + 16)
 
-            const newInodeBlock = previousInodes + updatedInode + furtherInodes
+            const newInodeBlock = new Uint8Array(previousInodes.length + updatedInode.length + furtherInodes.length)
+            newInodeBlock.set(previousInodes, 0)
+            newInodeBlock.set(updatedInode, inodeOffset * 16)
+            newInodeBlock.set(furtherInodes, inodeOffset * 16 + 16)
 
             // Write the updated inode
             await writeBlock(inodeBlock, newInodeBlock)
@@ -149,7 +146,7 @@ export default async function write(fileDescriptor: number, data: string) {
                 await updateBitmap(
                     "data",
                     pointer - inodeStartIndex - numberOfInodeBlocks,
-                    "0",
+                    0,
                 )
             }
         } else {
@@ -167,13 +164,16 @@ export default async function write(fileDescriptor: number, data: string) {
                 i < dataBitmap.length && i < numberOfDataBlocks;
                 i++
             ) {
-                if (dataBitmap[i] === "0") {
-                    // this is a free space, add it to our new blocks
-                    newBlocks.push(i + inodeStartIndex + numberOfInodeBlocks)
-                    if (newBlocks.length === difference) {
-                        break
+                for(let j = 0; j < 8; j++) {
+                    if (getBitValueInByte(dataBitmap[i], j) === false) {
+                        // this is a free space, add it to our new blocks
+                        newBlocks.push((i * 8) + j + inodeStartIndex + numberOfInodeBlocks)
+                        if (newBlocks.length === difference) {
+                            break
+                        }
                     }
                 }
+                
             }
 
             /* c8 ignore start */
@@ -206,7 +206,10 @@ export default async function write(fileDescriptor: number, data: string) {
             const previousInodes = oldInodeBlock.slice(0, inodeOffset * 128)
             const furtherInodes = oldInodeBlock.slice(inodeOffset * 128 + 128)
 
-            const newInodeBlock = previousInodes + updatedInode + furtherInodes
+            const newInodeBlock = new Uint8Array(previousInodes.length + updatedInode.length + furtherInodes.length)
+            newInodeBlock.set(previousInodes, 0)
+            newInodeBlock.set(updatedInode, inodeOffset * 16)
+            newInodeBlock.set(furtherInodes, inodeOffset * 16 + 16)
 
             // Write the updated inode
             await writeBlock(inodeBlock, newInodeBlock)
@@ -216,7 +219,7 @@ export default async function write(fileDescriptor: number, data: string) {
                 await updateBitmap(
                     "data",
                     pointer - inodeStartIndex - numberOfInodeBlocks,
-                    "1",
+                    1,
                 )
             }
 

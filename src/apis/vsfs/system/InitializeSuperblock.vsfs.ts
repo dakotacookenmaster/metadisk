@@ -34,7 +34,8 @@ export default async function initializeSuperblock(
 
     progressCb(0)
 
-    const bitmap = "1" + "0".repeat(sectorSize - 1)
+    const bitmap = new Uint8Array(blockSize / 8)
+    bitmap[0] = 0b10000000
 
     const timestamp = new Date()
 

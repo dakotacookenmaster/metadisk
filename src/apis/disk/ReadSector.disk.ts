@@ -14,7 +14,7 @@ import { v4 as uuid } from "uuid"
  */
 export const readSector = async (
     sector: number,
-): Promise<CurrentlyServicingPayload> => {
+): Promise<CurrentlyServicingPayload<"read">> => {
     // Verify that the sector exists
     const sectors = selectSectors(store.getState())
 
@@ -39,7 +39,7 @@ export const readSector = async (
     
     store.dispatch(processQueue())
 
-    let cs: CurrentlyServicingPayload | undefined
+    let cs: CurrentlyServicingPayload<"read"> | undefined
 
     // spin-wait for the data going into the queue to be processed
     /* c8 ignore start */
@@ -51,5 +51,5 @@ export const readSector = async (
     store.dispatch(removeFromCurrentlyServicing(cs!.requestId))
 
 
-    return cs as CurrentlyServicingPayload
+    return cs as CurrentlyServicingPayload<"read">
 }

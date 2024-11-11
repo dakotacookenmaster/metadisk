@@ -1,11 +1,10 @@
-import { chunk } from "lodash"
-import { selectBlockSize, selectSectorsPerBlock, selectSuperblock, selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
+import { selectBlockSize, selectSectorSize, selectSectorsPerBlock, selectSuperblock, selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
 import { store } from "../../../store"
 import { InvalidBlockAddressError } from "../../api-errors/InvalidBlockAddress.error"
 import ReadBlockPayload from "../../interfaces/vsfs/ReadBlockPayload.interface"
-import { convertBinaryByteStringToType } from "../../../apps/vsfs/components/Viewers"
+import { getCharacter } from "../../../apps/vsfs/components/Viewers"
 import { readSector } from "../../disk/ReadSector.disk"
-import Permissions from "../../enums/vsfs/Permissions.enum"
+import Uint8ArrayChunk from "../../helpers/Uint8ArrayChunk.helper"
 
 /**
  * Reads a block from the disk.
@@ -19,6 +18,7 @@ export const readBlock = async (
     const sectorsPerBlock = selectSectorsPerBlock(state)
     const totalBlocks = selectTotalBlocks(state)
     const blockSize = selectBlockSize(state)
+    const sectorSize = selectSectorSize(state)
     const {inodeSize, inodeStartIndex} = selectSuperblock(state)
     const inodesPerBlock = blockSize / inodeSize
 
@@ -43,41 +43,72 @@ export const readBlock = async (
         ),
     )
 
-    const rawData = result.map(payload => payload.data).join('')
+    // create a new array buffer that contains the contents
+    // of each sector to create a unified "block" in memory
+    const rawBlockData = new Uint8Array((sectorSize / 8) * result.length)
+
+    // copy each array buffer from the read sectors into the new
+    // unified block buffer
+    
+    for(let i = 0; i < result.length; i++) {
+        rawBlockData.set(result[i].data, i * (sectorSize / 8))
+    }
+ 
     const sectors = result.map(payload => payload.sectorNumber)
 
     return {
         data: {
             superblock: {
-                magicNumber: parseInt(rawData.slice(0, 8), 2), // the first byte is the magic number
-                inodeCount: parseInt(rawData.slice(8, 24), 2), // the next two bytes represent the number of inodes
-                inodeBlocks: parseInt(rawData.slice(24, 28), 2), // the next nibble is the number of inode blocks
-                dataBlocks: parseInt(rawData.slice(28, 32), 2), // the next nibble is the number of data blocks
-                blockSize: parseInt(rawData.slice(32, 56), 2) // the last 3 bytes are the block size
+                magicNumber: rawBlockData[0],
+                inodeCount: (rawBlockData[1] << 8) | (rawBlockData[2]), // the next two bytes represent the number of inodes
+                inodeBlocks: rawBlockData[3] >> 4, // the next nibble is the number of inode blocks
+                dataBlocks: rawBlockData[3] & 0xF, // the next nibble is the number of data blocks
+                blockSize: (rawBlockData[4] << 16) | (rawBlockData[5]) << 8 | rawBlockData[6], // the last 3 bytes are the block size
             },
 
             directory: {
-                entries: chunk(rawData, 128).map(entry => {
-                    const name = chunk(entry.join('').slice(0, 104), 8).map(char => convertBinaryByteStringToType(char.join(''), "ascii")).join('').replaceAll("\uE400", "")
+                entries: Uint8ArrayChunk(rawBlockData, 16).map(entry => {
+                    // grab the first 13 bytes, which represents the 13 characters in the entry name
+                    // Then, convert those to ASCII CP-437 values
+                    const nameView = entry.slice(0, 13)
+                    const name = nameView.reduce((acc, val) => {
+                        return acc + getCharacter(val)
+                    }, "").replaceAll("\uE400", "")
+
+                    // the last 3 bytes are the inode this entry refers to
+                    const inodeView = entry.slice(13, 16)
+                    const inode = inodeView.reduce((acc, val, index) => {
+                        return (acc | (val << (8 * (2 - index))))
+                    }, 0)
+
                     return {
                         name,
-                        inode: parseInt(entry.join('').slice(104, 128), 2),
+                        inode,
                         free: name === "" // if it has no name, it's a free space
                     }
                 })
             },
-            inodes: chunk(rawData, 128).map((inode, index) => {
+            inodes: Uint8ArrayChunk(rawBlockData, 16).map((array, index) => {
                 return {
                     inode: (inodesPerBlock * (block - inodeStartIndex)) + index, // assuming this is an inode block, where inode blocks start at inodeStartIndex
-                    permissions: [inode.join('').slice(2, 4), inode.join('').slice(4, 6), inode.join('').slice(6, 8)].join('') as Permissions,
-                    type: inode.join('').slice(0, 2) === "00" ? "file" : "directory" as "file" | "directory",
-                    size: parseInt(inode.join('').slice(8, 32), 2),
-                    createdAt: new Date(parseInt(inode.join('').slice(32, 64), 2) * 1000),
-                    lastModified: new Date(parseInt(inode.join('').slice(64, 96), 2) * 1000),
-                    blockPointers: chunk(inode.join('').slice(96, 128), 4).map(pointer => parseInt(pointer.join(''), 2))
+                    type: array[0] >> 6 === 0 ? "file" : "directory", // the first two bits are the file type
+                    permissions: array[0] & 0x3F, // the next six bits are the permissions
+                    size: (array[1] << 16) | (array[2] << 8) | array[3], // the next 3 bytes are the inode size
+                    createdAt: new Date(((array[4] << 24) | (array[5] << 16) | (array[6] << 8) | array[7]) * 1000), // the next 4 bytes are the createdAt date
+                    lastModified: new Date(((array[8] << 24) | (array[9] << 16) | (array[10] << 8) | array[11]) * 1000), // the next 4 bytes are the lastModified date
+                    blockPointers: [
+                        array[12] >> 4,
+                        array[12] & 0xF,
+                        array[13] >> 4,
+                        array[13] & 0xF,
+                        array[14] >> 4,
+                        array[14] & 0xF,
+                        array[15] >> 4,
+                        array[15] & 0xF,
+                    ] // 8 block pointers, where each pointer is a nibble
                 }
             }),
-            raw: rawData,
+            raw: rawBlockData,
         },
         sectors
     }

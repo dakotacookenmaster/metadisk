@@ -10,26 +10,25 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import CancelIcon from "@mui/icons-material/Cancel"
 import FileIcon from "@mui/icons-material/Description"
 import FolderIcon from "@mui/icons-material/Folder"
-import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
-import { chunk } from "lodash"
 import { blue, green } from "@mui/material/colors"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import {
     selectBlockSize,
     selectSuperblock,
 } from "../../../redux/reducers/fileSystemSlice"
+import Uint8ArrayChunk from "../../../apis/helpers/Uint8ArrayChunk.helper"
 
 const InodeOverview = (props: {
-    data: string
+    data: Uint8Array
     setSelected: React.Dispatch<React.SetStateAction<string>>
     canMove: boolean
     beginOperation: () => void
-    blockRefs: React.RefObject<unknown>[],
+    blockRefs: React.RefObject<unknown>[]
     blockNumber: number
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
     selectedInode: number | undefined
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
-    inodeBitmap: string
+    inodeBitmap: Uint8Array
 }) => {
     const {
         data,
@@ -47,42 +46,73 @@ const InodeOverview = (props: {
     const blockSize = useAppSelector(selectBlockSize)
     const inodeStartIndex = superblock.inodeStartIndex
     const inodesPerBlock = blockSize / superblock.inodeSize
-    const offset = selectedInode !== undefined ? (selectedInode % inodesPerBlock)* 128 : 0 // 128 bits is the size of an inode
+    const offset =
+        selectedInode !== undefined ? (selectedInode % inodesPerBlock) * 16 : 0 // 16 bytes is the size of an inode
     const type = [<FileIcon />, <FolderIcon sx={{ color: "#F1D592" }} />][
-        parseInt(data.slice(0 + offset, 2 + offset), 2)
+        data[offset] >> 6
     ]
     const options = [
         <CancelIcon color="error" />,
         <CheckCircleOutlineIcon color="success" />,
     ]
-    const read = options[parseInt(data.slice(2 + offset, 4 + offset), 2)]
-    const write = options[parseInt(data.slice(4 + offset, 6 + offset), 2)]
-    const execute = options[parseInt(data.slice(6 + offset, 8 + offset), 2)]
-    const size = getByteCount(parseInt(data.slice(8 + offset, 32 + offset), 2))
+
+    const read = options[(data[offset] >> 4) & 0b11]
+    const write = options[(data[offset] >> 2) & 0b11]
+    const execute = options[data[offset] & 0b11]
+
+    const size =
+        (data[offset + 1] << 16) |
+        ((data[offset + 2] << 8) & 0xff) |
+        (data[offset + 3] & 0xff)
+
+    console.log(data[offset + 1], data[offset + 2], data[offset + 3])
 
     const createdAt = new Date(
-        parseInt(data.slice(32 + offset, 64 + offset), 2) * 1000,
+        ((data[offset + 4] << 24) |
+            ((data[offset + 5] << 16) & 0xff) |
+            ((data[offset + 6] << 8) & 0xff) |
+            (data[offset + 7] & 0xff)) *
+            1000,
     ).toLocaleString()
     const lastModified = new Date(
-        parseInt(data.slice(64 + offset, 96 + offset), 2) * 1000,
+        ((data[offset + 8] << 24) |
+            ((data[offset + 8] << 16) & 0xff) |
+            ((data[offset + 10] << 8) & 0xff) |
+            (data[offset + 11] & 0xff)) *
+            1000,
     ).toLocaleString()
-    const blockPointers = chunk(
-        data.slice(96 + offset, 128 + offset).split(""),
-        4,
-    ).map((nibble) => parseInt(nibble.join(""), 2))
+
+    const blockPointers = [
+        data[offset + 12] >> 4,
+        data[offset + 12] & 0xf,
+        data[offset + 13] >> 4,
+        data[offset + 13] & 0xf,
+        data[offset + 14] >> 4,
+        data[offset + 14] & 0xf,
+        data[offset + 15] >> 4,
+        data[offset + 15] & 0xf,
+    ]
     const theme = useTheme()
 
     // remove any inodes that aren't available in the inode bitmap
     const inodeNumbers: number[] = []
-    const inodes = chunk(data.split(""), superblock.inodeSize).filter(
-        (_, i) => {
-            if(inodeBitmap[i + blockNumber * inodesPerBlock] !== "0") {
+
+    const inodeBitmapAsString = Array.from(inodeBitmap)
+        .map((num) => num.toString(2).padStart(8, "0"))
+        .join("")
+    const inodes = Uint8ArrayChunk(data, superblock.inodeSize)
+        .map((arr) => {
+            return Array.from(arr).map((num) =>
+                num.toString(2).padStart(8, "0"),
+            )
+        })
+        .filter((_, i) => {
+            if (inodeBitmapAsString[i + blockNumber * inodesPerBlock] !== "0") {
                 inodeNumbers.push(i)
                 return true
-            } 
+            }
             return false
-        }
-    )
+        })
 
     if (selectedInode === undefined) {
         return (
@@ -133,7 +163,8 @@ const InodeOverview = (props: {
                                         setSelectedInode(index)
                                     }}
                                 >
-                                    {inodeNumbers[index] + blockNumber * inodesPerBlock}
+                                    {inodeNumbers[index] +
+                                        blockNumber * inodesPerBlock}
                                 </Box>
                             )
                         })
@@ -146,7 +177,7 @@ const InodeOverview = (props: {
     }
 
     return (
-        <Table sx={{ overflow: "auto", tableLayout: "fixed", }}>
+        <Table sx={{ overflow: "auto", tableLayout: "fixed" }}>
             <TableBody>
                 <TableRow>
                     <TableCell>Type</TableCell>
@@ -232,8 +263,12 @@ const InodeOverview = (props: {
                                                 }`,
                                             )
                                             setBlockNumber(pointer)
-                                            const ref = blockRefs[pointer].current as Element
-                                            ref.scrollIntoView({ behavior: "smooth", block: "nearest" })
+                                            const ref = blockRefs[pointer]
+                                                .current as Element
+                                            ref.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "nearest",
+                                            })
                                         }
                                     }}
                                 >

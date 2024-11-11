@@ -1,9 +1,9 @@
 import { enqueue, processQueue, removeFromCurrentlyServicing, selectSectors } from "../../redux/reducers/diskSlice"
 import { selectSectorSize } from "../../redux/reducers/fileSystemSlice"
 import { store } from "../../store"
-import { InvalidBinaryStringError } from "../api-errors/InvalidBinaryString.error"
 import { InvalidSectorError } from "../api-errors/InvalidSector.error"
 import { SectorOverflowError } from "../api-errors/SectorOverflow.error"
+import { SectorUnderflowError } from "../api-errors/SectorUnderflow.error"
 import CurrentlyServicingPayload from "../interfaces/disk/CurrentlyServicingPayload.interface"
 import { v4 as uuid } from "uuid"
 
@@ -12,39 +12,35 @@ import { v4 as uuid } from "uuid"
  * data to a particular sector.
  * @param sector The sector you wish to write to
  * @param data The data you wish to write to the requested sector
- * @throws `InvalidBinaryStringError` String must be composed entirely of 0s and 1s
+ * @throws `SectorUnderflowError` String must be large enough to fill the desired sector
  * @throws `SectorOverflowError` String must be small enough to fit within the desired sector
  * @returns `CurrentlyServicingPayload` The data from the result of the write, indicating its completion.
  */
 export const writeSector = async (
     sector: number,
-    data: string,
-): Promise<CurrentlyServicingPayload> => {
+    data: Uint8Array,
+): Promise<CurrentlyServicingPayload<"write">> => {
     // Verify that the sector exists
     const state = store.getState()
     const sectors = selectSectors(state)
-    const sectorSize = selectSectorSize(store.getState())
+    const sectorSize = selectSectorSize(store.getState()) // in bits
 
     if (sector < 0 || sector >= sectors.length) {
         throw new InvalidSectorError(
-            `Total Sectors: ${sectors.length} (0 - ${
-                sectors.length - 1
+            `Total Sectors: ${sectors.length} (0 - ${sectors.length - 1
             }), Requested Sector: ${sector}`,
         )
     }
 
-    // Check validity of the data (all 1s and 0s?)
-    for (let char of data) {
-        if (char !== "0" && char !== "1") {
-            throw new InvalidBinaryStringError(`Invalid character: ${char}`)
-        }
+    // Guarantee the data can be written to the sector
+    if ((data.length * 8) > sectorSize) {
+        throw new SectorOverflowError(
+            `Sector Size: ${sectorSize * 8} bits, Binary Size: ${data.length * 8} bits`,
+        )
     }
 
-    // Guarantee the data can be written to the sector
-    if (data.length > sectorSize) {
-        throw new SectorOverflowError(
-            `Sector Size: ${sectorSize} bits, Binary Size: ${data.length} bits`,
-        )
+    if ((data.length * 8) < sectorSize) {
+        throw new SectorUnderflowError(`Sector Size: ${sectorSize * 8} bits, Binary Size: ${data.length * 8} bits`)
     }
 
     // The operation is valid. Add it to the disk queue.
@@ -55,13 +51,13 @@ export const writeSector = async (
             type: "write",
             sectorNumber: sector,
             requestId: id,
-            data: data.padEnd(sectorSize, "0"), // make sure we write an entire sector
+            data: data, // make sure we write a whole sector in bytes
         }),
     )
-    
+
     store.dispatch(processQueue())
 
-    let cs: CurrentlyServicingPayload | undefined
+    let cs: CurrentlyServicingPayload<"write"> | undefined
 
     // spin-wait for the data going into the queue to be processed
     /* c8 ignore start */
@@ -72,5 +68,5 @@ export const writeSector = async (
 
     store.dispatch(removeFromCurrentlyServicing(cs!.requestId))
 
-    return cs as CurrentlyServicingPayload
+    return cs as CurrentlyServicingPayload<"write">
 }

@@ -10,28 +10,39 @@ import BuildDirectoryData from "../../interfaces/vsfs/BuildDirectoryData.interfa
  * @param directory The directory data
  * @returns 
  */
-export default function buildDirectory(directory: BuildDirectoryData): string {
+export default function buildDirectory(directory: BuildDirectoryData): Uint8Array {
     const maxEntries = selectBlockSize(store.getState()) / 128 // the max number of entries per block
-    const entries = []
     if(directory.entries.length > maxEntries) {
         throw new DirectoryBlockOverflowError()
     }
-    for (let entry of directory.entries) {
+
+    const entries = new Uint8Array(directory.entries.length * 16) // it takes 16 bytes to represent a directory entry
+
+    for(let i = 0; i < directory.entries.length; i++) {
+        const entry = directory.entries[i]
         if (entry.name.length > 13) {
             throw new FilenameTooLongError()
         }
 
+        // get an array of the numeric encodings
+        // for each ASCII character. These are the first
+        // 13 bytes of the entry
         const name = entry.name
             .split("")
             .map((char) => {
-                return getCharacterEncoding(char).toString(2).padStart(8, "0")
+                return getCharacterEncoding(char)
             })
-            .join("")
-            .padStart(104, "0")
-        const inode = entry.inode.toString(2).padStart(24, "0")
 
-        entries.push(name + inode)
+
+        // the last 3 bytes of the entry are the inode it points to
+        const inode = entry.inode
+
+        // set these values in the array buffer
+        entries.set(name, i * 16)
+        entries[(i * 16) + 13] = inode >> 16
+        entries[(i * 16) + 14] = (inode >> 8) & 0xFF
+        entries[(i * 16) + 15] = inode & 0xFF
     }
 
-    return entries.join("")
+    return entries
 }

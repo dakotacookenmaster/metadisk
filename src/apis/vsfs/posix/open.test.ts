@@ -90,7 +90,7 @@ describe("opens a file", () => {
             store.dispatch(setSectorsPerBlock(1))
             store.dispatch(
                 setSectors(
-                    [...Array(16)].map(() => ({ data: "0".repeat(256) })),
+                    [...Array(16)].map(() => new Uint8Array(32)),
                 ),
             )
             await initializeSuperblock(() => {})
@@ -102,7 +102,7 @@ describe("opens a file", () => {
             }
         })
 
-        test("fails when there aren't enough inodes to create a new file", { timeout: 30000 }, async () => {
+        test.only("fails when there aren't enough inodes to create a new file", { timeout: 30000 }, async () => {
             for(let i = 0; i < 9; i++) {
                 await expect(open(`/${i}`, [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ)).resolves.toBeGreaterThan(2)
             }

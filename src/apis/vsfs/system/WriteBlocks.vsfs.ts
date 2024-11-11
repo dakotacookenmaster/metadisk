@@ -10,7 +10,7 @@ import { writeBlock } from "./WriteBlock.vsfs"
  */
 export const writeBlocks = async (
     blocks: number[],
-    data: string[],
+    data: Uint8Array[],
     progressCb?: (progress: number) => void,
 ) => {
     let totalCompleted = 0

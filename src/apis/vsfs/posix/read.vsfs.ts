@@ -3,6 +3,7 @@ import { store } from "../../../store";
 import { AccessDeniedError } from "../../api-errors/AccessDenied.error";
 import { InvalidFileDescriptorError } from "../../api-errors/InvalidFileDescriptor.error";
 import OpenFlags from "../../enums/vsfs/OpenFlags.enum";
+import flattenBuffers from "../../helpers/flattenBuffers.helper";
 import getInodeLocation from "../system/GetInodeLocation.vsfs";
 import { readBlock } from "../system/ReadBlock.vsfs";
 
@@ -11,8 +12,9 @@ import { readBlock } from "../system/ReadBlock.vsfs";
  * @param fileDescriptor The file descriptor for the file to read from
  * @throws InvalidFileDescriptorError
  * @throws AccessDeniedError
+ * @returns {Uint8Array} the data from the file
  */
-export default async function read(fileDescriptor: number): Promise<string> {
+export default async function read(fileDescriptor: number): Promise<Uint8Array> {
     const fileDescriptorTable = selectFileDescriptorTable(store.getState())
     if(fileDescriptor < 0 || fileDescriptor > fileDescriptorTable.length - 1) {
         throw new InvalidFileDescriptorError()
@@ -35,10 +37,10 @@ export default async function read(fileDescriptor: number): Promise<string> {
         // we can open the file for reading because the permissions are legitimate
         const { inodeBlock, inodeOffset } = getInodeLocation(descriptor.inode)
         const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
-        let data = (await Promise.all(inode.blockPointers.filter(v => v).map(async pointer => {
+        let data = flattenBuffers(await Promise.all(inode.blockPointers.filter(v => v).map(async pointer => {
             // for non-null pointer in the file, read the contents
             return (await readBlock(pointer)).data.raw
-        })) as string[]).join('')
+        })))
 
         return data
     } else {

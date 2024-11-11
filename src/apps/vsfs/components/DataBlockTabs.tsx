@@ -55,7 +55,7 @@ function a11yProps(index: number) {
 }
 
 export default function DataBlockTabs(props: {
-    data: string | undefined
+    data: Uint8Array | undefined
     blockNumber: number
     progress: number,
     setSelected: React.Dispatch<React.SetStateAction<string>>,

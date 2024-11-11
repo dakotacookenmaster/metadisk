@@ -35,7 +35,7 @@ function a11yProps(index: number) {
     }
 }
 
-export default function BitmapTabs(props: { data: string | undefined, progress: number, type: "inode" | "data" }) {
+export default function BitmapTabs(props: { data: Uint8Array | undefined, progress: number, type: "inode" | "data" }) {
     const { data, progress, type } = props
     const [value, setValue] = React.useState(0)
 

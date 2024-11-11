@@ -6,9 +6,7 @@ import { store } from "../../store"
 import { InvalidSectorError } from "../api-errors/InvalidSector.error"
 
 const sectors = [...Array(3)].map(() => {
-    return {
-        data: "0".repeat(4096),
-    }
+    return new Uint8Array(512)
 })
 
 const mockPayload = {

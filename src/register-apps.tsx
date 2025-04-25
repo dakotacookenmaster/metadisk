@@ -14,13 +14,13 @@ import ExploreIcon from '@mui/icons-material/Explore';
 const apps: Record<
     string,
     {
-        elementFn: (props?: any) => React.JSX.Element
-        props?: Record<string, any>
+        elementFn: (props?: object) => React.JSX.Element
+        props?: object
         muiIcon:
-            | (OverridableComponent<SvgIconTypeMap<{}, "svg">> & {
+            | (OverridableComponent<SvgIconTypeMap<object, "svg">> & {
                   muiName: string
               })
-            | ((props?: any) => React.JSX.Element)
+            | ((props: object) => React.JSX.Element)
         enabled: boolean
         onChange?: (enabled: boolean) => void
     }

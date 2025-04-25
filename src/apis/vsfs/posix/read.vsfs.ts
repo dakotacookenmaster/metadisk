@@ -35,7 +35,7 @@ export default async function read(fileDescriptor: number): Promise<string> {
         // we can open the file for reading because the permissions are legitimate
         const { inodeBlock, inodeOffset } = getInodeLocation(descriptor.inode)
         const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
-        let data = (await Promise.all(inode.blockPointers.filter(v => v).map(async pointer => {
+        const data = (await Promise.all(inode.blockPointers.filter(v => v).map(async pointer => {
             // for non-null pointer in the file, read the contents
             return (await readBlock(pointer)).data.raw
         })) as string[]).join('')

@@ -1,24 +1,37 @@
-import { Box, Pagination, PaginationItem, useTheme } from "@mui/material"
+import { Box, Pagination, PaginationItem } from "@mui/material"
+import { useTheme } from "@mui/material/styles"
 import { blue } from "@mui/material/colors"
 import { useState } from "react"
 import { chunk } from "lodash"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
+import getInodeLocation from "../../../apis/vsfs/system/GetInodeLocation.vsfs"
 
-const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
+const Bitmap = (props: {
+    data: string
+    type: "inode" | "data"
+    setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
+    setBlockNumber: React.Dispatch<React.SetStateAction<number>>
+    setSelected: React.Dispatch<React.SetStateAction<string>>
+}) => {
     const theme = useTheme()
-    let { data, type } = props
+    const { data, type, setBlockNumber, setSelectedInode, setSelected } = props
     const pageData = chunk(data.split(""), 256)
     const [page, setPage] = useState(1)
     const superblock = useAppSelector(selectSuperblock)
-    
-    const upperLimit = type === "data" ? superblock.numberOfDataBlocks : superblock.numberOfInodes
+    const inodeStartIndex = superblock.inodeStartIndex
+    const numberOfInodeBlocks = superblock.numberOfInodeBlocks
+
+    const upperLimit =
+        type === "data"
+            ? superblock.numberOfDataBlocks
+            : superblock.numberOfInodes
 
     const getColor = (char: string, index: number) => {
-        if(index >= upperLimit) {
+        if (index >= upperLimit) {
             return "grey"
         }
-        if(char === "0") {
+        if (char === "1") {
             return theme.palette.success.main
         } else {
             return theme.palette.error.main
@@ -55,19 +68,50 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
                     .map((char, i) => {
                         return (
                             <Box
-                                data-testid={`bit-${((page - 1) * 256) + i}`}
+                                data-testid={`bit-${(page - 1) * 256 + i}`}
                                 key={`bit-${i}`}
                                 style={{
                                     display: "flex",
                                     fontWeight: "bold",
-                                    borderRadius: "2px",
+                                    borderRadius:
+                                        type === "inode" ? "100%" : "2px",
                                     alignItems: "center",
-                                    fontSize: (i + (page - 1) * 256) > 9999 ? "12px" : "16px",
+                                    fontSize:
+                                        i + (page - 1) * 256 > 9999
+                                            ? "12px"
+                                            : "16px",
                                     justifyContent: "center",
                                     width: "50px",
                                     height: "50px",
                                     border: "2px solid white",
-                                    background: getColor(char, i + (page - 1) * 256)
+                                    background: getColor(
+                                        char,
+                                        i + (page - 1) * 256,
+                                    ),
+                                    cursor:
+                                        i + (page - 1) * 256 >= upperLimit || char === "0"
+                                            ? "not-allowed"
+                                            : "pointer",
+                                }}
+                                onClick={() => {
+                                    const currentIndex = i + (page - 1) * 256
+                                    if (currentIndex < upperLimit && char !== "0") {
+                                        if (type === "inode") {
+                                            const { inodeBlock } =
+                                                getInodeLocation(currentIndex)
+                                            setSelectedInode(currentIndex)
+                                            setBlockNumber(inodeBlock)
+                                            setSelected(
+                                                `Inode Block ${inodeStartIndex - inodeBlock}`,
+                                            )
+                                        } else {
+                                            setSelectedInode(undefined)
+                                            setBlockNumber(currentIndex + inodeStartIndex + numberOfInodeBlocks)
+                                            setSelected(
+                                                "Data Block " + currentIndex,
+                                            )
+                                        }
+                                    }
                                 }}
                             >
                                 {i + (page - 1) * 256}
@@ -78,7 +122,9 @@ const Bitmap = (props: { data: string, type: "inode" | "data" }) => {
             <Pagination
                 count={pageData.length}
                 renderItem={(params) => {
-                    return <PaginationItem data-testid={params.type} {...params} />
+                    return (
+                        <PaginationItem data-testid={params.type} {...params} />
+                    )
                 }}
                 onChange={(_, page) => {
                     setPage(page)

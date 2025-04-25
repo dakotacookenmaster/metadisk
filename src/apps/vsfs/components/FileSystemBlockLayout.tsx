@@ -1,4 +1,5 @@
-import { Box, Typography, useTheme } from "@mui/material"
+import { Box, Typography } from "@mui/material"
+import { useTheme } from "@mui/material/styles"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSectorsPerBlock, selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
 import { createRef, useEffect, useMemo, useState } from "react"
@@ -26,7 +27,7 @@ const FileSystemBlockLayout = () => {
         undefined,
     )
     const blockRefs = useMemo(() => {
-        return [...Array(totalBlocks)].map((_) => createRef())
+        return [...Array(totalBlocks)].map(() => createRef())
     }, [])
 
     const beginOperation = () => {
@@ -38,6 +39,8 @@ const FileSystemBlockLayout = () => {
     useEffect(() => {
         (blockRefs[0].current as Element).scrollIntoView({ behavior: "smooth", block: "nearest", })
     }, [])
+
+    console.log(selected)
 
     useEffect(() => {
         ;(async () => {
@@ -148,10 +151,10 @@ const FileSystemBlockLayout = () => {
                 <SuperblockTabs data={data} progress={progress} />
             )}
             {selected === "Inode Bitmap" && (
-                <BitmapTabs type="inode" data={data} progress={progress} />
+                <BitmapTabs setSelected={setSelected} setSelectedInode={setSelectedInode} setBlockNumber={setBlockNumber} type="inode" data={data} progress={progress} />
             )}
             {selected === "Data Bitmap" && (
-                <BitmapTabs type="data" data={data} progress={progress} />
+                <BitmapTabs setSelected={setSelected} setSelectedInode={setSelectedInode} setBlockNumber={setBlockNumber} type="data" data={data} progress={progress} />
             )}
             {selected.includes("Inode Block") && (
                 <InodeBlockTabs

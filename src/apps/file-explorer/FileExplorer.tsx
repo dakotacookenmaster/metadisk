@@ -47,7 +47,7 @@ export default function FileExplorer() {
     const [type, setType] = useState<"file" | "directory">("file")
 
     const handleContextMenu = (
-        event: any,
+        event: React.MouseEvent<HTMLElement>,
         path: string,
         type: "file" | "directory" | "window",
     ) => {

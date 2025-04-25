@@ -50,7 +50,7 @@ export default function FileOrDirectoryDialog(props: {
                     prevLoadingHierarchy.filter((id) => id !== task),
                 )
             } catch (error) {
-                let e = error as Error
+                const e = error as Error
                 dispatch(
                     setError({
                         name: e.name,
@@ -77,7 +77,7 @@ export default function FileOrDirectoryDialog(props: {
                     prevLoadingHierarchy.filter((id) => id !== task),
                 )
             } catch (error) {
-                let e = error as Error
+                const e = error as Error
                 dispatch(
                     setError({
                         name: e.name,

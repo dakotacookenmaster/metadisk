@@ -6,6 +6,7 @@ import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
 import getAllDirectories from "../../common/helpers/getAllDirectories"
 import {
+    IconButton,
     Table,
     TableBody,
     TableCell,
@@ -21,12 +22,14 @@ import { selectSectors } from "../../../redux/reducers/diskSlice"
 import { blue, green } from "@mui/material/colors"
 import getLabel from "../../common/helpers/getLabel"
 import getInodeLocation from "../../../apis/vsfs/system/GetInodeLocation.vsfs"
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh"
+import { chunk } from "lodash"
 
 interface TabPanelProps {
     children?: React.ReactNode
     index: number
     value: number
-    style?: any
+    style?: object
 }
 
 function CustomTabPanel(props: TabPanelProps) {
@@ -57,15 +60,25 @@ function a11yProps(index: number) {
 export default function DataBlockTabs(props: {
     data: string | undefined
     blockNumber: number
-    progress: number,
-    setSelected: React.Dispatch<React.SetStateAction<string>>,
-    setBlockNumber: React.Dispatch<React.SetStateAction<number>>,
-    setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>,
-    beginOperation: () => void,
-    blockRefs: React.RefObject<unknown>[],
+    progress: number
+    setSelected: React.Dispatch<React.SetStateAction<string>>
+    setBlockNumber: React.Dispatch<React.SetStateAction<number>>
+    setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
+    beginOperation: () => void
+    blockRefs: React.RefObject<unknown>[]
     canMove: boolean
 }) {
-    const { data, progress, blockRefs, blockNumber, canMove, setSelected, setBlockNumber, setSelectedInode, beginOperation } = props
+    const {
+        data,
+        progress,
+        blockRefs,
+        blockNumber,
+        canMove,
+        setSelected,
+        setBlockNumber,
+        setSelectedInode,
+        beginOperation,
+    } = props
     const [value, setValue] = React.useState(0)
     const [dir, setDir] = React.useState(false)
     const [entries, setEntries] = React.useState<DirectoryEntry[]>([])
@@ -74,6 +87,7 @@ export default function DataBlockTabs(props: {
         useAppSelector(selectSuperblock)
     const sectors = useAppSelector(selectSectors)
     const theme = useTheme()
+    const [shouldHighlight, setShouldHighlight] = React.useState(true)
 
     React.useEffect(() => {
         ;(async () => {
@@ -90,7 +104,7 @@ export default function DataBlockTabs(props: {
                     )
                 ).data.directory.entries
                 const valid = []
-                for (let entry of dirEntries) {
+                for (const entry of dirEntries) {
                     if (!entry.free) {
                         valid.push(entry)
                     }
@@ -105,6 +119,38 @@ export default function DataBlockTabs(props: {
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
+    }
+
+    function getRanges(data: string) {
+        const ranges = []
+        const chunks = chunk(data, 128)
+        for (let i = 0; i < chunks.length; i++) {
+            if(chunks[i].join("") === "0".repeat(128)) {
+                continue;
+            }
+            const directoryNameRange = {
+                startRow: 1 + 4 * i,
+                startColumn: 0,
+                endRow: 4 + 4 * i,
+                endColumn: 9,
+                backgroundColor: green[900],
+                label: "Name",
+            }
+
+            const inodeNumberRange = {
+                startRow: 4 + 4 * i,
+                startColumn: 10,
+                endRow: 4 + 4 * i,
+                endColumn: 36,
+                backgroundColor: blue[900],
+                label: "Inode Number",
+            }
+
+            ranges.push(directoryNameRange)
+            ranges.push(inodeNumberRange)
+        }
+
+        return ranges
     }
 
     if (!data || !finished) {
@@ -128,6 +174,19 @@ export default function DataBlockTabs(props: {
                     <Tab label="Binary" {...a11yProps(dir ? 1 : 0)} />
                     <Tab label="Hex" {...a11yProps(dir ? 2 : 1)} />
                     <Tab label="ASCII" {...a11yProps(dir ? 3 : 2)} />
+                    {value === 1 && dir && (
+                        <IconButton
+                            onClick={() =>
+                                setShouldHighlight(
+                                    (prevShouldHighlight) =>
+                                        !prevShouldHighlight,
+                                )
+                            }
+                            sx={{ position: "absolute", top: 3, right: 3 }}
+                        >
+                            <AutoFixHighIcon />
+                        </IconButton>
+                    )}
                 </Tabs>
             </Box>
             {dir && (
@@ -146,7 +205,7 @@ export default function DataBlockTabs(props: {
                     <Table sx={{ maxHeight: "20px", overflow: "hidden" }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Directory Name</TableCell>
+                                <TableCell>Name</TableCell>
                                 <TableCell>Inode Number</TableCell>
                             </TableRow>
                         </TableHead>
@@ -166,22 +225,52 @@ export default function DataBlockTabs(props: {
                                                         <Box
                                                             onClick={() => {
                                                                 if (canMove) {
-                                                                    setSelectedInode(entry.inode)
-                                                                    setSelected((prevLabel) => {
-                                                                        const { inodeBlock } = getInodeLocation(entry.inode)
-                                                                        setBlockNumber(inodeBlock)
-                                                                        const newLabel = getLabel(inodeBlock)
-                                                                        if (prevLabel !== newLabel) {
-                                                                            beginOperation()
-                                                                        }
-                                                                        return newLabel
-                                                                    })
-                                                                    const ref = blockRefs[index].current as Element
-                                                                    ref.scrollIntoView({ behavior: "smooth", block: "nearest" })
+                                                                    setSelectedInode(
+                                                                        entry.inode,
+                                                                    )
+                                                                    setSelected(
+                                                                        (
+                                                                            prevLabel,
+                                                                        ) => {
+                                                                            const {
+                                                                                inodeBlock,
+                                                                            } =
+                                                                                getInodeLocation(
+                                                                                    entry.inode,
+                                                                                )
+                                                                            setBlockNumber(
+                                                                                inodeBlock,
+                                                                            )
+                                                                            const newLabel =
+                                                                                getLabel(
+                                                                                    inodeBlock,
+                                                                                )
+                                                                            if (
+                                                                                prevLabel !==
+                                                                                newLabel
+                                                                            ) {
+                                                                                beginOperation()
+                                                                            }
+                                                                            return newLabel
+                                                                        },
+                                                                    )
+                                                                    const ref =
+                                                                        blockRefs[
+                                                                            index
+                                                                        ]
+                                                                            .current as Element
+                                                                    ref.scrollIntoView(
+                                                                        {
+                                                                            behavior:
+                                                                                "smooth",
+                                                                            block: "nearest",
+                                                                        },
+                                                                    )
                                                                 }
                                                             }}
                                                             sx={{
-                                                                fontWeight: "bold",
+                                                                fontWeight:
+                                                                    "bold",
                                                                 width: "30px",
                                                                 height: "30px",
                                                                 border: "2px solid white",
@@ -192,11 +281,19 @@ export default function DataBlockTabs(props: {
                                                                     "center",
                                                                 justifyContent:
                                                                     "center",
+                                                                backgroundColor:
+                                                                    theme
+                                                                        .palette
+                                                                        .success
+                                                                        .main,
                                                                 "&:hover": {
-                                                                    cursor: canMove ? "pointer" : "not-allowed",
-                                                                    backgroundColor: green[600],
+                                                                    cursor: canMove
+                                                                        ? "pointer"
+                                                                        : "not-allowed",
+                                                                    backgroundColor:
+                                                                        green[600],
                                                                     border: "none",
-                                                                }
+                                                                },
                                                             }}
                                                         >
                                                             {entry.inode}
@@ -213,7 +310,14 @@ export default function DataBlockTabs(props: {
                 </CustomTabPanel>
             )}
             <CustomTabPanel value={value} index={dir ? 1 : 0}>
-                <Viewer data={data} mode="bin" />
+                <Viewer
+                    highlights={{
+                        ranges: getRanges(data),
+                    }}
+                    shouldHighlight={shouldHighlight}
+                    data={data}
+                    mode="bin"
+                />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={dir ? 2 : 1}>
                 <Viewer data={data} mode="hex" />

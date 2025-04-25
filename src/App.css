@@ -9,6 +9,10 @@
     font-family: "u0000", monospace;
 }
 
+.line-decoration {
+    background: orange;
+}
+
 div[role="tree"] {
     height: 400px !important;
 }

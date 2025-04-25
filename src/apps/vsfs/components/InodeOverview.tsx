@@ -12,7 +12,7 @@ import FileIcon from "@mui/icons-material/Description"
 import FolderIcon from "@mui/icons-material/Folder"
 import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
 import { chunk } from "lodash"
-import { blue, green } from "@mui/material/colors"
+import { blue, green, grey } from "@mui/material/colors"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import {
     selectBlockSize,
@@ -73,16 +73,25 @@ const InodeOverview = (props: {
     const theme = useTheme()
 
     // remove any inodes that aren't available in the inode bitmap
-    const inodeNumbers: number[] = []
-    const inodes = chunk(data.split(""), superblock.inodeSize).filter(
-        (_, i) => {
+    const inodeNumbers: { inodeNumber: number, allocated: boolean}[] = []
+    const inodes = chunk(data.split(""), superblock.inodeSize).map(
+        (data, i) => {
             if(inodeBitmap[i + blockNumber * inodesPerBlock] !== "0") {
-                inodeNumbers.push(i)
-                return true
-            } 
-            return false
+                inodeNumbers.push({
+                    inodeNumber: i,
+                    allocated: true,
+                })
+            } else {
+                inodeNumbers.push({
+                    inodeNumber: i,
+                    allocated: false,
+                })
+            }
+            return data
         }
     )
+
+    console.log(inodeNumbers)
 
     if (selectedInode === undefined) {
         return (
@@ -112,7 +121,7 @@ const InodeOverview = (props: {
                         inodes.map((_, index) => {
                             return (
                                 <Box
-                                    key={`inode-box-${inodeNumbers[index]}`}
+                                    key={`inode-box-${inodeNumbers[index].inodeNumber}`}
                                     sx={{
                                         width: "70px",
                                         height: "70px",
@@ -122,18 +131,22 @@ const InodeOverview = (props: {
                                         fontWeight: "bold",
                                         display: "flex",
                                         alignItems: "center",
+                                        userSelect: "none",
                                         justifyContent: "center",
+                                        cursor: inodeNumbers[index].allocated ? "pointer" : "not-allowed",
+                                        background: inodeNumbers[index].allocated ? theme.palette.success.main : grey[400],
                                         "&:hover": {
-                                            background: green[600],
-                                            border: "none",
-                                            cursor: "pointer",
+                                            background: inodeNumbers[index].allocated ? green[600] : undefined,
+                                            border: inodeNumbers[index].allocated ? "none" : undefined,
                                         },
                                     }}
                                     onClick={() => {
-                                        setSelectedInode(index)
+                                        if(inodeNumbers[index].allocated) {
+                                            setSelectedInode(index)
+                                        }
                                     }}
                                 >
-                                    {inodeNumbers[index] + blockNumber * inodesPerBlock}
+                                    {inodeNumbers[index].inodeNumber + blockNumber * inodesPerBlock}
                                 </Box>
                             )
                         })
@@ -210,10 +223,11 @@ const InodeOverview = (props: {
                                         fontWeight: "bold",
                                         justifyContent: "center",
                                         alignItems: "center",
+                                        background: theme.palette.success.main,
                                         padding: "5px",
                                         "&:hover": {
                                             background:
-                                                theme.palette.primary.main,
+                                                green[800],
                                             cursor:
                                                 canMove && pointer !== 0
                                                     ? "pointer"

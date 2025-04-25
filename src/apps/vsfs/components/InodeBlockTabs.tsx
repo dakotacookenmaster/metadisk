@@ -6,7 +6,20 @@ import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
 import InodeOverview from "./InodeOverview"
 import { IconButton } from "@mui/material"
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
+import { chunk } from "lodash"
+import {
+    blue,
+    brown,
+    green,
+    indigo,
+    orange,
+    pink,
+    purple,
+    red,
+    teal,
+} from "@mui/material/colors"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -66,9 +79,128 @@ export default function InodeBlockTabs(props: {
         setSelectedInode,
     } = props
     const [value, setValue] = React.useState(0)
+    const [shouldHighlight, setShouldHighlight] = React.useState(true)
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
+    }
+
+    function buildRanges(data: string) {
+        // Each inode is exactly 128 bytes.
+        // The first two bits are the type (file or directory)
+        // The next 6 bits are the permissions (read, write, execute)
+        // The next 24 bits are the size of the file in bytes
+        // The next 32 bits are the created at timestamp since the epoch
+        // The next 32 bits are the last modified timestamp since the epoch
+        // The next 32 bits are the block pointers (8 pointers of 4 bytes each)
+        const chunks = chunk(data, 128)
+        const ranges = []
+        for (let i = 0; i < chunks.length; i++) {
+            const fileRange = {
+                startRow: 1 + 4 * i,
+                startColumn: 0,
+                endRow: 1 + 4 * i,
+                endColumn: 3,
+                backgroundColor: green[900],
+                label: "Type",
+            }
+
+            const readRange = {
+                startRow: 1 + 4 * i,
+                startColumn: 3,
+                endRow: 1 + 4 * i,
+                endColumn: 5,
+                backgroundColor: blue[900],
+                label: "Read",
+            }
+
+            const writeRange = {
+                startRow: 1 + 4 * i,
+                startColumn: 5,
+                endRow: 1 + 4 * i,
+                endColumn: 7,
+                backgroundColor: red[900],
+                label: "Write",
+            }
+
+            const executeRange = {
+                startRow: 1 + 4 * i,
+                startColumn: 7,
+                endRow: 1 + 4 * i,
+                endColumn: 9,
+                backgroundColor: purple[900],
+                label: "Execute",
+            }
+
+            const sizeRange = {
+                startRow: 1 + 4 * i,
+                startColumn: 10,
+                endRow: 1 + 4 * i,
+                endColumn: 36,
+                backgroundColor: teal[900],
+                label: "Size",
+            }
+
+            const createdAtRange = {
+                startRow: 2 + 4 * i,
+                startColumn: 1,
+                endRow: 2 + 4 * i,
+                endColumn: 68,
+                backgroundColor: brown[400],
+                label: "Created At",
+            }
+
+            const updatedAtRange = {
+                startRow: 3 + 4 * i,
+                startColumn: 1,
+                endRow: 3 + 4 * i,
+                endColumn: 68,
+                backgroundColor: indigo[400],
+                label: "Updated At",
+            }
+
+            const blockPointersRanges = []
+            const colors = [
+                orange[900],
+                pink[900],
+                teal[900],
+                purple[900],
+                red[900],
+                blue[900],
+                green[900],
+                brown[900],
+            ]
+            let additionalOffset = 0
+            for (let j = 0; j < 8; j++) {
+                const startColumn = 1 + 4 * j
+                const endColumn = 5 + 4 * j
+                if (j % 2 === 0 && j !== 0) {
+                    additionalOffset++
+                }
+                const blockPointerRange = {
+                    startRow: 4 + 4 * i,
+                    startColumn: startColumn + additionalOffset,
+                    endRow: 4 + 4 * i,
+                    endColumn: endColumn + additionalOffset,
+                    backgroundColor: colors[j],
+                    label: `Block Pointer ${j}`,
+                }
+                blockPointersRanges.push(blockPointerRange)
+            }
+
+            if (inodeBitmap[i] === "1") {
+                ranges.push(fileRange)
+                ranges.push(readRange)
+                ranges.push(writeRange)
+                ranges.push(executeRange)
+                ranges.push(sizeRange)
+                ranges.push(createdAtRange)
+                ranges.push(updatedAtRange)
+                ranges.push(...blockPointersRanges)
+            }
+        }
+
+        return ranges
     }
 
     if (!data) {
@@ -92,6 +224,19 @@ export default function InodeBlockTabs(props: {
                     <Tab label="Binary" {...a11yProps(1)} />
                     <Tab label="Hex" {...a11yProps(2)} />
                     <Tab label="ASCII" {...a11yProps(3)} />
+                    {value === 1 && (
+                        <IconButton
+                            onClick={() =>
+                                setShouldHighlight(
+                                    (prevShouldHighlight) =>
+                                        !prevShouldHighlight,
+                                )
+                            }
+                            sx={{ position: "absolute", top: 3, right: selectedInode === undefined ? 3 : 45 }}
+                        >
+                            <AutoFixHighIcon />
+                        </IconButton>
+                    )}
                 </Tabs>
                 {selectedInode !== undefined && (
                     <IconButton
@@ -117,7 +262,14 @@ export default function InodeBlockTabs(props: {
                 />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-                <Viewer data={data} mode="bin" />
+                <Viewer
+                    highlights={{
+                        ranges: buildRanges(data),
+                    }}
+                    shouldHighlight={shouldHighlight}
+                    data={data}
+                    mode="bin"
+                />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
                 <Viewer data={data} mode="hex" />

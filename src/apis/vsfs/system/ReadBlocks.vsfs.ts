@@ -13,7 +13,7 @@ export const readBlocks = async (
 ): Promise<ReadBlockPayload[]> => {
     let totalCompleted = 0
     const operations = []
-    for (let block of blocks) {
+    for (const block of blocks) {
         operations.push(
             readBlock(block, (progress) => {
                 totalCompleted++

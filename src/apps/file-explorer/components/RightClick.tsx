@@ -73,7 +73,7 @@ export default function RightClick(props: {
                     await rmdir(contextMenu.path)
                     setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
                 } catch (error) {
-                    let e = error as Error
+                    const e = error as Error
                     dispatch(
                         setError({
                             name: e.name,
@@ -90,7 +90,7 @@ export default function RightClick(props: {
                     await unlink(contextMenu.path)
                     setLoadingHierarchy(prevLoadingHierarchy => prevLoadingHierarchy.filter(id => id !== task))
                 } catch (error) {
-                    let e = error as Error
+                    const e = error as Error
                     dispatch(
                         setError({
                             name: e.name,

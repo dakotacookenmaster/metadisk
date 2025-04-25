@@ -59,7 +59,7 @@ export default async function unlink(pathname: string) {
     let directoryEntries = null
     let directoryIndex = -1
     let directoryBlock = -1
-    for (let pointer of parentDirectoryInode.blockPointers.filter((v) => v)) {
+    for (const pointer of parentDirectoryInode.blockPointers.filter((v) => v)) {
         const entries = (await readBlock(pointer)).data.directory.entries
         for (let i = 0; i < entries.length; i++) {
             if (
@@ -98,11 +98,11 @@ export default async function unlink(pathname: string) {
         entries: newEntries,
     })
 
-    let blockPointers = parentDirectoryInode.blockPointers
+    const blockPointers = parentDirectoryInode.blockPointers
     let removedBlockPointer: number | null = null
     if (newDirectory === "") {
         /* c8 ignore start */
-        for (let pointer of blockPointers) {
+        for (const pointer of blockPointers) {
             if (pointer === directoryBlock) {
                 removedBlockPointer = pointer
                 break
@@ -158,7 +158,7 @@ export default async function unlink(pathname: string) {
     /* c8 ignore stop */
 
     // each of those block pointers in the deleted file needs to be deallocated from the data bitmap
-    for (let pointer of pointers) {
+    for (const pointer of pointers) {
         await updateBitmap(
             "data",
             pointer - inodeStartIndex - numberOfInodeBlocks,

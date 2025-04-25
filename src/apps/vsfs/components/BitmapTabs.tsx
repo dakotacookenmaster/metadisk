@@ -5,6 +5,7 @@ import Box from "@mui/material/Box"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
 import Bitmap from "./Bitmap"
+import { Button } from "@mui/material"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -23,7 +24,9 @@ function CustomTabPanel(props: TabPanelProps) {
             aria-labelledby={`simple-tab-${index}`}
             {...other}
         >
-            {value === index && <Box sx={{ pt: 3, minHeight: "400px", }}>{children}</Box>}
+            {value === index && (
+                <Box sx={{ pt: 3, minHeight: "400px" }}>{children}</Box>
+            )}
         </div>
     )
 }
@@ -35,16 +38,35 @@ function a11yProps(index: number) {
     }
 }
 
-export default function BitmapTabs(props: { data: string | undefined, progress: number, type: "inode" | "data" }) {
-    const { data, progress, type } = props
+export default function BitmapTabs(props: {
+    data: string | undefined
+    progress: number
+    type: "inode" | "data"
+    setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
+    setBlockNumber: React.Dispatch<React.SetStateAction<number>>
+    setSelected: React.Dispatch<React.SetStateAction<string>>
+}) {
+    const {
+        data,
+        progress,
+        type,
+        setBlockNumber,
+        setSelectedInode,
+        setSelected,
+    } = props
     const [value, setValue] = React.useState(0)
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
     }
 
-    if(!data) {
-        return <WaitingMessage message="Reading from disk..." progress={progress} />
+    if (!data) {
+        return (
+            <WaitingMessage
+                message="Reading from disk..."
+                progress={progress}
+            />
+        )
     }
 
     return (
@@ -62,7 +84,13 @@ export default function BitmapTabs(props: { data: string | undefined, progress: 
                 </Tabs>
             </Box>
             <CustomTabPanel value={value} index={0}>
-                <Bitmap type={type} data={data} />
+                <Bitmap
+                    setSelected={setSelected}
+                    setBlockNumber={setBlockNumber}
+                    setSelectedInode={setSelectedInode}
+                    type={type}
+                    data={data}
+                />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
                 <Viewer data={data} mode="bin" />

@@ -39,12 +39,12 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
         }
 
         const allEntries: DirectoryEntry[] = []
-        for(let pointer of inode.blockPointers) {
+        for(const pointer of inode.blockPointers) {
             const { entries} = (await readBlock(pointer)).data.directory
             allEntries.push(...entries)
         }
         found = false
-        for(let entry of allEntries) {
+        for(const entry of allEntries) {
             if(entry.name === path[position]) {
                 position++
                 inodeNumber = entry.inode

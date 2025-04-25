@@ -20,7 +20,7 @@ const getAllDirectories = async (): Promise<Directories> => {
     const inodeBitmap = (await readBlock(1)).data.raw
     const directoryBlockNumbers = []
     for (const [inodeBlockIndex, inodeBlock] of inodeBlocks.entries()) {
-        for (let inode of inodeBlock.data.inodes.filter(
+        for (const inode of inodeBlock.data.inodes.filter(
             (_, index) => inodeBitmap[index + inodeBlockIndex * inodesPerBlock] === "1",
         )) {
             if (inode.type === "directory") {

@@ -12,7 +12,7 @@ describe("it should render the appropriate number of pages of boxes, each approp
     test("256 or less should render on a single page", async () => {
         const { queryByTestId } = render(
             <Provider store={store}>
-                <Bitmap data="0000" type="inode" />
+                <Bitmap setSelected={() => {}} setSelectedInode={() => {}} setBlockNumber={() => {}} data="0000" type="inode" />
             </Provider>,
         )
         // Expect 4 bitmap boxes to appear
@@ -32,7 +32,7 @@ describe("it should render the appropriate number of pages of boxes, each approp
             render(
                 <Provider store={store}>
                     <ThemeProvider theme={theme}>
-                        <Bitmap data={"1" + "0".repeat(10000)} type="data" />
+                        <Bitmap setSelected={() => {}} setSelectedInode={() => {}} setBlockNumber={() => {}} data={"1" + "0".repeat(10000)} type="data" />
                     </ThemeProvider>
                 </Provider>,
             )

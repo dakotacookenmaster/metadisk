@@ -34,7 +34,7 @@ export const writeSector = async (
     }
 
     // Check validity of the data (all 1s and 0s?)
-    for (let char of data) {
+    for (const char of data) {
         if (char !== "0" && char !== "1") {
             throw new InvalidBinaryStringError(`Invalid character: ${char}`)
         }

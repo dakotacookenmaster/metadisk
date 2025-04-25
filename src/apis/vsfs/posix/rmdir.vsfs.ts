@@ -39,11 +39,11 @@ export default async function rmdir(pathname: string) {
 
     // loop over the block pointers
     let parentInode = -1
-    for (let pointer of pointers) {
+    for (const pointer of pointers) {
         const entries = (
             await readBlock(pointer)
         ).data.directory.entries.filter((entry) => !entry.free)
-        for (let entry of entries) {
+        for (const entry of entries) {
             if (entry.name === ".." && parentInode === -1) {
                 parentInode = entry.inode
             }
@@ -66,7 +66,7 @@ export default async function rmdir(pathname: string) {
     let directoryEntries = null
     let directoryIndex = -1
     let directoryBlock = -1
-    for (let pointer of parentDirectoryInode.blockPointers.filter((v) => v)) {
+    for (const pointer of parentDirectoryInode.blockPointers.filter((v) => v)) {
         const entries = (await readBlock(pointer)).data.directory.entries
         for (let i = 0; i < entries.length; i++) {
             if (
@@ -105,11 +105,11 @@ export default async function rmdir(pathname: string) {
         entries: newEntries,
     })
 
-    let blockPointers = parentDirectoryInode.blockPointers
+    const blockPointers = parentDirectoryInode.blockPointers
     let removedBlockPointer: number | null = null
     if (newDirectory === "") {
         /* c8 ignore start */
-        for (let pointer of blockPointers) {
+        for (const pointer of blockPointers) {
             if (pointer === directoryBlock) {
                 removedBlockPointer = pointer
                 break
@@ -164,7 +164,7 @@ export default async function rmdir(pathname: string) {
     /* c8 ignore stop */
 
     // each of those block pointers in the deleted directory needs to be deallocated from the data bitmap
-    for (let pointer of pointers) {
+    for (const pointer of pointers) {
         await updateBitmap(
             "data",
             pointer - inodeStartIndex - numberOfInodeBlocks,

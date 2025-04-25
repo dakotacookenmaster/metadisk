@@ -8,7 +8,7 @@ import {
     selectSectorsPerBlock,
     selectTotalBlocks,
 } from "../../../redux/reducers/fileSystemSlice"
-import React, { useEffect, useRef } from "react"
+import React, { createRef, useEffect, useRef } from "react"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../common/constants"
 
 const DiskPlatter = () => {
@@ -22,6 +22,7 @@ const DiskPlatter = () => {
     const sectorRefs = [...Array(sectorsPerTrack * trackCount)].map(() =>
         useRef<HTMLElement | null>(null),
     )
+
     const diskSpeed = useAppSelector(selectDiskSpeed)
     const theme = useTheme()
     const rotation = useRef(0)

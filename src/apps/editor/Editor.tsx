@@ -39,7 +39,7 @@ const Editor = () => {
                     setFileData(textData)
                 /* c8 ignore start */
                 } catch(error) {
-                    let e = error as Error
+                    const e = error as Error
                     dispatch(setError({
                         name: e.name,
                         message: e.message,
@@ -62,7 +62,7 @@ const Editor = () => {
             setSaved(true)
         /* c8 ignore start */
         } catch (error) {
-            let e = error as Error
+            const e = error as Error
             dispatch(setError({
                 name: e.name,
                 message: e.message,
@@ -112,11 +112,11 @@ const Editor = () => {
                         setSaved(false)
                         const { value } = event.target
                         let newValue = ""
-                        for (let char of value) {
+                        for (const char of value) {
                             if (char === "\n" || char === "\u25D9") {
                                 newValue += "\n"
                             } else {
-                                let encoding = getCharacterEncoding(char)
+                                const encoding = getCharacterEncoding(char)
                                 if (encoding === -1) {
                                     newValue += "?"
                                 } else {

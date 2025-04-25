@@ -16,7 +16,7 @@ export default function buildDirectory(directory: BuildDirectoryData): string {
     if(directory.entries.length > maxEntries) {
         throw new DirectoryBlockOverflowError()
     }
-    for (let entry of directory.entries) {
+    for (const entry of directory.entries) {
         if (entry.name.length > 13) {
             throw new FilenameTooLongError()
         }

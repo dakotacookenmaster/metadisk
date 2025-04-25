@@ -29,7 +29,7 @@ export default async function write(fileDescriptor: number, data: string) {
         throw new InvalidFileDescriptorError()
     }
 
-    for (let char of data) {
+    for (const char of data) {
         if (char !== "0" && char !== "1") {
             // this is invalid binary data
             throw new InvalidBinaryStringError()
@@ -117,7 +117,7 @@ export default async function write(fileDescriptor: number, data: string) {
             const discardPointers = pointers.slice(necessaryBlocks)
 
             // Craft null pointers in place of the ones to discard
-            const nullPointers = discardPointers.map((_) => 0)
+            const nullPointers = discardPointers.map(() => 0)
 
             while(nullPointers.length + neededPointers.length < 8) {
                 nullPointers.push(0)
@@ -145,7 +145,7 @@ export default async function write(fileDescriptor: number, data: string) {
             await writeBlock(inodeBlock, newInodeBlock)
 
             // Update the bitmap for each of the now deallocated pointers
-            for (let pointer of discardPointers) {
+            for (const pointer of discardPointers) {
                 await updateBitmap(
                     "data",
                     pointer - inodeStartIndex - numberOfInodeBlocks,
@@ -212,7 +212,7 @@ export default async function write(fileDescriptor: number, data: string) {
             await writeBlock(inodeBlock, newInodeBlock)
 
             // For each of the new pointers, update the data bitmap
-            for (let pointer of newBlocks) {
+            for (const pointer of newBlocks) {
                 await updateBitmap(
                     "data",
                     pointer - inodeStartIndex - numberOfInodeBlocks,

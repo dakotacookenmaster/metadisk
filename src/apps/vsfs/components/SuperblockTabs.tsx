@@ -5,6 +5,7 @@ import Box from "@mui/material/Box"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import {
+    IconButton,
     Table,
     TableBody,
     TableCell,
@@ -16,7 +17,11 @@ import {
 import Tooltip from "../../common/components/Tooltip"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
+import CalculateIcon from "@mui/icons-material/Calculate"
+import SaveAltIcon from "@mui/icons-material/SaveAlt"
 import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
+import { blue, brown, green, purple, red } from "@mui/material/colors"
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -57,6 +62,7 @@ export default function SuperblockTabs(props: {
     const [value, setValue] = React.useState(0)
     const superblock = useAppSelector(selectSuperblock)
     const theme = useTheme()
+    const [shouldHighlight, setShouldHighlight] = React.useState(true)
     const styles = {
         row: {
             "&:hover": {
@@ -98,12 +104,26 @@ export default function SuperblockTabs(props: {
                     <Tab label="Binary" {...a11yProps(1)} />
                     <Tab label="Hex" {...a11yProps(2)} />
                     <Tab label="ASCII" {...a11yProps(3)} />
+                    {value === 1 && (
+                        <IconButton
+                            onClick={() =>
+                                setShouldHighlight(
+                                    (prevShouldHighlight) =>
+                                        !prevShouldHighlight,
+                                )
+                            }
+                            sx={{ position: "absolute", top: 3, right: 3 }}
+                        >
+                            <AutoFixHighIcon />
+                        </IconButton>
+                    )}
                 </Tabs>
             </Box>
             <CustomTabPanel value={value} index={0}>
-                <Table>
+                <Table sx={{ marginTop: "-20px" }}>
                     <TableHead>
                         <TableRow>
+                            <TableCell>Source</TableCell>
                             <TableCell>Field</TableCell>
                             <TableCell>Value</TableCell>
                         </TableRow>
@@ -114,6 +134,9 @@ export default function SuperblockTabs(props: {
                             title="The name of the file system."
                         >
                             <TableRow sx={styles.row}>
+                                <TableCell>
+                                    <CalculateIcon />
+                                </TableCell>
                                 <TableCell>System Name</TableCell>
                                 <TableCell>
                                     {parseInt(magicNumber, 2) ===
@@ -128,6 +151,9 @@ export default function SuperblockTabs(props: {
                             title="A magic number is a number chosen specifically to represent some idea, in this case the type of file system (vsfs). The name of the file system in the row above is actually just an extrapolation based on this value."
                         >
                             <TableRow sx={styles.row}>
+                                <TableCell>
+                                    <SaveAltIcon />
+                                </TableCell>
                                 <TableCell>Magic Number</TableCell>
                                 <TableCell>
                                     {parseInt(magicNumber, 2)}{" "}
@@ -139,6 +165,9 @@ export default function SuperblockTabs(props: {
                             title="The number of inodes (index nodes). Specifically, this is the theoretical maximum number of files and directories the file system could point to on disk."
                         >
                             <TableRow sx={styles.row}>
+                                <TableCell>
+                                    <SaveAltIcon />
+                                </TableCell>
                                 <TableCell>Inodes</TableCell>
                                 <TableCell>{parseInt(inodeCount, 2)}</TableCell>
                             </TableRow>
@@ -148,7 +177,10 @@ export default function SuperblockTabs(props: {
                             title="The total number of blocks allocated to store inodes."
                         >
                             <TableRow sx={styles.row}>
-                                <TableCell>Total Inode Blocks</TableCell>
+                                <TableCell>
+                                    <SaveAltIcon />
+                                </TableCell>
+                                <TableCell>Inode Blocks</TableCell>
                                 <TableCell>
                                     {parseInt(inodeBlocks, 2)}
                                 </TableCell>
@@ -159,6 +191,9 @@ export default function SuperblockTabs(props: {
                             title="The number of data blocks. This is the real maximum number of files or directories the system can store. Blocks are the smallest unit in the file system."
                         >
                             <TableRow sx={styles.row}>
+                                <TableCell>
+                                    <SaveAltIcon />
+                                </TableCell>
                                 <TableCell>Data Blocks</TableCell>
                                 <TableCell>{parseInt(dataBlocks, 2)}</TableCell>
                             </TableRow>
@@ -168,8 +203,13 @@ export default function SuperblockTabs(props: {
                             title="The size of a logical block in the file system."
                         >
                             <TableRow sx={styles.row}>
+                                <TableCell>
+                                    <SaveAltIcon />
+                                </TableCell>
                                 <TableCell>Block Size</TableCell>
-                                <TableCell>{getByteCount(parseInt(blockSize, 2))}</TableCell>
+                                <TableCell>
+                                    {getByteCount(parseInt(blockSize, 2))}
+                                </TableCell>
                             </TableRow>
                         </Tooltip>
                     </TableBody>
@@ -177,7 +217,62 @@ export default function SuperblockTabs(props: {
                 </Table>
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-                <Viewer data={data} mode="bin" />
+                <Viewer shouldHighlight={shouldHighlight} highlights={{
+                    ranges: [
+                        {
+                            startRow: 1,
+                            startColumn: 1,
+                            endRow: 1,
+                            endColumn: 9,
+                            backgroundColor: red[700],
+                            label: "Magic Number",
+                        },
+                        {
+                            startRow: 1,
+                            startColumn: 9,
+                            endRow: 1,
+                            endColumn: 10,
+                        },
+                        {
+                            startRow: 1,
+                            startColumn: 10,
+                            endRow: 1,
+                            endColumn: 27,
+                            backgroundColor: blue[700],
+                            label: "Inode Count",
+                        },
+                        {
+                            startRow: 1,
+                            startColumn: 27,
+                            endRow: 1,
+                            endColumn: 28,
+                        },
+                        {
+                            startRow: 1,
+                            startColumn: 28,
+                            endRow: 1,
+                            endColumn: 32,
+                            backgroundColor: green[700],
+                            label: "Inode Blocks",
+                        },
+                        {
+                            startRow: 1,
+                            startColumn: 32,
+                            endRow: 1,
+                            endColumn: 36,
+                            backgroundColor: purple[700],
+                            label: "Data Blocks",
+                        },
+                        {
+                            startRow: 2,
+                            startColumn: 1,
+                            endRow: 2,
+                            endColumn: 27,
+                            backgroundColor: brown[500],
+                            label: "Block Size",
+                        }
+                    ],
+                }} data={data} mode="bin" />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
                 <Viewer data={data} mode="hex" />

@@ -19,7 +19,7 @@ export default async function listing(
         throw new InvalidDirectoryPath()
     }
     const allEntries = []
-    for (let pointer of inode.blockPointers.filter((v) => v)) {
+    for (const pointer of inode.blockPointers.filter((v) => v)) {
         // each of these pointers should point to a directory
         const { entries } = (await readBlock(pointer)).data.directory
         const updatedEntries = await Promise.all(

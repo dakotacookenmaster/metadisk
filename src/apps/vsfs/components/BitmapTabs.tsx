@@ -5,7 +5,6 @@ import Box from "@mui/material/Box"
 import WaitingMessage from "../../common/components/WaitingMessage"
 import Viewer from "./Viewers"
 import Bitmap from "./Bitmap"
-import { Button } from "@mui/material"
 
 interface TabPanelProps {
     children?: React.ReactNode

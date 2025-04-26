@@ -8,7 +8,7 @@ import {
     selectSectorsPerBlock,
     selectTotalBlocks,
 } from "../../../redux/reducers/fileSystemSlice"
-import React, { createRef, useEffect, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../common/constants"
 
 const DiskPlatter = () => {

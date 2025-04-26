@@ -10,15 +10,21 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import { chunk } from "lodash"
 import {
-    blue,
+    amber,
     brown,
+    cyan,
+    deepOrange,
+    deepPurple,
     green,
-    indigo,
-    orange,
+    lightGreen,
+    lime,
     pink,
     purple,
     red,
     teal,
+    indigo,
+    blueGrey,
+    lightBlue,
 } from "@mui/material/colors"
 
 interface TabPanelProps {
@@ -92,7 +98,7 @@ export default function InodeBlockTabs(props: {
         // The next 24 bits are the size of the file in bytes
         // The next 32 bits are the created at timestamp since the epoch
         // The next 32 bits are the last modified timestamp since the epoch
-        // The next 32 bits are the block pointers (8 pointers of 4 bytes each)
+        // The next 32 bits are the block pointers (8 pointers of 4 bits each)
         const chunks = chunk(data, 128)
         const ranges = []
         for (let i = 0; i < chunks.length; i++) {
@@ -101,7 +107,7 @@ export default function InodeBlockTabs(props: {
                 startColumn: 0,
                 endRow: 1 + 4 * i,
                 endColumn: 3,
-                backgroundColor: green[900],
+                backgroundColor: deepPurple[800],
                 label: "Type",
             }
 
@@ -110,7 +116,7 @@ export default function InodeBlockTabs(props: {
                 startColumn: 3,
                 endRow: 1 + 4 * i,
                 endColumn: 5,
-                backgroundColor: blue[900],
+                backgroundColor: cyan[800],
                 label: "Read",
             }
 
@@ -119,7 +125,7 @@ export default function InodeBlockTabs(props: {
                 startColumn: 5,
                 endRow: 1 + 4 * i,
                 endColumn: 7,
-                backgroundColor: red[900],
+                backgroundColor: amber[800],
                 label: "Write",
             }
 
@@ -128,7 +134,7 @@ export default function InodeBlockTabs(props: {
                 startColumn: 7,
                 endRow: 1 + 4 * i,
                 endColumn: 9,
-                backgroundColor: purple[900],
+                backgroundColor: deepOrange[800],
                 label: "Execute",
             }
 
@@ -137,7 +143,7 @@ export default function InodeBlockTabs(props: {
                 startColumn: 10,
                 endRow: 1 + 4 * i,
                 endColumn: 36,
-                backgroundColor: teal[900],
+                backgroundColor: lightGreen[800],
                 label: "Size",
             }
 
@@ -146,7 +152,7 @@ export default function InodeBlockTabs(props: {
                 startColumn: 1,
                 endRow: 2 + 4 * i,
                 endColumn: 68,
-                backgroundColor: brown[400],
+                backgroundColor: lime[800],
                 label: "Created At",
             }
 
@@ -155,20 +161,20 @@ export default function InodeBlockTabs(props: {
                 startColumn: 1,
                 endRow: 3 + 4 * i,
                 endColumn: 68,
-                backgroundColor: indigo[400],
+                backgroundColor: indigo[800],
                 label: "Updated At",
             }
 
             const blockPointersRanges = []
             const colors = [
-                orange[900],
-                pink[900],
+                lightBlue[800],
+                pink[800], 
+                green[900],
+                brown[900],
                 teal[900],
                 purple[900],
                 red[900],
-                blue[900],
-                green[900],
-                brown[900],
+                blueGrey[800],
             ]
             let additionalOffset = 0
             for (let j = 0; j < 8; j++) {
@@ -197,6 +203,15 @@ export default function InodeBlockTabs(props: {
                 ranges.push(createdAtRange)
                 ranges.push(updatedAtRange)
                 ranges.push(...blockPointersRanges)
+            } else if(inodeBitmap[i] === "0" && chunks[i].includes("1")) {
+                ranges.push({
+                    startRow: 1 + 4 * i,
+                    startColumn: 0,
+                    endRow: 4 + 4 * i,
+                    endColumn: 36,
+                    backgroundColor: red[400],
+                    label: "Deleted File or Directory",
+                })
             }
         }
 
@@ -240,7 +255,10 @@ export default function InodeBlockTabs(props: {
                 </Tabs>
                 {selectedInode !== undefined && (
                     <IconButton
-                        onClick={() => setSelectedInode(undefined)}
+                        onClick={() => {
+                            setSelectedInode(undefined)
+                            setValue(0)
+                        }}
                         sx={{ position: "absolute", top: 3, right: 0 }}
                     >
                         <ChevronLeftIcon />

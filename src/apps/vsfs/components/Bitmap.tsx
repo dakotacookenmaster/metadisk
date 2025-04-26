@@ -55,6 +55,7 @@ const Bitmap = (props: {
                     overflowY: "auto",
                     scrollbarColor: `${theme.palette.primary.main} ${blue[200]}`,
                     scrollbarWidth: "thin",
+                    userSelect: "none",
                     display: "flex",
                     flexWrap: "wrap",
                     gap: theme.spacing(1),

@@ -144,7 +144,7 @@ export default function InodeBlockTabs(props: {
                 endRow: 1 + 4 * i,
                 endColumn: 36,
                 backgroundColor: lightGreen[800],
-                label: "Size",
+                label: "Size (b)",
             }
 
             const createdAtRange = {

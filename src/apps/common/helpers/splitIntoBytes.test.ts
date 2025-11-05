@@ -1,36 +1,41 @@
-import { describe, test, expect, vi, afterEach } from "vitest"
-import _ from "lodash"
+import { describe, test, expect } from "vitest"
 import splitIntoBytes from "./splitIntoBytes"
 
-const chunk = vi.spyOn(_, "chunk")
-
-afterEach(() => {
-    vi.clearAllMocks()
-})
-
-describe("it should break a single bitstring into an array of 8-bit bitstrings", () => {
+describe("it should break a Uint8Array into an array of 8-bit binary strings", () => {
     test("a single byte", () => {
-        expect(splitIntoBytes("00000000")).toStrictEqual(["00000000"])
-        expect(chunk).toBeCalledTimes(1)
-        expect(chunk).toBeCalledWith("00000000", 8)
+        const data = new Uint8Array([0b00000000])
+        expect(splitIntoBytes(data)).toStrictEqual(["00000000"])
     })
 
     test("two bytes", () => {
-        expect(splitIntoBytes("0000000010101110")).toStrictEqual(["00000000", "10101110"])
-        expect(chunk).toBeCalledTimes(1)
-        expect(chunk).toBeCalledWith("0000000010101110", 8)
+        const data = new Uint8Array([0b00000000, 0b10101110])
+        expect(splitIntoBytes(data)).toStrictEqual(["00000000", "10101110"])
     })
 
     test("five bytes", () => {
-        const bytes = "0000000010101111000011111111111100000000"
-        expect(splitIntoBytes(bytes)).toStrictEqual([
+        const data = new Uint8Array([
+            0b00000000,
+            0b10101111,
+            0b00001111,
+            0b11111111,
+            0b00000000
+        ])
+        expect(splitIntoBytes(data)).toStrictEqual([
             "00000000",
             "10101111",
             "00001111",
             "11111111",
             "00000000"
         ])
-        expect(chunk).toBeCalledTimes(1)
-        expect(chunk).toBeCalledWith(bytes, 8)
+    })
+
+    test("various byte values", () => {
+        const data = new Uint8Array([255, 0, 128, 1])
+        expect(splitIntoBytes(data)).toStrictEqual([
+            "11111111",
+            "00000000",
+            "10000000",
+            "00000001"
+        ])
     })
 })

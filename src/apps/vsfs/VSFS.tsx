@@ -42,7 +42,6 @@ export default function VSFS() {
         title: string
         message: string
     }>(null)
-    const [progress, setProgress] = useState<number>(0)
     const dispatch = useAppDispatch()
 
     useEffect(() => {
@@ -52,12 +51,11 @@ export default function VSFS() {
             !isDiskFormatted
         ) {
             (async () => {
-                setProgress(0)
                 setWaitingMessage({
                     title: "Formatting Disk",
                     message: "Please wait...",
                 })
-                await initializeSuperblock(setProgress)
+                await initializeSuperblock()
                 setWaitingMessage(null)
                 dispatch(setIsDiskFormatted(true))
             })()
@@ -113,7 +111,6 @@ export default function VSFS() {
                     <WaitingMessage
                         title={waitingMessage.title}
                         message={waitingMessage.message}
-                        progress={progress}
                     />
                 )}
             {isFinishedConfiguringFileSystem &&

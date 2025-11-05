@@ -24,7 +24,8 @@ import { selectSectors } from "../../redux/reducers/diskSlice"
 import FileOrDirectoryDialog from "../common/components/FileOrDirectoryDialog"
 import listing from "../../apis/vsfs/posix/listing.vsfs"
 import DirectoryListing from "../../apis/interfaces/vsfs/DirectoryListing.interface"
-import { CreateNewFolder, NoteAdd } from "@mui/icons-material"
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder"
+import NoteAddIcon from "@mui/icons-material/NoteAdd"
 import LoopIcon from "@mui/icons-material/Loop"
 import { v4 as uuid } from "uuid"
 import { blue } from "@mui/material/colors"
@@ -339,7 +340,7 @@ export default function FileExplorer() {
                                             setIsOpen(true)
                                         }}
                                     >
-                                        <NoteAdd fontSize="large" />
+                                        <NoteAddIcon fontSize="large" />
                                     </IconButton>
                                 </Tooltip>
                                 <Tooltip placement="top" title="New Directory">
@@ -353,7 +354,7 @@ export default function FileExplorer() {
                                             setIsOpen(true)
                                         }}
                                     >
-                                        <CreateNewFolder fontSize="large" />
+                                        <CreateNewFolderIcon fontSize="large" />
                                     </IconButton>
                                 </Tooltip>
                             </Box>

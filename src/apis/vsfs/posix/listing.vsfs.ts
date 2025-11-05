@@ -2,7 +2,7 @@ import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.erro
 import DirectoryListing from "../../interfaces/vsfs/DirectoryListing.interface"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
 import isValidPath from "../system/IsValidPath.vsfs"
-import { readBlock } from "../system/ReadBlock.vsfs"
+import { readBlock } from "../system/BlockCache.vsfs"
 
 /**
  * Returns a directory listing for a given directory path

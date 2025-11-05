@@ -38,8 +38,7 @@ function a11yProps(index: number) {
 }
 
 export default function BitmapTabs(props: {
-    data: string | undefined
-    progress: number
+    data: Uint8Array | undefined
     type: "inode" | "data"
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
@@ -47,7 +46,6 @@ export default function BitmapTabs(props: {
 }) {
     const {
         data,
-        progress,
         type,
         setBlockNumber,
         setSelectedInode,
@@ -63,7 +61,6 @@ export default function BitmapTabs(props: {
         return (
             <WaitingMessage
                 message="Reading from disk..."
-                progress={progress}
             />
         )
     }

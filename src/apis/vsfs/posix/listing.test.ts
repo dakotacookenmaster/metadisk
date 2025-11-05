@@ -8,13 +8,15 @@ import mkdir from "./mkdir.vsfs"
 import OpenFlags from "../../enums/vsfs/OpenFlags.enum"
 import Permissions from "../../enums/vsfs/Permissions.enum"
 import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.error"
+import { clearCache } from "../system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    clearCache()
+    await initializeSuperblock()
 })
 
 describe("lists the entries in a directory for a given path", () => {

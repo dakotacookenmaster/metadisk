@@ -9,13 +9,11 @@ import buildDirectory from "./BuildDirectory.vsfs"
 import buildInode from "./BuildInode.vsfs"
 import buildSuperblock from "./BuildSuperblock.vsfs"
 import { writeBlocks } from "./WriteBlocks.vsfs"
+import { clearCache, warmupMetadata } from "./BlockCache.vsfs"
 /**
  * Initializes the superblock, the inode and data bitmaps, and the root directory
- * @param progressCb A callback executed whenever the initialization progress changes
  */
-export default async function initializeSuperblock(
-    progressCb: (progress: number) => void,
-) {
+export default async function initializeSuperblock() {
     const state = store.getState()
     const superblock = selectSuperblock(state)
     const blockSize = selectBlockSize(state)
@@ -32,9 +30,10 @@ export default async function initializeSuperblock(
         sectorSize,
     })
 
-    progressCb(0)
-
-    const bitmap = "1" + "0".repeat(sectorSize - 1)
+    // Create bitmap with first bit set to 1, rest to 0
+    const bitmapBytes = sectorSize / 8
+    const bitmap = new Uint8Array(bitmapBytes)
+    bitmap[0] = 0b10000000 // First bit is 1, rest are 0
 
     const timestamp = new Date()
 
@@ -62,11 +61,14 @@ export default async function initializeSuperblock(
 
     const rootDirectoryBlock = superblock.numberOfInodeBlocks + inodeStartIndex
 
+    // Clear any existing cache before writing new superblock
+    clearCache()
+    
     await writeBlocks(
         [0, 1, 2, 3, rootDirectoryBlock],
         [superblockData, bitmap, bitmap, rootInodeData, rootDirectoryData],
-        (progress) => {
-            progressCb(progress)
-        },
     )
+    
+    // Warm up the cache with critical metadata blocks after initialization
+    await warmupMetadata()
 }

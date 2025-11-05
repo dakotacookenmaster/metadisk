@@ -2,7 +2,7 @@ import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
 import { InvalidPathError } from "../../api-errors/InvalidPath.error"
 import DirectoryEntry from "../../interfaces/vsfs/DirectoryEntry.interface"
 import getInodeLocation from "./GetInodeLocation.vsfs"
-import { readBlock } from "./ReadBlock.vsfs"
+import { readBlock } from "./BlockCache.vsfs"
 
 /**
  * Checks if a given path is valid. If it is, it will return the inode corresponding to the file or directory.

@@ -26,6 +26,7 @@ import {
     blueGrey,
     lightBlue,
 } from "@mui/material/colors"
+import { bufferToBinaryString } from "../../../apis/utils/BitBuffer.utils"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -59,21 +60,19 @@ function a11yProps(index: number) {
 }
 
 export default function InodeBlockTabs(props: {
-    data: string | undefined
-    progress: number
+    data: Uint8Array | undefined
     setSelected: React.Dispatch<React.SetStateAction<string>>
     blockRefs: React.RefObject<unknown>[]
     canMove: boolean
     beginOperation: () => void
     blockNumber: number
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
-    inodeBitmap: string
+    inodeBitmap: Uint8Array
     selectedInode: number | undefined
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
 }) {
     const {
         data,
-        progress,
         setSelected,
         blockRefs,
         canMove,
@@ -91,15 +90,16 @@ export default function InodeBlockTabs(props: {
         setValue(newValue)
     }
 
-    function buildRanges(data: string) {
-        // Each inode is exactly 128 bytes.
+    function buildRanges(data: Uint8Array) {
+        // Each inode is exactly 128 bits.
         // The first two bits are the type (file or directory)
         // The next 6 bits are the permissions (read, write, execute)
         // The next 24 bits are the size of the file in bytes
         // The next 32 bits are the created at timestamp since the epoch
         // The next 32 bits are the last modified timestamp since the epoch
         // The next 32 bits are the block pointers (8 pointers of 4 bits each)
-        const chunks = chunk(data, 128)
+        const binaryStr = bufferToBinaryString(data)
+        const chunks = chunk(binaryStr, 128)
         const ranges = []
         for (let i = 0; i < chunks.length; i++) {
             const fileRange = {
@@ -194,7 +194,12 @@ export default function InodeBlockTabs(props: {
                 blockPointersRanges.push(blockPointerRange)
             }
 
-            if (inodeBitmap[i] === "1") {
+            // Check if inode is in use by reading the bit from the bitmap
+            const byteIndex = Math.floor(i / 8)
+            const bitIndex = 7 - (i % 8)
+            const isInUse = (inodeBitmap[byteIndex] & (1 << bitIndex)) !== 0
+            
+            if (isInUse) {
                 ranges.push(fileRange)
                 ranges.push(readRange)
                 ranges.push(writeRange)
@@ -203,7 +208,7 @@ export default function InodeBlockTabs(props: {
                 ranges.push(createdAtRange)
                 ranges.push(updatedAtRange)
                 ranges.push(...blockPointersRanges)
-            } else if(inodeBitmap[i] === "0" && chunks[i].includes("1")) {
+            } else if(!isInUse && chunks[i].join('').includes("1")) {
                 ranges.push({
                     startRow: 1 + 4 * i,
                     startColumn: 0,
@@ -222,7 +227,6 @@ export default function InodeBlockTabs(props: {
         return (
             <WaitingMessage
                 message="Reading from disk..."
-                progress={progress}
             />
         )
     }

@@ -1,4 +1,4 @@
-import { beforeAll, expect, test } from "vitest"
+import { beforeAll, beforeEach, expect, test } from "vitest"
 import isValidPath from "./IsValidPath.vsfs"
 import { FilenameTooLongError } from "../../api-errors/FilenameTooLong.error"
 import { InvalidPathError } from "../../api-errors/InvalidPath.error"
@@ -8,9 +8,15 @@ import OpenFlags from "../../enums/vsfs/OpenFlags.enum"
 import Permissions from "../../enums/vsfs/Permissions.enum"
 import { store } from "../../../store"
 import { setSkipWaitTime } from "../../../redux/reducers/diskSlice"
+import { clearCache } from "./BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
+})
+
+beforeEach(async () => {
+    clearCache()
+    await initializeSuperblock()
 })
 
 test("a path containing just a / should return the root inode", () => {
@@ -30,7 +36,6 @@ test("a path with a between-slash value longer than 13 characters should throw a
 })
 
 test("a path with a filename in between should throw an error", { timeout: 15000 }, async () => {
-    await initializeSuperblock(() => {})
     await open("/abc.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
     expect(isValidPath("/abc.txt/fakedir")).rejects.toThrowError(InvalidPathError)
 })

@@ -1,7 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { AppDispatch, RootState } from "../../store"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../apps/common/constants"
-import { selectSectorsPerBlock, selectTotalBlocks } from "./fileSystemSlice"
 import DiskReadPayload from "../../apis/interfaces/disk/DiskReadPayload.interface"
 import DiskWritePayload from "../../apis/interfaces/disk/DiskWritePayload.interface"
 import CurrentlyServicingPayload from "../../apis/interfaces/disk/CurrentlyServicingPayload.interface"
@@ -18,10 +17,14 @@ interface DiskState {
         degrees: number
         time: number
     }
+    platterRotation: {
+        startDegrees: number // rotation at startTime
+        startTime: number // timestamp in ms when rotation tracking began
+    }
     queue: (DiskReadPayload | DiskWritePayload)[]
     currentlyServicing: CurrentlyServicingPayload[]
     sectors: {
-        data: string
+        data: Uint8Array
     }[]
 }
 
@@ -35,10 +38,14 @@ const initialState: DiskState = {
         degrees: 0,
         time: 0,
     },
+    platterRotation: {
+        startDegrees: 0,
+        startTime: Date.now(),
+    },
     state: "idle",
     queue: [],
     sectors: [...Array(64)].map(() => ({
-        data: "0".repeat(4096),
+        data: new Uint8Array(512), // 4096 bits = 512 bytes
     })),
 }
 
@@ -81,7 +88,7 @@ export const diskSlice = createSlice({
         },
         writeSector: (
             state,
-            action: PayloadAction<{ sector: number; data: string }>,
+            action: PayloadAction<{ sector: number; data: Uint8Array }>,
         ) => {
             const { sector, data } = action.payload
             state.sectors[sector].data = data
@@ -89,7 +96,7 @@ export const diskSlice = createSlice({
         setTrackCount: (state, action: PayloadAction<number>) => {
             state.trackCount = action.payload
         },
-        setSectors: (state, action: PayloadAction<{ data: string }[]>) => {
+        setSectors: (state, action: PayloadAction<{ data: Uint8Array }[]>) => {
             state.sectors = action.payload
         },
         setArmRotation: (
@@ -97,6 +104,23 @@ export const diskSlice = createSlice({
             action: PayloadAction<{ degrees: number; time: number }>,
         ) => {
             state.armRotation = action.payload
+        },
+        setPlatterRotation: (
+            state,
+            action: PayloadAction<{ startDegrees: number; startTime: number }>,
+        ) => {
+            state.platterRotation = action.payload
+        },
+        resetPlatterRotation: (
+            state,
+            action: PayloadAction<number | undefined>
+        ) => {
+            // Reset rotation tracking to specified time (or 0 degrees at that time)
+            const newStartTime = action.payload ?? state.platterRotation.startTime
+            state.platterRotation = {
+                startDegrees: 0,
+                startTime: newStartTime,
+            }
         },
         setIsProcessing: (state, action: PayloadAction<boolean>) => {
             state.isProcessing = action.payload
@@ -109,6 +133,38 @@ export const diskSlice = createSlice({
         },
     },
 })
+
+/**
+ * Calculate the current rotation of the disk platter based on time delta
+ * This provides a continuous rotation value without frame-rate dependency
+ * The rotation is calculated from a fixed start point, making it independent of render cycles
+ */
+const getCurrentRotation = (getState: () => RootState, timestamp?: number): number => {
+    const state = getState()
+    const { startDegrees, startTime } = state.disk.platterRotation
+    const { diskSpeed } = state.disk
+    
+    const currentTime = timestamp ?? Date.now()
+    const elapsedTime = (currentTime - startTime) / 1000 // convert to seconds
+    
+    // diskSpeed is degrees per tick (where tick was ~16ms in the old system)
+    // Convert to degrees per second: diskSpeed * 2 was the increment per tick
+    // At ~60fps (16.67ms), that's: (diskSpeed * 2) * 60 = diskSpeed * 120 degrees/second
+    const degreesPerSecond = diskSpeed * 120
+    const totalDegrees = degreesPerSecond * elapsedTime
+    
+    const currentRotation = (startDegrees + totalDegrees) % 360
+    
+    // Debug logging (throttled to once per second)
+    const logKey = Math.floor(currentTime / 1000)
+    if (!getCurrentRotation.lastLog || getCurrentRotation.lastLog !== logKey) {
+        getCurrentRotation.lastLog = logKey
+    }
+    
+    return currentRotation
+}
+// Add static property for throttling logs
+getCurrentRotation.lastLog = 0 as number
 
 const findSectorRotation = (sector: number, getState: () => RootState) => {
     const sectors = selectSectors(getState()).length
@@ -132,38 +188,41 @@ const findTrackNumber = (sector: number, getState: () => RootState) => {
     return trackNumber
 }
 
-const getNextSectorOnTrack = (sector: number, getState: () => RootState) => {
-    const state = getState()
-    const totalSectors = selectTotalBlocks(state) * selectSectorsPerBlock(state)
 
-    let nextSector = sector + 1
-    if (nextSector === totalSectors) {
-        nextSector = 0
-    }
-
-    return nextSector
-}
 
 const writeOrRead =
     (data: DiskReadPayload | DiskWritePayload) =>
     async (dispatch: AppDispatch, getState: () => RootState) => {
         const differenceFromArm = (sector: number) => {
             const necessaryRotation = findSectorRotation(sector, getState)
-            let rotation: string | null | number =
-                localStorage.getItem("rotation")
-            rotation = rotation !== null ? +rotation : 0
-            return Math.abs(rotation - necessaryRotation)
+            const rotation = getCurrentRotation(getState)
+            
+            // Calculate clockwise distance (disk only rotates clockwise)
+            let diff = necessaryRotation - rotation
+            if (diff < 0) {
+                diff += 360
+            }
+            
+            return diff
         }
 
         // While the arm is away from the sector, don't do anything
-        while (differenceFromArm(data.sectorNumber) >= 3) {
+        // Calculate tolerance based on rotation speed to avoid skipping sectors
+        // diskSpeed * 120 = degrees per second, divide by 1000 for degrees per ms
+        // Multiply by polling delay (~1-5ms) to get degrees moved per check
+        // Use a minimum to handle stopped disk, and add extra margin for safety
+        const degreesPerSecond = getState().disk.diskSpeed * 120
+        const degreesPerMs = degreesPerSecond / 1000
+        const tolerance = Math.max(10, degreesPerMs * 10) // 10ms worth of rotation plus margin
+        while (differenceFromArm(data.sectorNumber) >= tolerance) {
             if (selectSkipWaitTime(getState())) {
                 // if the wait time changed in between the request and processing, break
                 break
             }
+            // Minimal delay for high-speed polling
             await new Promise((resolve) => {
-                setTimeout(() => resolve(true))
-            }) // Wait and try again
+                setTimeout(() => resolve(true), 0)
+            })
         }
 
         // Only set the state to the action after when within the range of the appropriate rotation
@@ -174,18 +233,6 @@ const writeOrRead =
             dispatch(
                 writeSector({ sector: data.sectorNumber, data: data.data }),
             )
-        }
-
-        while (
-            differenceFromArm(
-                getNextSectorOnTrack(data.sectorNumber, getState),
-            ) >= 3
-        ) {
-            if (selectSkipWaitTime(getState())) {
-                // if the wait time changed in between the request and processing, break
-                break
-            }
-            await new Promise((resolve) => setTimeout(() => resolve(true))) // wait for the arm to move away from the sector
         }
 
         // When the read / write has happened, notify all subscribers that it has been serviced
@@ -294,6 +341,8 @@ export const {
     setTrackCount,
     setSectors,
     setArmRotation,
+    setPlatterRotation,
+    resetPlatterRotation,
     writeSector,
     setIsProcessing,
     addToCurrentlyServicing,
@@ -309,6 +358,7 @@ export const selectCurrentlyServicing = (state: RootState) =>
 export const selectSectors = (state: RootState) => state.disk.sectors
 export const selectTrackCount = (state: RootState) => state.disk.trackCount
 export const selectArmRotation = (state: RootState) => state.disk.armRotation
+export const selectPlatterRotation = (state: RootState) => state.disk.platterRotation
 export const selectDiskSpeed = (state: RootState) => state.disk.diskSpeed
 export const selectSkipWaitTime = (state: RootState) => state.disk.skipWaitTime
 

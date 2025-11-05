@@ -4,20 +4,21 @@ import * as diskSlice from "../../redux/reducers/diskSlice"
 import * as uuid from "uuid"
 import { store } from "../../store"
 import { InvalidSectorError } from "../api-errors/InvalidSector.error"
-import { InvalidBinaryStringError } from "../api-errors/InvalidBinaryString.error"
 import { SectorOverflowError } from "../api-errors/SectorOverflow.error"
 
 const sectors = [...Array(3)].map(() => {
     return {
-        data: "0".repeat(4096),
+        data: new Uint8Array(512), // 512 bytes per sector, initialized to 0
     }
 })
+
+const testData = new Uint8Array(512).fill(255) // 512 bytes filled with 1s (0xFF)
 
 const mockPayload = {
     requestId: "abcd",
     type: "write",
     sectorNumber: 0,
-    data: "1".repeat(4096),
+    data: testData,
 }
 
 vi.mock("uuid", () => {
@@ -59,7 +60,7 @@ const removeFromCurrentlyServicing = vi.spyOn(
 )
 
 test("expect a simple write of an existing sector to work", async () => {
-    await expect(writeSector(0, "1".repeat(4096))).resolves.toStrictEqual(
+    await expect(writeSector(0, testData)).resolves.toStrictEqual(
         mockPayload,
     )
     expect(selectSectors).toBeCalledTimes(1)
@@ -68,7 +69,7 @@ test("expect a simple write of an existing sector to work", async () => {
     expect(enqueue).toBeCalledWith({
         type: "write",
         sectorNumber: 0,
-        data: "1".repeat(4096),
+        data: testData,
         requestId: "abcd",
     })
     expect(processQueue).toBeCalledTimes(1)
@@ -77,40 +78,27 @@ test("expect a simple write of an existing sector to work", async () => {
     expect(dispatch).toBeCalledTimes(3)
 })
 
-describe("non-binary string data should throw an error", () => {
-    test("ASCII data should throw an error", async () => {
-        await expect(writeSector(0, "abcd")).rejects.toThrowError(
-            InvalidBinaryStringError,
-        )
-    })
-    test("partial binary data and ASCII data should throw an error", async () => {
-        await expect(writeSector(0, "010101a")).rejects.toThrowError(
-            InvalidBinaryStringError,
-        )
-    })
-})
-
 describe("expect out-of-bounds sector writes to throw an error", () => {
     test("positive out of bounds writes should throw an error", async () => {
-        await expect(writeSector(4, "0")).rejects.toThrowError(
+        await expect(writeSector(4, new Uint8Array(1))).rejects.toThrowError(
             InvalidSectorError,
         )
     })
     test("negative out of bounds writes should throw an error", async () => {
-        await expect(writeSector(-1, "0")).rejects.toThrowError(
+        await expect(writeSector(-1, new Uint8Array(1))).rejects.toThrowError(
             InvalidSectorError,
         )
     })
 })
 
 describe("writing too much data to a sector should throw an error", async () => {
-    test("one bit overflow should throw an error", async () => {
-        await expect(writeSector(0, "0".repeat(4097))).rejects.toThrowError(
+    test("one byte overflow should throw an error", async () => {
+        await expect(writeSector(0, new Uint8Array(513))).rejects.toThrowError(
             SectorOverflowError,
         )
     })
     test("a large overflow should throw an error", async () => {
-        await expect(writeSector(0, "0".repeat(8000))).rejects.toThrowError(
+        await expect(writeSector(0, new Uint8Array(1000))).rejects.toThrowError(
             SectorOverflowError,
         )
     })

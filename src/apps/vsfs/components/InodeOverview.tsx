@@ -11,16 +11,16 @@ import CancelIcon from "@mui/icons-material/Cancel"
 import FileIcon from "@mui/icons-material/Description"
 import FolderIcon from "@mui/icons-material/Folder"
 import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
-import { chunk } from "lodash"
 import { blue, green, grey } from "@mui/material/colors"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import {
     selectBlockSize,
     selectSuperblock,
 } from "../../../redux/reducers/fileSystemSlice"
+import { readBits } from "../../../apis/utils/BitBuffer.utils"
 
 const InodeOverview = (props: {
-    data: string
+    data: Uint8Array
     setSelected: React.Dispatch<React.SetStateAction<string>>
     canMove: boolean
     beginOperation: () => void
@@ -29,7 +29,7 @@ const InodeOverview = (props: {
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
     selectedInode: number | undefined
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
-    inodeBitmap: string
+    inodeBitmap: Uint8Array
 }) => {
     const {
         data,
@@ -49,49 +49,41 @@ const InodeOverview = (props: {
     const inodesPerBlock = blockSize / superblock.inodeSize
     const offset = selectedInode !== undefined ? (selectedInode % inodesPerBlock)* 128 : 0 // 128 bits is the size of an inode
     const type = [<FileIcon />, <FolderIcon sx={{ color: "#F1D592" }} />][
-        parseInt(data.slice(0 + offset, 2 + offset), 2)
+        readBits(data, 0 + offset, 2)
     ]
     const options = [
         <CancelIcon color="error" />,
         <CheckCircleOutlineIcon color="success" />,
     ]
-    const read = options[parseInt(data.slice(2 + offset, 4 + offset), 2)]
-    const write = options[parseInt(data.slice(4 + offset, 6 + offset), 2)]
-    const execute = options[parseInt(data.slice(6 + offset, 8 + offset), 2)]
-    const size = getByteCount(parseInt(data.slice(8 + offset, 32 + offset), 2))
+    const read = options[readBits(data, 2 + offset, 2)]
+    const write = options[readBits(data, 4 + offset, 2)]
+    const execute = options[readBits(data, 6 + offset, 2)]
+    const size = getByteCount(readBits(data, 8 + offset, 24))
 
     const createdAt = new Date(
-        parseInt(data.slice(32 + offset, 64 + offset), 2) * 1000,
+        readBits(data, 32 + offset, 32) * 1000,
     ).toLocaleString()
     const lastModified = new Date(
-        parseInt(data.slice(64 + offset, 96 + offset), 2) * 1000,
+        readBits(data, 64 + offset, 32) * 1000,
     ).toLocaleString()
-    const blockPointers = chunk(
-        data.slice(96 + offset, 128 + offset).split(""),
-        4,
-    ).map((nibble) => parseInt(nibble.join(""), 2))
+    const blockPointers: number[] = []
+    for (let i = 0; i < 8; i++) {
+        blockPointers.push(readBits(data, 96 + offset + i * 4, 4))
+    }
     const theme = useTheme()
 
-    // remove any inodes that aren't available in the inode bitmap
+    // Check each inode's allocation status in the bitmap
     const inodeNumbers: { inodeNumber: number, allocated: boolean}[] = []
-    const inodes = chunk(data.split(""), superblock.inodeSize).map(
-        (data, i) => {
-            if(inodeBitmap[i + blockNumber * inodesPerBlock] !== "0") {
-                inodeNumbers.push({
-                    inodeNumber: i,
-                    allocated: true,
-                })
-            } else {
-                inodeNumbers.push({
-                    inodeNumber: i,
-                    allocated: false,
-                })
-            }
-            return data
-        }
-    )
-
-    console.log(inodeNumbers)
+    for (let i = 0; i < inodesPerBlock; i++) {
+        const inodeIndex = i + blockNumber * inodesPerBlock
+        const byteIndex = Math.floor(inodeIndex / 8)
+        const bitIndex = 7 - (inodeIndex % 8)
+        const allocated = (inodeBitmap[byteIndex] & (1 << bitIndex)) !== 0
+        inodeNumbers.push({
+            inodeNumber: i,
+            allocated,
+        })
+    }
 
     if (selectedInode === undefined) {
         return (
@@ -117,8 +109,8 @@ const InodeOverview = (props: {
                         gap: theme.spacing(1),
                     }}
                 >
-                    {inodes.length > 0 ? (
-                        inodes.map((_, index) => {
+                    {inodeNumbers.length > 0 ? (
+                        inodeNumbers.map((_, index) => {
                             return (
                                 <Box
                                     key={`inode-box-${inodeNumbers[index].inodeNumber}`}

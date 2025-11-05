@@ -12,12 +12,14 @@ import { setSectors, setSkipWaitTime } from "../../../redux/reducers/diskSlice"
 import initializeSuperblock from "../system/InitializeSuperblock.vsfs"
 import { InvalidPathError } from "../../api-errors/InvalidPath.error"
 import { NameAlreadyExistsError } from "../../api-errors/NameAlreadyExists.error"
-import { writeBlock } from "../system/WriteBlock.vsfs"
+import { writeBlock } from "../system/BlockCache.vsfs"
 import { InodeOverflowError } from "../../api-errors/InodeOverflow.error"
 import {
     setSectorSize,
     setSectorsPerBlock,
 } from "../../../redux/reducers/fileSystemSlice"
+import { binaryStringToBuffer } from "../../utils/BitBuffer.utils"
+import { clearCache } from "../system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
@@ -26,7 +28,8 @@ beforeAll(() => {
 describe("makes a new directory", () => {
     describe("with a large disk", () => {
         beforeEach(async () => {
-            await initializeSuperblock(() => {})
+            clearCache()
+            await initializeSuperblock()
         })
 
         test("throws an error when the path isn't valid for a new directory", async () => {
@@ -61,7 +64,8 @@ describe("makes a new directory", () => {
         })
         test("should fail if there are no available inodes", async () => {
             const blockSize = store.getState().fileSystem.blockSize
-            await writeBlock(1, "1".repeat(blockSize)) // force all values in the bitmap to be filled
+            const allOnes = binaryStringToBuffer("1".repeat(blockSize))
+            await writeBlock(1, allOnes) // force all values in the bitmap to be filled
             await expect(mkdir("/abc")).rejects.toThrowError(InodeOverflowError)
         })
         test("should create multiple directories in the same parent (no new block allocation)", async () => {
@@ -71,17 +75,18 @@ describe("makes a new directory", () => {
     })
     describe("with a very small disk", () => {
         beforeEach(async () => {
+            clearCache()
             // initialize a very small disk
             store.dispatch(setSectorSize(256))
             store.dispatch(setSectorsPerBlock(1))
 
             store.dispatch(
                 setSectors(
-                    [...Array(16)].map(() => ({ data: "0".repeat(256) })),
+                    [...Array(16)].map(() => ({ data: new Uint8Array(32) })), // 256 bits = 32 bytes
                 ),
             )
 
-            await initializeSuperblock(() => {})
+            await initializeSuperblock()
         })
 
         afterAll(() => {
@@ -89,7 +94,7 @@ describe("makes a new directory", () => {
             store.dispatch(setSectorsPerBlock(4))
             store.dispatch(
                 setSectors(
-                    [...Array(64)].map(() => ({ data: "0".repeat(4096) })),
+                    [...Array(64)].map(() => ({ data: new Uint8Array(512) })), // 4096 bits = 512 bytes
                 ),
             )
         })

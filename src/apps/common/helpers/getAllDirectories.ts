@@ -19,11 +19,15 @@ const getAllDirectories = async (): Promise<Directories> => {
     const inodeBlocks = await readBlocks(inodeBlockNumbers)
     const inodeBitmap = (await readBlock(1)).data.raw
     const directoryBlockNumbers = []
+    
     for (const [inodeBlockIndex, inodeBlock] of inodeBlocks.entries()) {
-        for (const inode of inodeBlock.data.inodes.filter(
-            (_, index) => inodeBitmap[index + inodeBlockIndex * inodesPerBlock] === "1",
-        )) {
-            if (inode.type === "directory") {
+        for (const [localInodeIndex, inode] of inodeBlock.data.inodes.entries()) {
+            const globalInodeIndex = inodeBlockIndex * inodesPerBlock + localInodeIndex
+            const byteIndex = Math.floor(globalInodeIndex / 8)
+            const bitIndex = 7 - (globalInodeIndex % 8) // MSB first
+            const isInodeAllocated = (inodeBitmap[byteIndex] & (1 << bitIndex)) !== 0
+            
+            if (isInodeAllocated && inode.type === "directory") {
                 directoryBlockNumbers.push(
                     ...inode.blockPointers.filter((v) => v),
                 )

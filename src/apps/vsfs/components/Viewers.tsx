@@ -308,7 +308,7 @@ export type HighlightConfig = {
 }
 
 const Viewer = (props: {
-    data: string
+    data: Uint8Array
     mode: "bin" | "hex" | "ascii"
     highlights?: HighlightConfig
     shouldHighlight?: boolean
@@ -339,7 +339,7 @@ const Viewer = (props: {
             editor.removeDecorations(decorationIds);
         }
 
-        if(!shouldHighlight) return
+        if (!shouldHighlight) return
 
         const decorations: monacoEditor.editor.IModelDeltaDecoration[] = []
 

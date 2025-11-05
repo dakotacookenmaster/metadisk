@@ -15,6 +15,8 @@ import { selectFileDescriptorTable, setSectorSize, setSectorsPerBlock } from "..
 import mkdir from "./mkdir.vsfs"
 import { InodeOverflowError } from "../../api-errors/InodeOverflow.error"
 
+import { clearCache } from "../system/BlockCache.vsfs"
+
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
@@ -22,7 +24,8 @@ beforeAll(() => {
 describe("opens a file", () => {
     describe("normal disk size", () => {
         beforeEach(async () => {
-            await initializeSuperblock(() => {})
+            clearCache()
+            await initializeSuperblock()
         })
 
         test("successfully creates a new file", async () => {
@@ -86,14 +89,15 @@ describe("opens a file", () => {
     })
     describe("small disk size", async () => {
         beforeEach(async () => {
+            clearCache()
             store.dispatch(setSectorSize(256))
             store.dispatch(setSectorsPerBlock(1))
             store.dispatch(
                 setSectors(
-                    [...Array(16)].map(() => ({ data: "0".repeat(256) })),
+                    [...Array(16)].map(() => ({ data: new Uint8Array(32) })), // 256 bits = 32 bytes
                 ),
             )
-            await initializeSuperblock(() => {})
+            await initializeSuperblock()
         })
 
         test("directory successfully grows when many files are added", { timeout: 30000 }, async () => {

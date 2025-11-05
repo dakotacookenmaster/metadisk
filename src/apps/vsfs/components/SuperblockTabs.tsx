@@ -22,6 +22,7 @@ import SaveAltIcon from "@mui/icons-material/SaveAlt"
 import { getByteCount } from "../../disk-simulator/components/SetUpDisk"
 import { blue, brown, green, purple, red } from "@mui/material/colors"
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh"
+import { readBits } from "../../../apis/utils/BitBuffer.utils"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -55,10 +56,9 @@ function a11yProps(index: number) {
 }
 
 export default function SuperblockTabs(props: {
-    data: string | undefined
-    progress: number
+    data: Uint8Array | undefined
 }) {
-    const { data, progress } = props
+    const { data } = props
     const [value, setValue] = React.useState(0)
     const superblock = useAppSelector(selectSuperblock)
     const theme = useTheme()
@@ -81,16 +81,16 @@ export default function SuperblockTabs(props: {
         return (
             <WaitingMessage
                 message="Reading from disk..."
-                progress={progress}
             />
         )
     }
 
-    const magicNumber = data.slice(0, 8)
-    const inodeCount = data.slice(8, 24)
-    const inodeBlocks = data.slice(24, 28)
-    const dataBlocks = data.slice(28, 32)
-    const blockSize = data.slice(32, 56)
+    // Extract superblock fields using bit-level reads
+    const magicNumber = readBits(data, 0, 8)
+    const inodeCount = readBits(data, 8, 16)
+    const inodeBlocks = readBits(data, 24, 4)
+    const dataBlocks = readBits(data, 28, 4)
+    const blockSize = readBits(data, 32, 24)
 
     return (
         <Box sx={{ width: "100%" }}>
@@ -139,8 +139,7 @@ export default function SuperblockTabs(props: {
                                 </TableCell>
                                 <TableCell>System Name</TableCell>
                                 <TableCell>
-                                    {parseInt(magicNumber, 2) ===
-                                    superblock.magicNumber
+                                    {magicNumber === superblock.magicNumber
                                         ? superblock.name
                                         : "Unknown File System (System Potentially Corrupted)"}
                                 </TableCell>
@@ -156,7 +155,7 @@ export default function SuperblockTabs(props: {
                                 </TableCell>
                                 <TableCell>Magic Number</TableCell>
                                 <TableCell>
-                                    {parseInt(magicNumber, 2)}{" "}
+                                    {magicNumber}{" "}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>
@@ -169,7 +168,7 @@ export default function SuperblockTabs(props: {
                                     <SaveAltIcon />
                                 </TableCell>
                                 <TableCell>Inodes</TableCell>
-                                <TableCell>{parseInt(inodeCount, 2)}</TableCell>
+                                <TableCell>{inodeCount}</TableCell>
                             </TableRow>
                         </Tooltip>
                         <Tooltip
@@ -182,7 +181,7 @@ export default function SuperblockTabs(props: {
                                 </TableCell>
                                 <TableCell>Inode Blocks</TableCell>
                                 <TableCell>
-                                    {parseInt(inodeBlocks, 2)}
+                                    {inodeBlocks}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>
@@ -195,7 +194,7 @@ export default function SuperblockTabs(props: {
                                     <SaveAltIcon />
                                 </TableCell>
                                 <TableCell>Data Blocks</TableCell>
-                                <TableCell>{parseInt(dataBlocks, 2)}</TableCell>
+                                <TableCell>{dataBlocks}</TableCell>
                             </TableRow>
                         </Tooltip>
                         <Tooltip
@@ -208,7 +207,7 @@ export default function SuperblockTabs(props: {
                                 </TableCell>
                                 <TableCell>Block Size</TableCell>
                                 <TableCell>
-                                    {getByteCount(parseInt(blockSize, 2))}
+                                    {getByteCount(blockSize)}
                                 </TableCell>
                             </TableRow>
                         </Tooltip>

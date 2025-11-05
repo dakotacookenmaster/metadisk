@@ -8,13 +8,16 @@ import open from "../../../apis/vsfs/posix/open.vsfs"
 import OpenFlags from "../../../apis/enums/vsfs/OpenFlags.enum"
 import Permissions from "../../../apis/enums/vsfs/Permissions.enum"
 import write from "../../../apis/vsfs/posix/write.vsfs"
+import convertTextToBinaryString from "./convertTextToBinaryString"
+import { clearCache } from "../../../apis/vsfs/system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true)) // allow it to happen without waiting for the disk
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {}) // initialize the superblock so reads / writes can happen
+    clearCache()
+    await initializeSuperblock() // initialize the superblock so reads / writes can happen
 })
 
 describe("getAllDirectories() should return block numbers for all directories", () => {
@@ -49,7 +52,7 @@ describe("getAllDirectories() should return block numbers for all directories", 
             // setup, create some directories and files
             await mkdir("/abc")
             const fd = await open("/myfile.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
-            await write(fd, "101010") // write to the file to make sure it has a block allocated
+            await write(fd, convertTextToBinaryString("101010")) // write to the file to make sure it has a block allocated
             await mkdir("/def")
 
             // run the test

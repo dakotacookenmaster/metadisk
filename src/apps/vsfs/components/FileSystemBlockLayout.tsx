@@ -6,7 +6,7 @@ import { createRef, useEffect, useMemo, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
 import BitmapTabs from "./BitmapTabs"
-import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
+import { readBlock } from "../../../apis/vsfs/system/BlockCache.vsfs"
 import InodeBlockTabs from "./InodeBlockTabs"
 import DataBlockTabs from "./DataBlockTabs"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
@@ -16,31 +16,29 @@ const FileSystemBlockLayout = () => {
     const totalBlocks = useAppSelector(selectTotalBlocks)
     const theme = useTheme()
     const [selected, setSelected] = useState<string>("Superblock")
-    const [progress, setProgress] = useState<number>(0)
     const sectors = useAppSelector(selectSectors)
     const sectorsPerBlock = useAppSelector(selectSectorsPerBlock)
-    const [data, setData] = useState<string | undefined>(undefined)
+    const [data, setData] = useState<Uint8Array | undefined>(undefined)
     const [canMove, setCanMove] = useState(false)
     const [blockNumber, setBlockNumber] = useState(0)
-    const [inodeBitmap, setInodeBitmap] = useState("")
+    const [inodeBitmap, setInodeBitmap] = useState<Uint8Array>(new Uint8Array())
     const [selectedInode, setSelectedInode] = useState<number | undefined>(
         undefined,
     )
     const blockRefs = useMemo(() => {
         return [...Array(totalBlocks)].map(() => createRef())
-    }, [])
+    }, [totalBlocks])
 
     const beginOperation = () => {
         setData(undefined)
-        setProgress(0)
         setCanMove(false)
     }
 
     useEffect(() => {
-        (blockRefs[0].current as Element).scrollIntoView({ behavior: "smooth", block: "nearest", })
-    }, [])
-
-    console.log(selected)
+        if (blockRefs[0]?.current) {
+            (blockRefs[0].current as Element).scrollIntoView({ behavior: "smooth", block: "nearest", })
+        }
+    }, [blockRefs])
 
     useEffect(() => {
         ;(async () => {
@@ -53,14 +51,12 @@ const FileSystemBlockLayout = () => {
         // Start by reading from the superblock
         ;(async () => {
             const result = (
-                await readBlock(blockNumber, (progress: number) =>
-                    setProgress(progress),
-                )
+                await readBlock(blockNumber)
             ).data.raw
             setData(result)
             setCanMove(true)
         })()
-    }, [selected, sectors])
+    }, [selected, sectors, blockNumber])
 
     return (
         <Box sx={{ padding: theme.spacing(1) }}>
@@ -148,13 +144,13 @@ const FileSystemBlockLayout = () => {
                 })}
             </Box>
             {selected === "Superblock" && (
-                <SuperblockTabs data={data} progress={progress} />
+                <SuperblockTabs data={data} />
             )}
             {selected === "Inode Bitmap" && (
-                <BitmapTabs setSelected={setSelected} setSelectedInode={setSelectedInode} setBlockNumber={setBlockNumber} type="inode" data={data} progress={progress} />
+                <BitmapTabs setSelected={setSelected} setSelectedInode={setSelectedInode} setBlockNumber={setBlockNumber} type="inode" data={data} />
             )}
             {selected === "Data Bitmap" && (
-                <BitmapTabs setSelected={setSelected} setSelectedInode={setSelectedInode} setBlockNumber={setBlockNumber} type="data" data={data} progress={progress} />
+                <BitmapTabs setSelected={setSelected} setSelectedInode={setSelectedInode} setBlockNumber={setBlockNumber} type="data" data={data} />
             )}
             {selected.includes("Inode Block") && (
                 <InodeBlockTabs
@@ -165,7 +161,6 @@ const FileSystemBlockLayout = () => {
                     blockRefs={blockRefs}
                     canMove={canMove}
                     data={data}
-                    progress={progress}
                     setSelected={setSelected}
                     beginOperation={beginOperation}
                     blockNumber={parseInt(selected.split(" ")[2])}
@@ -182,7 +177,6 @@ const FileSystemBlockLayout = () => {
                     beginOperation={beginOperation}
                     blockRefs={blockRefs}
                     canMove={canMove}
-                    progress={progress}
                 />
             )}
         </Box>

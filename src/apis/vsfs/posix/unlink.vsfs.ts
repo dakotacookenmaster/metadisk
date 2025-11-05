@@ -5,9 +5,9 @@ import buildDirectory from "../system/BuildDirectory.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
 import isValidPath from "../system/IsValidPath.vsfs"
-import { readBlock } from "../system/ReadBlock.vsfs"
+import { readBlock, writeBlock } from "../system/BlockCache.vsfs"
 import updateBitmap from "../system/UpdateBitmap.vsfs"
-import { writeBlock } from "../system/WriteBlock.vsfs"
+import { sliceBits, concatBuffers } from "../../utils/BitBuffer.utils"
 
 /**
  * A POSIX-like function to unlink (delete) a file from the file system
@@ -100,7 +100,7 @@ export default async function unlink(pathname: string) {
 
     const blockPointers = parentDirectoryInode.blockPointers
     let removedBlockPointer: number | null = null
-    if (newDirectory === "") {
+    if (newDirectory.length === 0) {
         /* c8 ignore start */
         for (const pointer of blockPointers) {
             if (pointer === directoryBlock) {
@@ -127,18 +127,22 @@ export default async function unlink(pathname: string) {
     })
 
     // rebuild the inode
-    const previousParentDirectoryInodes = parentDirectoryData.raw.slice(
+    const previousParentDirectoryInodes = sliceBits(
+        parentDirectoryData.raw,
         0,
         parentDirectoryInodeOffset * 128,
     )
-    const furtherParentDirectoryInodes = parentDirectoryData.raw.slice(
+    const furtherParentDirectoryInodes = sliceBits(
+        parentDirectoryData.raw,
         parentDirectoryInodeOffset * 128 + 128,
+        parentDirectoryData.raw.length * 8 - (parentDirectoryInodeOffset * 128 + 128),
     )
 
-    const updatedParentDirectoryInodes =
-        previousParentDirectoryInodes +
-        newParentDirectoryInode +
-        furtherParentDirectoryInodes
+    const updatedParentDirectoryInodes = concatBuffers([
+        previousParentDirectoryInodes,
+        newParentDirectoryInode,
+        furtherParentDirectoryInodes,
+    ])
 
     await writeBlock(parentDirectoryInodeBlock, updatedParentDirectoryInodes)
 

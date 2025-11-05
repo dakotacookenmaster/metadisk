@@ -4,6 +4,7 @@ import Permissions from "../../enums/vsfs/Permissions.enum"
 import buildInode from "./BuildInode.vsfs"
 import { InvalidBlockPointerCountError } from "../../api-errors/InvalidBlockPointerCount.error"
 import { InvalidBlockPointerError } from "../../api-errors/InvalidBlockPointer.error"
+import { bufferToBinaryString } from "../../utils/BitBuffer.utils"
 
 const createdAt = new Date("01/20/2025")
 const lastModified = new Date("02/24/2030")
@@ -63,11 +64,19 @@ const blockPointerTooLarge = {
 } satisfies BuildInodeData
 
 test("should correctly build the bitstring of a file inode with correct data", () => {
-    expect(buildInode(goodFile)).toBe("00010000000000000000000100101100011001111000110111011000010100000111000100100011010011111101000000000000000000000000000000000000")
+    const result = buildInode(goodFile)
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect(result.length).toBe(16) // 128 bits = 16 bytes
+    const binaryString = bufferToBinaryString(result)
+    expect(binaryString).toBe("00010000000000000000000100101100011001111000110111011000010100000111000100100011010011111101000000000000000000000000000000000000")
 })
 
 test("should correctly build the bitstring of a directory inode with correct data", () => {
-    expect(buildInode(goodDir)).toBe("01010000000000000000000010000000011001111000110111011000010100000111000100100011010011111101000000010000000010000000100100001100")
+    const result = buildInode(goodDir)
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect(result.length).toBe(16) // 128 bits = 16 bytes
+    const binaryString = bufferToBinaryString(result)
+    expect(binaryString).toBe("01010000000000000000000010000000011001111000110111011000010100000111000100100011010011111101000000010000000010000000100100001100")
 })
 
 test("should fail when too few block pointers are provided", () => {

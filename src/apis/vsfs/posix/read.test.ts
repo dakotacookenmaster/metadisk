@@ -9,22 +9,26 @@ import write from "./write.vsfs"
 import read from "./read.vsfs"
 import { InvalidFileDescriptorError } from "../../api-errors/InvalidFileDescriptor.error"
 import { AccessDeniedError } from "../../api-errors/AccessDenied.error"
+import { binaryStringToBuffer, bufferToBinaryString } from "../../utils/BitBuffer.utils"
+import { clearCache } from "../system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    clearCache()
+    await initializeSuperblock()
 })
 
 describe("reads the data from a file, given a file descriptor", () => {
     test("successfully reads data from an existing file", async () => {
         const fd = await open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
-        const testData = "1111000011110000"
+        const testData = binaryStringToBuffer("1111000011110000")
         await write(fd, testData)
         const savedData = await read(fd)
-        expect(savedData).toContain(testData)
+        const savedDataBinary = bufferToBinaryString(savedData)
+        expect(savedDataBinary).toContain("1111000011110000")
     })
     test("fails when a file descriptor is out of range", async () => {
         await expect(read(-1)).rejects.toThrowError(InvalidFileDescriptorError)

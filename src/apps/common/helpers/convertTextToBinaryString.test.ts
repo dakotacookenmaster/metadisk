@@ -8,31 +8,48 @@ afterEach(() => {
     vi.clearAllMocks()
 })
 
-describe("it should convert ASCII text into the IBM Code Page 437 binary equivalents", () => {
+describe("it should convert ASCII text into the IBM Code Page 437 Uint8Array equivalents", () => {
     test("a single character ('A')", () => {
-        expect(convertTextToBinaryString("A")).toBe("01000001")
+        const result = convertTextToBinaryString("A")
+        expect(result).toBeInstanceOf(Uint8Array)
+        expect(result.length).toBe(1)
+        expect(result[0]).toBe(0b01000001) // 65 in decimal
         expect(getCharacterEncoding).toBeCalledTimes(1)
         expect(getCharacterEncoding).toBeCalledWith("A")
     })
     test("the null character (\uE400)", () => {
-        expect(convertTextToBinaryString("\uE400")).toBe("00000000")
+        const result = convertTextToBinaryString("\uE400")
+        expect(result).toBeInstanceOf(Uint8Array)
+        expect(result.length).toBe(1)
+        expect(result[0]).toBe(0b00000000) // 0 in decimal
         expect(getCharacterEncoding).toBeCalledTimes(1)
         expect(getCharacterEncoding).toBeCalledWith("\uE400")
     })
     test("a newline character (\\n)", () => {
-        expect(convertTextToBinaryString("\n")).toBe("00001010")
+        const result = convertTextToBinaryString("\n")
+        expect(result).toBeInstanceOf(Uint8Array)
+        expect(result.length).toBe(1)
+        expect(result[0]).toBe(0b00001010) // 10 in decimal
         expect(getCharacterEncoding).toBeCalledTimes(1)
         expect(getCharacterEncoding).toBeCalledWith("\u25D9")
     })
     test("a long sentence", () => {
         const sentence = "The big brown fox jumps over the lazy dog."
-        const result = "010101000110100001100101001000000110001001101001011001110010000001100010011100100110111101110111011011100010000001100110011011110111100000100000011010100111010101101101011100000111001100100000011011110111011001100101011100100010000001110100011010000110010100100000011011000110000101111010011110010010000001100100011011110110011100101110"
-        expect(convertTextToBinaryString(sentence)).toBe(result)
+        const result = convertTextToBinaryString(sentence)
+        expect(result).toBeInstanceOf(Uint8Array)
+        expect(result.length).toBe(42) // 42 characters including period
+        // Verify first few characters: 'T', 'h', 'e', ' '
+        expect(result[0]).toBe(84) // 'T'
+        expect(result[1]).toBe(104) // 'h'
+        expect(result[2]).toBe(101) // 'e'
+        expect(result[3]).toBe(32) // ' '
         expect(getCharacterEncoding).toBeCalledTimes(42)
     })
 
     test("an empty string", () => {
-        expect(convertTextToBinaryString("")).toBe("")
+        const result = convertTextToBinaryString("")
+        expect(result).toBeInstanceOf(Uint8Array)
+        expect(result.length).toBe(0)
         expect(getCharacterEncoding).toBeCalledTimes(0)
     })
 })

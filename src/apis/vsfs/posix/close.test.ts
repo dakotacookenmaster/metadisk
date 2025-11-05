@@ -8,13 +8,15 @@ import Permissions from "../../enums/vsfs/Permissions.enum"
 import { selectFileDescriptorTable } from "../../../redux/reducers/fileSystemSlice"
 import close from "./close.vsfs"
 import { InvalidFileDescriptorError } from "../../api-errors/InvalidFileDescriptor.error"
+import { clearCache } from "../system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    clearCache()
+    await initializeSuperblock()
 })
 
 describe("closes an open file", () => {

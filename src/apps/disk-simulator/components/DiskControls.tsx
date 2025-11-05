@@ -9,26 +9,26 @@ import { useState } from "react"
 
 export default function DiskControls(props: BoxProps) {
     const dispatch = useAppDispatch()
-    const [value, setValue] = useState("Fast")
+    const [value, setValue] = useState("Moderate")
     const marks = [
         {
-            value: 0.03,
+            value: 0.1,
             label: "Uber Slow",
         },
         {
-            value: 0.1,
+            value: 0.5,
             label: "Slow",
         },
         {
-            value: 0.3,
+            value: 1.0,
             label: "Moderate",
         },
         {
-            value: 0.6,
+            value: 2.0,
             label: "Fast",
         },
         {
-            value: 1.0,
+            value: 4.0,
             label: "Very Fast",
         },
     ]
@@ -52,7 +52,7 @@ export default function DiskControls(props: BoxProps) {
                 </Typography>
                 <Slider
                     aria-label="Disk Speed"
-                    defaultValue={3}
+                    defaultValue={2}
                     valueLabelFormat={(value: number) => {
                         return marks[value].label
                     }}

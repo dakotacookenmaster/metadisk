@@ -4,15 +4,17 @@ import { AccessDeniedError } from "../../api-errors/AccessDenied.error";
 import { InvalidFileDescriptorError } from "../../api-errors/InvalidFileDescriptor.error";
 import OpenFlags from "../../enums/vsfs/OpenFlags.enum";
 import getInodeLocation from "../system/GetInodeLocation.vsfs";
-import { readBlock } from "../system/ReadBlock.vsfs";
+import { readBlock } from "../system/BlockCache.vsfs";
+import { concatBuffers } from "../../utils/BitBuffer.utils";
 
 /**
  * A POSIX-like function that reads a file, given a file descriptor.
  * @param fileDescriptor The file descriptor for the file to read from
  * @throws InvalidFileDescriptorError
  * @throws AccessDeniedError
+ * @returns The file data as Uint8Array
  */
-export default async function read(fileDescriptor: number): Promise<string> {
+export default async function read(fileDescriptor: number): Promise<Uint8Array> {
     const fileDescriptorTable = selectFileDescriptorTable(store.getState())
     if(fileDescriptor < 0 || fileDescriptor > fileDescriptorTable.length - 1) {
         throw new InvalidFileDescriptorError()
@@ -35,12 +37,14 @@ export default async function read(fileDescriptor: number): Promise<string> {
         // we can open the file for reading because the permissions are legitimate
         const { inodeBlock, inodeOffset } = getInodeLocation(descriptor.inode)
         const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
-        const data = (await Promise.all(inode.blockPointers.filter(v => v).map(async pointer => {
-            // for non-null pointer in the file, read the contents
-            return (await readBlock(pointer)).data.raw
-        })) as string[]).join('')
+        const dataBlocks = await Promise.all(
+            inode.blockPointers.filter(v => v).map(async pointer => {
+                // for non-null pointer in the file, read the contents
+                return (await readBlock(pointer)).data.raw
+            })
+        )
 
-        return data
+        return concatBuffers(dataBlocks)
     } else {
         // this file doesn't allow reading
         throw new AccessDeniedError()

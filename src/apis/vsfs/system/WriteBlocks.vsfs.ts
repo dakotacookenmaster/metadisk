@@ -1,16 +1,16 @@
 import { BadDataLengthError } from "../../api-errors/BadDataLength.error"
-import { writeBlock } from "./WriteBlock.vsfs"
+import { writeBlock } from "./BlockCache.vsfs"
 
 /**
  * Allows the writing of multiple blocks, providing a callback to update the invoker on progress
  * @param blocks The block numbers you want to read.
- * @param data The data you wish to write to the blocks.
+ * @param data The data you wish to write to the blocks (as Uint8Array[]).
  * @param progressCb A callback you can provide to allow updates based on computed progress.
  * @returns
  */
 export const writeBlocks = async (
     blocks: number[],
-    data: string[],
+    data: Uint8Array[],
     progressCb?: (progress: number) => void,
 ) => {
     let totalCompleted = 0

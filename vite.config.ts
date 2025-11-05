@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
-    setupFiles: ['./vitest-setup.ts']
+    setupFiles: ['./vitest-setup.ts'],
+    alias: {
+      'monaco-editor': 'monaco-editor/esm/vs/editor/editor.api'
+    }
   }
 })

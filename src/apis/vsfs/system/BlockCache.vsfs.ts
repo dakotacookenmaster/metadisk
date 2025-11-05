@@ -1,0 +1,269 @@
+import { readBlock as readBlockDirect } from "./ReadBlock.vsfs"
+import { writeBlock as writeBlockDirect } from "./WriteBlock.vsfs"
+import ReadBlockPayload from "../../interfaces/vsfs/ReadBlockPayload.interface"
+import WriteBlockPayload from "../../interfaces/vsfs/WriteBlockPayload.interface"
+
+interface CacheEntry {
+    blockData: ReadBlockPayload
+    dirty: boolean
+    lastAccessed: number
+    accessCount: number
+}
+
+class BlockCache {
+    private cache: Map<number, CacheEntry> = new Map()
+    private maxSize: number
+    private hits: number = 0
+    private misses: number = 0
+
+    constructor(maxSize: number = 64) {
+        this.maxSize = maxSize
+    }
+
+    /**
+     * Get a block from cache or read from disk
+     */
+    async get(blockNumber: number, progressCb?: (progress: number) => void): Promise<ReadBlockPayload> {
+        const cached = this.cache.get(blockNumber)
+        
+        if (cached) {
+            // Cache hit!
+            this.hits++
+            cached.lastAccessed = Date.now()
+            cached.accessCount++
+            
+            // Call progress callback to indicate instant completion
+            if (progressCb) {
+                progressCb(100)
+            }
+            
+            // Return a deep copy to prevent external modifications
+            const dataClone = {
+                ...cached.blockData.data,
+                raw: new Uint8Array(cached.blockData.data.raw),
+                inodes: cached.blockData.data.inodes ? [...cached.blockData.data.inodes] : [],
+            } as ReadBlockPayload['data']
+            if (cached.blockData.data.directory) {
+                (dataClone as { directory?: typeof cached.blockData.data.directory }).directory = {
+                    ...cached.blockData.data.directory,
+                    entries: [...cached.blockData.data.directory.entries],
+                }
+            }
+            if (cached.blockData.data.superblock) {
+                (dataClone as { superblock?: typeof cached.blockData.data.superblock }).superblock = {...cached.blockData.data.superblock}
+            }
+            return {
+                ...cached.blockData,
+                data: dataClone,
+            }
+        }
+
+        // Cache miss - read from disk
+        this.misses++
+        const blockData = await readBlockDirect(blockNumber, progressCb)
+
+        // Store in cache (create a deep copy for storage)
+        const dataClone = {
+            ...blockData.data,
+            raw: new Uint8Array(blockData.data.raw),
+            inodes: blockData.data.inodes ? [...blockData.data.inodes] : [],
+        } as ReadBlockPayload['data']
+        if (blockData.data.directory) {
+            (dataClone as { directory?: typeof blockData.data.directory }).directory = {
+                ...blockData.data.directory,
+                entries: [...blockData.data.directory.entries],
+            }
+        }
+        if (blockData.data.superblock) {
+            (dataClone as { superblock?: typeof blockData.data.superblock }).superblock = {...blockData.data.superblock}
+        }
+        
+        const cacheEntry: CacheEntry = {
+            blockData: {
+                ...blockData,
+                data: dataClone,
+            },
+            dirty: false,
+            lastAccessed: Date.now(),
+            accessCount: 1,
+        }
+
+        // Evict if cache is full
+        if (this.cache.size >= this.maxSize) {
+            this.evictLRU()
+        }
+
+        this.cache.set(blockNumber, cacheEntry)
+        
+        // Return a copy
+        return {
+            ...blockData,
+            data: {
+                ...blockData.data,
+                raw: new Uint8Array(blockData.data.raw),
+            },
+        }
+    }
+
+    /**
+     * Write a block to cache and immediately flush to disk (write-through)
+     */
+    async write(
+        blockNumber: number,
+        data: Uint8Array,
+        progressCb?: (progress: number, taskCount: number) => void
+    ): Promise<WriteBlockPayload> {
+        // Write to disk first (write-through policy for consistency)
+        const result = await writeBlockDirect(blockNumber, data, progressCb)
+        
+        // Invalidate cache entry since the block has changed
+        // We'll let it be re-read on next access to get fresh parsed data
+        this.invalidate(blockNumber)
+        
+        return result
+    }
+
+    /**
+     * Flush all dirty blocks to disk (currently unused with write-through, but kept for future)
+     */
+    async flush(): Promise<void> {
+        const writePromises: Promise<void>[] = []
+
+        for (const [blockNumber, entry] of this.cache.entries()) {
+            if (entry.dirty) {
+                writePromises.push(
+                    writeBlockDirect(blockNumber, entry.blockData.data.raw).then(() => {
+                        entry.dirty = false
+                    })
+                )
+            }
+        }
+
+        await Promise.all(writePromises)
+    }
+
+    /**
+     * Invalidate a specific block (remove from cache)
+     */
+    invalidate(blockNumber: number): void {
+        this.cache.delete(blockNumber)
+    }
+
+    /**
+     * Clear entire cache
+     */
+    clear(): void {
+        this.cache.clear()
+        this.hits = 0
+        this.misses = 0
+    }
+
+    /**
+     * Evict the least recently used block
+     */
+    private evictLRU(): void {
+        let lruBlockNumber: number | undefined
+        let lruTime = Infinity
+
+        for (const [blockNumber, entry] of this.cache.entries()) {
+            if (entry.lastAccessed < lruTime) {
+                lruTime = entry.lastAccessed
+                lruBlockNumber = blockNumber
+            }
+        }
+
+        if (lruBlockNumber !== undefined) {
+            // If the block is dirty, we should flush it first (write-back policy)
+            const entry = this.cache.get(lruBlockNumber)!
+            if (entry.dirty) {
+                // Fire and forget - in production you'd want to handle this better
+                writeBlockDirect(lruBlockNumber, entry.blockData.data.raw).catch(console.error)
+            }
+            this.cache.delete(lruBlockNumber)
+        }
+    }
+
+    /**
+     * Get cache statistics
+     */
+    getStats() {
+        const total = this.hits + this.misses
+        return {
+            hits: this.hits,
+            misses: this.misses,
+            hitRate: total > 0 ? (this.hits / total) * 100 : 0,
+            size: this.cache.size,
+            maxSize: this.maxSize,
+        }
+    }
+
+    /**
+     * Prefetch multiple blocks (for read-ahead optimization)
+     */
+    async prefetch(blockNumbers: number[]): Promise<void> {
+        const prefetchPromises = blockNumbers
+            .filter(bn => !this.cache.has(bn))
+            .map(async (bn) => {
+                try {
+                    await this.get(bn)
+                } catch (error) {
+                    // Ignore prefetch errors
+                    console.warn(`Failed to prefetch block ${bn}:`, error)
+                }
+            })
+
+        await Promise.all(prefetchPromises)
+    }
+}
+
+// Global cache instance
+export const blockCache = new BlockCache(64)
+
+/**
+ * Cached version of readBlock
+ */
+export async function readBlock(
+    block: number,
+    progressCb?: (progress: number) => void,
+): Promise<ReadBlockPayload> {
+    return blockCache.get(block, progressCb)
+}
+
+/**
+ * Cached version of writeBlock
+ */
+export async function writeBlock(
+    block: number,
+    data: Uint8Array,
+    progressCb?: (progress: number, taskCount: number) => void,
+): Promise<WriteBlockPayload> {
+    return blockCache.write(block, data, progressCb)
+}
+
+/**
+ * Flush all pending writes
+ */
+export async function flushCache() {
+    await blockCache.flush()
+}
+
+/**
+ * Clear cache (useful for testing)
+ */
+export function clearCache() {
+    blockCache.clear()
+}
+
+/**
+ * Get cache statistics
+ */
+export function getCacheStats() {
+    return blockCache.getStats()
+}
+
+/**
+ * Warm up cache with critical metadata blocks
+ */
+export async function warmupMetadata() {
+    await blockCache.prefetch([0, 1, 2])
+}

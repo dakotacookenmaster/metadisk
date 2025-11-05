@@ -1,14 +1,30 @@
 import BuildSuperBlockData from "../../interfaces/vsfs/BuildSuperblockData.interface"
+import { writeBits, createBuffer } from "../../utils/BitBuffer.utils"
 
-export default function buildSuperblock(superblock: BuildSuperBlockData): string {
-    const magicNumber = superblock.magicNumber.toString(2).padStart(8, "0") // 7 is the magic number indicating VSFS
-    const inodeCount = superblock.inodeCount.toString(2).padStart(16, "0") // the number of inodes in the system (need 16 bits to encode)
-    const inodeBlocks = superblock.inodeBlocks.toString(2).padStart(4, "0") // the number of blocks containing inodes
-    const dataBlocks = superblock.dataBlocks.toString(2).padStart(4, "0") // the number of datablocks in the system
-
-    const writableBlockSize = superblock.blockSize.toString(2).padStart(24, "0")
-    const superblockData =
-        magicNumber + inodeCount + inodeBlocks + dataBlocks + writableBlockSize
-
-    return superblockData
+export default function buildSuperblock(superblock: BuildSuperBlockData): Uint8Array {
+    // Total size: 8 + 16 + 4 + 4 + 24 = 56 bits
+    const buffer = createBuffer(56)
+    
+    let bitOffset = 0
+    
+    // Magic number: 8 bits
+    writeBits(buffer, superblock.magicNumber, bitOffset, 8)
+    bitOffset += 8
+    
+    // Inode count: 16 bits
+    writeBits(buffer, superblock.inodeCount, bitOffset, 16)
+    bitOffset += 16
+    
+    // Inode blocks: 4 bits
+    writeBits(buffer, superblock.inodeBlocks, bitOffset, 4)
+    bitOffset += 4
+    
+    // Data blocks: 4 bits
+    writeBits(buffer, superblock.dataBlocks, bitOffset, 4)
+    bitOffset += 4
+    
+    // Block size: 24 bits
+    writeBits(buffer, superblock.blockSize, bitOffset, 24)
+    
+    return buffer
 }

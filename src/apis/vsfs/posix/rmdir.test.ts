@@ -9,13 +9,15 @@ import open from "./open.vsfs"
 import Permissions from "../../enums/vsfs/Permissions.enum"
 import { InvalidDirectoryPath } from "../../api-errors/InvalidDirectoryPath.error"
 import { DirectoryNotEmptyError } from "../../api-errors/DirectoryNotEmpty.error"
+import { clearCache } from "../system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    clearCache()
+    await initializeSuperblock()
 })
 
 describe("removes a directory", () => {

@@ -17,9 +17,6 @@ import Tooltip from "./Tooltip"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { VERSION } from "../constants"
 import { useMediaQuery } from "@mui/material"
-import { useEffect } from "react"
-import { useAppDispatch } from "../../../redux/hooks/hooks"
-import { setError } from "../../../redux/reducers/appSlice"
 
 const drawerWidth = 300
 
@@ -83,16 +80,6 @@ export default function MainWindow(props: {
     const theme = useTheme()
     const { apps, setApps } = props
     const isLG = useMediaQuery(theme.breakpoints.down("xl"))
-    const dispatch = useAppDispatch()
-
-    useEffect(() => {
-        if(window.navigator && !window.navigator.userAgent.includes("Chrome")) {
-            dispatch(setError({
-                name: "Browser Compatibility Suggestion",
-                message: "We recommend using a Chromium-based browser (e.g., Google Chrome, Microsoft Edge) to view the app. While Metadisk will function in this browser, it may suffer performance degradation."
-            }))
-        }
-    }, [])
 
     return (
         <Box sx={{ display: "flex" }}>

@@ -8,7 +8,7 @@ import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import getInodeLocation from "../../../apis/vsfs/system/GetInodeLocation.vsfs"
 
 const Bitmap = (props: {
-    data: string
+    data: Uint8Array
     type: "inode" | "data"
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
@@ -16,7 +16,14 @@ const Bitmap = (props: {
 }) => {
     const theme = useTheme()
     const { data, type, setBlockNumber, setSelectedInode, setSelected } = props
-    const pageData = chunk(data.split(""), 256)
+    // Convert Uint8Array to individual bit strings for display
+    const bits: string[] = []
+    for (let i = 0; i < data.length * 8; i++) {
+        const byteIndex = Math.floor(i / 8)
+        const bitIndex = 7 - (i % 8)
+        bits.push((data[byteIndex] & (1 << bitIndex)) ? '1' : '0')
+    }
+    const pageData = chunk(bits, 256)
     const [page, setPage] = useState(1)
     const superblock = useAppSelector(selectSuperblock)
     const inodeStartIndex = superblock.inodeStartIndex

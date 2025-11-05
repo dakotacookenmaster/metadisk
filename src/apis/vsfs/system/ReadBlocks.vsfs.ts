@@ -1,5 +1,5 @@
 import ReadBlockPayload from "../../interfaces/vsfs/ReadBlockPayload.interface"
-import { readBlock } from "./ReadBlock.vsfs"
+import { readBlock } from "./BlockCache.vsfs"
 
 /**
  * Allows the reading of multiple blocks, providing a callback to update the invoker on progress

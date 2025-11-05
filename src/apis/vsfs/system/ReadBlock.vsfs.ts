@@ -1,11 +1,11 @@
-import { chunk } from "lodash"
 import { selectBlockSize, selectSectorsPerBlock, selectSuperblock, selectTotalBlocks } from "../../../redux/reducers/fileSystemSlice"
 import { store } from "../../../store"
 import { InvalidBlockAddressError } from "../../api-errors/InvalidBlockAddress.error"
 import ReadBlockPayload from "../../interfaces/vsfs/ReadBlockPayload.interface"
-import { convertBinaryByteStringToType } from "../../../apps/vsfs/components/Viewers"
+import { getCharacter } from "../../../apps/vsfs/components/Viewers"
 import { readSector } from "../../disk/ReadSector.disk"
 import Permissions from "../../enums/vsfs/Permissions.enum"
+import { readBits, concatBuffers } from "../../utils/BitBuffer.utils"
 
 /**
  * Reads a block from the disk.
@@ -43,40 +43,103 @@ export const readBlock = async (
         ),
     )
 
-    const rawData = result.map(payload => payload.data).join('')
+    // Concatenate all sector data into one buffer
+    const rawData = concatBuffers(result.map(payload => payload.data!))
     const sectors = result.map(payload => payload.sectorNumber)
+
+    // Parse superblock (56 bits)
+    let bitOffset = 0
+    const magicNumber = readBits(rawData, bitOffset, 8)
+    bitOffset += 8
+    const inodeCount = readBits(rawData, bitOffset, 16)
+    bitOffset += 16
+    const inodeBlocks = readBits(rawData, bitOffset, 4)
+    bitOffset += 4
+    const dataBlocks = readBits(rawData, bitOffset, 4)
+    bitOffset += 4
+    const blockSizeFromSuperblock = readBits(rawData, bitOffset, 24)
+
+    // Parse directory entries (each entry is 128 bits)
+    const numEntries = blockSize / 128
+    const entries = []
+    for (let i = 0; i < numEntries; i++) {
+        const entryOffset = i * 128
+        
+        // Read name (104 bits = 13 characters)
+        let name = ""
+        for (let j = 0; j < 13; j++) {
+            const charCode = readBits(rawData, entryOffset + (j * 8), 8)
+            if (charCode !== 0) {
+                name += getCharacter(charCode)
+            }
+        }
+        
+        // Read inode (24 bits)
+        const inodeNum = readBits(rawData, entryOffset + 104, 24)
+        
+        entries.push({
+            name,
+            inode: inodeNum,
+            free: name === ""
+        })
+    }
+
+    // Parse inodes (each inode is 128 bits)
+    const inodes = []
+    for (let i = 0; i < inodesPerBlock; i++) {
+        const inodeOffset = i * 128
+        
+        // Type: 2 bits
+        const typeValue = readBits(rawData, inodeOffset, 2)
+        const type: "file" | "directory" = typeValue === 0b00 ? "file" : "directory"
+        
+        // Permissions: 6 bits
+        const permissionsValue = readBits(rawData, inodeOffset + 2, 6)
+        const permissionsBinary = permissionsValue.toString(2).padStart(6, "0")
+        const permissions = permissionsBinary as Permissions
+        
+        // Size: 24 bits
+        const size = readBits(rawData, inodeOffset + 8, 24)
+        
+        // Created at: 32 bits
+        const createdAtSeconds = readBits(rawData, inodeOffset + 32, 32)
+        const createdAt = new Date(createdAtSeconds * 1000)
+        
+        // Last modified: 32 bits
+        const lastModifiedSeconds = readBits(rawData, inodeOffset + 64, 32)
+        const lastModified = new Date(lastModifiedSeconds * 1000)
+        
+        // Block pointers: 8 pointers of 4 bits each
+        const blockPointers = []
+        for (let j = 0; j < 8; j++) {
+            const pointer = readBits(rawData, inodeOffset + 96 + (j * 4), 4)
+            blockPointers.push(pointer)
+        }
+        
+        inodes.push({
+            inode: (inodesPerBlock * (block - inodeStartIndex)) + i,
+            permissions,
+            type,
+            size,
+            createdAt,
+            lastModified,
+            blockPointers
+        })
+    }
 
     return {
         data: {
             superblock: {
-                magicNumber: parseInt(rawData.slice(0, 8), 2), // the first byte is the magic number
-                inodeCount: parseInt(rawData.slice(8, 24), 2), // the next two bytes represent the number of inodes
-                inodeBlocks: parseInt(rawData.slice(24, 28), 2), // the next nibble is the number of inode blocks
-                dataBlocks: parseInt(rawData.slice(28, 32), 2), // the next nibble is the number of data blocks
-                blockSize: parseInt(rawData.slice(32, 56), 2) // the last 3 bytes are the block size
+                magicNumber,
+                inodeCount,
+                inodeBlocks,
+                dataBlocks,
+                blockSize: blockSizeFromSuperblock
             },
-
             directory: {
-                entries: chunk(rawData, 128).map(entry => {
-                    const name = chunk(entry.join('').slice(0, 104), 8).map(char => convertBinaryByteStringToType(char.join(''), "ascii")).join('').replaceAll("\uE400", "")
-                    return {
-                        name,
-                        inode: parseInt(entry.join('').slice(104, 128), 2),
-                        free: name === "" // if it has no name, it's a free space
-                    }
-                })
+                entries
             },
-            inodes: chunk(rawData, 128).map((inode, index) => {
-                return {
-                    inode: (inodesPerBlock * (block - inodeStartIndex)) + index, // assuming this is an inode block, where inode blocks start at inodeStartIndex
-                    permissions: [inode.join('').slice(2, 4), inode.join('').slice(4, 6), inode.join('').slice(6, 8)].join('') as Permissions,
-                    type: inode.join('').slice(0, 2) === "00" ? "file" : "directory" as "file" | "directory",
-                    size: parseInt(inode.join('').slice(8, 32), 2),
-                    createdAt: new Date(parseInt(inode.join('').slice(32, 64), 2) * 1000),
-                    lastModified: new Date(parseInt(inode.join('').slice(64, 96), 2) * 1000),
-                    blockPointers: chunk(inode.join('').slice(96, 128), 4).map(pointer => parseInt(pointer.join(''), 2))
-                }
-            }),
+            inodes,
             raw: rawData,
         },
         sectors

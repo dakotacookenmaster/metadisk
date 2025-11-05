@@ -2,13 +2,14 @@ import { Box, useTheme } from "@mui/material"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import {
     selectDiskSpeed,
+    selectPlatterRotation,
     selectTrackCount,
 } from "../../../redux/reducers/diskSlice"
 import {
     selectSectorsPerBlock,
     selectTotalBlocks,
 } from "../../../redux/reducers/fileSystemSlice"
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useMemo, createRef } from "react"
 import { MAX_DISK_WIDTH_PERCENTAGE } from "../../common/constants"
 
 const DiskPlatter = () => {
@@ -19,33 +20,61 @@ const DiskPlatter = () => {
         trackCount
     const trackSeparation = MAX_DISK_WIDTH_PERCENTAGE / (trackCount + 1)
     const platterRef = useRef<HTMLElement | null>(null)
-    const sectorRefs = [...Array(sectorsPerTrack * trackCount)].map(() =>
-        useRef<HTMLElement | null>(null),
+    const sectorRefs = useMemo(
+        () =>
+            [...Array(sectorsPerTrack * trackCount)].map(() =>
+                createRef<HTMLElement>(),
+            ),
+        [sectorsPerTrack, trackCount]
     )
 
     const diskSpeed = useAppSelector(selectDiskSpeed)
+    const platterRotation = useAppSelector(selectPlatterRotation)
     const theme = useTheme()
-    const rotation = useRef(0)
+    const animationFrameRef = useRef<number | null>(null)
+    const logThrottleRef = useRef<number>(0)
 
-    useEffect(() => {
-        const interval = setInterval(() => {
+    useEffect(() => {        
+        const animate = () => {
             if (
                 platterRef.current &&
                 sectorRefs.every((sectorRef) => sectorRef.current)
             ) {
-                rotation.current = (rotation.current + diskSpeed * 2) % 360
-                platterRef.current.style.transform = `rotate(${rotation.current}deg)`
+                // Use Date.now() to match the time reference in Redux state
+                const currentTime = Date.now()
+                
+                // Calculate current rotation based on elapsed time from start
+                const elapsedTime = (currentTime - platterRotation.startTime) / 1000
+                const degreesPerSecond = diskSpeed * 120
+                const totalDegrees = degreesPerSecond * elapsedTime
+                const currentRotation = (platterRotation.startDegrees + totalDegrees) % 360
+                
+                // Throttled logging (once per second)
+                const logKey = Math.floor(currentTime / 1000)
+                if (logThrottleRef.current !== logKey) {
+                    logThrottleRef.current = logKey
+                }
+                
+                // Apply visual rotation (no Redux updates needed - calculation is deterministic)
+                platterRef.current.style.transform = `rotate(${currentRotation}deg)`
                 sectorRefs.forEach((sectorRef) => {
-                    sectorRef.current!.style.transform = `rotate(${-rotation.current}deg)`
+                    sectorRef.current!.style.transform = `rotate(${-currentRotation}deg)`
                 })
-                localStorage.setItem("rotation", `${rotation.current}`)
             }
-        })
+            
+            // Continue animation loop
+            animationFrameRef.current = requestAnimationFrame(animate)
+        }
+        
+        // Start animation loop
+        animationFrameRef.current = requestAnimationFrame(animate)
 
         return () => {
-            clearInterval(interval)
+            if (animationFrameRef.current !== null) {
+                cancelAnimationFrame(animationFrameRef.current)
+            }
         }
-    }, [diskSpeed])
+    }, [diskSpeed, platterRotation.startTime, platterRotation.startDegrees, sectorRefs])
 
     return (
         <Box
@@ -55,7 +84,7 @@ const DiskPlatter = () => {
                 height: "500px",
                 minWidth: "500px",
                 position: "relative",
-                transform: `rotate(${rotation}deg)`,
+                transform: `rotate(0deg)`, // Will be updated by animation loop
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -112,7 +141,7 @@ const DiskPlatter = () => {
                                             justifyContent: "center",
                                             border: "2px solid white",
                                             alignItems: "center",
-                                            transform: `rotate(${-rotation}deg)`,
+                                            transform: `rotate(0deg)`, // Will be updated by animation loop
                                             left:
                                                 radius * Math.sin(theta) +
                                                 (250 - 27 / 2),

@@ -10,6 +10,8 @@ import LineStyleIcon from '@mui/icons-material/LineStyle';
 import Editor from "./apps/editor/Editor"
 import FileExplorer from "./apps/file-explorer/FileExplorer"
 import ExploreIcon from '@mui/icons-material/Explore';
+import CacheStatistics from "./apps/cache-statistics/CacheStatistics"
+import CacheStatisticsIcon from "./apps/cache-statistics/CacheStatisticsIcon"
 
 const apps: Record<
     string,
@@ -46,6 +48,11 @@ const apps: Record<
     "Text Editor": {
         elementFn: Editor,
         muiIcon: LineStyleIcon,
+        enabled: true,
+    },
+    "Cache Statistics": {
+        elementFn: CacheStatistics,
+        muiIcon: CacheStatisticsIcon,
         enabled: true,
     },
 }

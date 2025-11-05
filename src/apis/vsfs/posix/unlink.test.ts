@@ -9,13 +9,16 @@ import unlink from "./unlink.vsfs"
 import mkdir from "./mkdir.vsfs"
 import { UnlinkDirectoryError } from "../../api-errors/UnlinkDirectory.error"
 import write from "./write.vsfs"
+import { binaryStringToBuffer } from "../../utils/BitBuffer.utils"
+import { clearCache } from "../system/BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    clearCache()
+    await initializeSuperblock()
 })
 
 describe("unlinks a file", () => {
@@ -29,7 +32,7 @@ describe("unlinks a file", () => {
     })
     test("successfully unlinks a file with many block pointers allocated", async () => {
         const fd = await open("/abc", [OpenFlags.O_CREAT, OpenFlags.O_RDONLY], Permissions.READ_WRITE_EXECUTE)
-        await write(fd, "1".repeat(120000))
+        await write(fd, binaryStringToBuffer("1".repeat(120000)))
         await expect(unlink("/abc")).resolves.toBeUndefined()
     })
 })

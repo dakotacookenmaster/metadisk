@@ -24,6 +24,7 @@ import getLabel from "../../common/helpers/getLabel"
 import getInodeLocation from "../../../apis/vsfs/system/GetInodeLocation.vsfs"
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh"
 import { chunk } from "lodash"
+import { bufferToBinaryString } from "../../../apis/utils/BitBuffer.utils"
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -58,9 +59,8 @@ function a11yProps(index: number) {
 }
 
 export default function DataBlockTabs(props: {
-    data: string | undefined
+    data: Uint8Array | undefined
     blockNumber: number
-    progress: number
     setSelected: React.Dispatch<React.SetStateAction<string>>
     setBlockNumber: React.Dispatch<React.SetStateAction<number>>
     setSelectedInode: React.Dispatch<React.SetStateAction<number | undefined>>
@@ -70,7 +70,6 @@ export default function DataBlockTabs(props: {
 }) {
     const {
         data,
-        progress,
         blockRefs,
         blockNumber,
         canMove,
@@ -121,9 +120,10 @@ export default function DataBlockTabs(props: {
         setValue(newValue)
     }
 
-    function getRanges(data: string) {
+    function getRanges(data: Uint8Array) {
         const ranges = []
-        const chunks = chunk(data, 128)
+        const binaryStr = bufferToBinaryString(data)
+        const chunks = chunk(binaryStr, 128)
         for (let i = 0; i < chunks.length; i++) {
             if(chunks[i].join("") === "0".repeat(128)) {
                 continue;
@@ -157,7 +157,6 @@ export default function DataBlockTabs(props: {
         return (
             <WaitingMessage
                 message="Reading from disk..."
-                progress={progress}
             />
         )
     }
@@ -311,9 +310,9 @@ export default function DataBlockTabs(props: {
             )}
             <CustomTabPanel value={value} index={dir ? 1 : 0}>
                 <Viewer
-                    highlights={{
+                    highlights={dir ? {
                         ranges: getRanges(data),
-                    }}
+                    } : undefined}
                     shouldHighlight={shouldHighlight}
                     data={data}
                     mode="bin"

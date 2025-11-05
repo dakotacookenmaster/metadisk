@@ -4,13 +4,15 @@ import { setSkipWaitTime } from "../../../redux/reducers/diskSlice"
 import initializeSuperblock from "./InitializeSuperblock.vsfs"
 import { readBlock } from "./ReadBlock.vsfs"
 import { InvalidBlockAddressError } from "../../api-errors/InvalidBlockAddress.error"
+import { clearCache } from "./BlockCache.vsfs"
 
 beforeAll(() => {
     store.dispatch(setSkipWaitTime(true))
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    clearCache()
+    await initializeSuperblock()
 })
 
 describe("read a block from the disk", () => {

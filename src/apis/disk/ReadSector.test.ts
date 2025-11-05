@@ -7,7 +7,7 @@ import { InvalidSectorError } from "../api-errors/InvalidSector.error"
 
 const sectors = [...Array(3)].map(() => {
     return {
-        data: "0".repeat(4096),
+        data: new Uint8Array(512), // 512 bytes per sector, initialized to 0
     }
 })
 

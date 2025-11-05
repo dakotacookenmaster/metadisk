@@ -19,6 +19,7 @@ import {
     setIsAwaitingDisk,
 } from "../../../redux/reducers/fileSystemSlice"
 import {
+    resetPlatterRotation,
     selectTrackCount,
     setSectors,
     setTrackCount,
@@ -165,10 +166,12 @@ const SetUpDisk = () => {
                     dispatch(
                         setSectors(
                             [...Array(totalSectors)].map(() => ({
-                                data: "0".repeat(sectorSize),
+                                data: new Uint8Array(sectorSize / 8), // sectorSize is in bits, convert to bytes
                             })),
                         ),
                     )
+                    // Reset rotation to start from now when disk setup completes
+                    dispatch(resetPlatterRotation(Date.now()))
                     dispatch(setIsAwaitingDisk(false))
                 }}
             >

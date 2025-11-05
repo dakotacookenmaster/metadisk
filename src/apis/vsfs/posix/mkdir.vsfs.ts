@@ -10,9 +10,9 @@ import buildDirectory from "../system/BuildDirectory.vsfs"
 import buildInode from "../system/BuildInode.vsfs"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
 import isValidPath from "../system/IsValidPath.vsfs"
-import { readBlock } from "../system/ReadBlock.vsfs"
+import { readBlock, writeBlock } from "../system/BlockCache.vsfs"
 import updateBitmap from "../system/UpdateBitmap.vsfs"
-import { writeBlock } from "../system/WriteBlock.vsfs"
+import { sliceBits, concatBuffers } from "../../utils/BitBuffer.utils"
 
 /**
  * A POSIX-like function to create a directory at the given pathname
@@ -65,9 +65,13 @@ export default async function mkdir(pathname: string) {
     const inodeBitmap = (await readBlock(1)).data.raw // block 1 is the inode bitmap
 
     let availableInode
-    // Find the next available inode spot
-    for (let i = 0; i < inodeBitmap.length; i++) {
-        if (inodeBitmap[i] === "0" && i < inodeCount) {
+    // Find the next available inode spot (check each bit in the bitmap)
+    for (let i = 0; i < inodeBitmap.length * 8 && i < inodeCount; i++) {
+        const byteIndex = Math.floor(i / 8)
+        const bitIndex = 7 - (i % 8)
+        const bit = (inodeBitmap[byteIndex] >> bitIndex) & 1
+        
+        if (bit === 0) {
             // There was an available inode!
             availableInode = i
             break
@@ -131,8 +135,12 @@ export default async function mkdir(pathname: string) {
 
         // we need to allocate another block
         const dataBitmap = (await readBlock(2)).data.raw
-        for (let i = 0; i < dataBitmap.length; i++) {
-            if (dataBitmap[i] === "0" && i < dataBlocks) {
+        for (let i = 0; i < dataBitmap.length * 8 && i < dataBlocks; i++) {
+            const byteIndex = Math.floor(i / 8)
+            const bitIndex = 7 - (i % 8)
+            const bit = (dataBitmap[byteIndex] >> bitIndex) & 1
+            
+            if (bit === 0) {
                 availableDirectoryBlock =
                     i + inodeStartIndex + numberOfInodeBlocks
                 availableDirectoryIndex = 0 // it's a new block, so write to the first directory entry
@@ -158,10 +166,13 @@ export default async function mkdir(pathname: string) {
 
     // determine if there's enough space in the data bitmap for a new directory block
     const dataBitmap = (await readBlock(2)).data.raw
-    for (let i = 0; i < dataBitmap.length; i++) {
+    for (let i = 0; i < dataBitmap.length * 8 && i < dataBlocks; i++) {
+        const byteIndex = Math.floor(i / 8)
+        const bitIndex = 7 - (i % 8)
+        const bit = (dataBitmap[byteIndex] >> bitIndex) & 1
+        
         if (
-            dataBitmap[i] === "0" &&
-            i < dataBlocks &&
+            bit === 0 &&
             i + inodeStartIndex + numberOfInodeBlocks !==
                 availableDirectoryBlock
         ) {
@@ -194,7 +205,8 @@ export default async function mkdir(pathname: string) {
     ).data.raw
 
     // Using the available directory index, we can update this block, knowing that a directory entry is 128 bits
-    const previousEntries = availableDirectoryBlockData.slice(
+    const previousEntries = sliceBits(
+        availableDirectoryBlockData,
         0,
         availableDirectoryIndex * 128,
     )
@@ -208,10 +220,12 @@ export default async function mkdir(pathname: string) {
         ],
     })
 
-    const furtherEntries = availableDirectoryBlockData.slice(
+    const furtherEntries = sliceBits(
+        availableDirectoryBlockData,
         availableDirectoryIndex * 128 + 128,
+        availableDirectoryBlockData.length * 8 - (availableDirectoryIndex * 128 + 128),
     )
-    const result = previousEntries + newEntry + furtherEntries
+    const result = concatBuffers([previousEntries, newEntry, furtherEntries])
 
     await writeBlock(availableDirectoryBlock, result)
 
@@ -239,18 +253,22 @@ export default async function mkdir(pathname: string) {
         await readBlock(oldParentDirectoryInodeBlockNumber)
     ).data.raw
 
-    const priorParentDirectoryInodes = oldParentDirectoryInodeBlock.slice(
+    const priorParentDirectoryInodes = sliceBits(
+        oldParentDirectoryInodeBlock,
         0,
         128 * oldParentDirectoryInodeOffset,
     )
 
-    const restParentDirectoryInodes = oldParentDirectoryInodeBlock.slice(
+    const restParentDirectoryInodes = sliceBits(
+        oldParentDirectoryInodeBlock,
         128 * oldParentDirectoryInodeOffset + 128,
+        oldParentDirectoryInodeBlock.length * 8 - (128 * oldParentDirectoryInodeOffset + 128),
     )
-    const completeNewParent =
-        priorParentDirectoryInodes +
-        updatedParentDirectoryInode +
-        restParentDirectoryInodes
+    const completeNewParent = concatBuffers([
+        priorParentDirectoryInodes,
+        updatedParentDirectoryInode,
+        restParentDirectoryInodes,
+    ])
 
     await writeBlock(inodeBlock, completeNewParent)
 
@@ -272,12 +290,18 @@ export default async function mkdir(pathname: string) {
 
     const oldInodeBlock = (await readBlock(availableInodeBlock)).data.raw
 
-    const priorInodes = oldInodeBlock.slice(0, 128 * availableInodeBlockOffset)
-
-    const restInodes = oldInodeBlock.slice(
-        128 * availableInodeBlockOffset + 128,
+    const priorInodes = sliceBits(
+        oldInodeBlock,
+        0,
+        128 * availableInodeBlockOffset,
     )
-    const completeNewInode = priorInodes + newInodeData + restInodes
+
+    const restInodes = sliceBits(
+        oldInodeBlock,
+        128 * availableInodeBlockOffset + 128,
+        oldInodeBlock.length * 8 - (128 * availableInodeBlockOffset + 128),
+    )
+    const completeNewInode = concatBuffers([priorInodes, newInodeData, restInodes])
 
     await writeBlock(availableInodeBlock, completeNewInode)
 

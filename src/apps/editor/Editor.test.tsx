@@ -27,7 +27,7 @@ beforeAll(() => {
 })
 
 beforeEach(async () => {
-    await initializeSuperblock(() => {})
+    await initializeSuperblock()
 })
 
 describe("renders the disk simulator", () => {

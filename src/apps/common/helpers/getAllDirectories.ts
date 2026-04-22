@@ -2,7 +2,7 @@ import Directories from "../interfaces/Directories.interface"
 import { store } from "../../../store"
 import { selectBlockSize, selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import { readBlocks } from "../../../apis/vsfs/system/ReadBlocks.vsfs"
-import { readBlock } from "../../../apis/vsfs/system/ReadBlock.vsfs"
+import { readBlock } from "../../../apis/vsfs/system/BlockCache.vsfs"
 
 /**
  * Determines which blocks contain directory information, and returns those block numbers

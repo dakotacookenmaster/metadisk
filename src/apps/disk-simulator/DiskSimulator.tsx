@@ -1,9 +1,11 @@
 import AlbumIcon from "@mui/icons-material/Album"
-import { Box, Paper, Typography, useTheme } from "@mui/material"
-import { useAppSelector } from "../../redux/hooks/hooks"
+import { Box, Paper, Tab, Tabs, Typography, useTheme } from "@mui/material"
+import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import {
     selectArmRotation,
     selectDiskQueue,
+    selectViewMode,
+    setViewMode,
 } from "../../redux/reducers/diskSlice"
 import {
     selectIsAwaitingDisk,
@@ -15,6 +17,7 @@ import DiskPlatter from "./components/DiskPlatter"
 import DiskArm from "./components/DiskArm"
 import DiskMetrics from "./components/DiskMetrics"
 import DiskControls from "./components/DiskControls"
+import DiskScene3D from "./components/DiskScene3D"
 import { blue } from "@mui/material/colors"
 
 export const DiskSimulatorIcon = (props: object) => {
@@ -45,6 +48,8 @@ const DiskSimulator = () => {
     const isAwaitingDisk = useAppSelector(selectIsAwaitingDisk)
     const armRotation = useAppSelector(selectArmRotation)
     const diskQueue = useAppSelector(selectDiskQueue)
+    const viewMode = useAppSelector(selectViewMode)
+    const dispatch = useAppDispatch()
     const theme = useTheme()
 
     return (
@@ -73,6 +78,15 @@ const DiskSimulator = () => {
                     <Typography variant="h5" sx={{ textAlign: "center", marginTop: "10px" }}>
                         Disk Simulator
                     </Typography>
+                    <Tabs
+                        value={viewMode}
+                        onChange={(_, v) => dispatch(setViewMode(v))}
+                        centered
+                        sx={{ minHeight: "36px", "& .MuiTab-root": { minHeight: "36px", paddingY: "4px" } }}
+                    >
+                        <Tab value="2d" label="2D" />
+                        <Tab value="3d" label="3D" />
+                    </Tabs>
                     <Box
                         sx={{
                             width: "100%",
@@ -92,8 +106,14 @@ const DiskSimulator = () => {
                                 right: "15px",
                             }}
                         />
-                        <DiskPlatter />
-                        <DiskArm rotation={armRotation} />
+                        {viewMode === "2d" ? (
+                            <>
+                                <DiskPlatter />
+                                <DiskArm rotation={armRotation} />
+                            </>
+                        ) : (
+                            <DiskScene3D />
+                        )}
                     </Box>
                     <Box
                         sx={{

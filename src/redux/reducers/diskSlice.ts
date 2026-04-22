@@ -6,6 +6,21 @@ import DiskWritePayload from "../../apis/interfaces/disk/DiskWritePayload.interf
 import CurrentlyServicingPayload from "../../apis/interfaces/disk/CurrentlyServicingPayload.interface"
 
 export type DiskStateType = "read" | "write" | "idle" | "seek" | "waiting"
+export type DiskViewMode = "2d" | "3d"
+
+// Arm geometry used by `findSectorRotation` (law of cosines).
+//   radiusOfDiskHead: arm swing radius (pivot -> head distance)
+//   pivotDistance:    distance from disk center to pivot
+// 2D and 3D share the same in-plane geometry (so the existing math just
+// works) — the 3D arm is lifted off the platter via Z elevation, not by
+// moving the pivot in the platter's 2D plane.
+export const ARM_GEOMETRY: Record<
+    DiskViewMode,
+    { radiusOfDiskHead: number; pivotDistance: number }
+> = {
+    "2d": { radiusOfDiskHead: 250, pivotDistance: 270 },
+    "3d": { radiusOfDiskHead: 250, pivotDistance: 270 },
+}
 
 interface DiskState {
     state: DiskStateType
@@ -13,6 +28,7 @@ interface DiskState {
     trackCount: number
     diskSpeed: number
     skipWaitTime: boolean
+    viewMode: DiskViewMode
     armRotation: {
         degrees: number
         time: number
@@ -32,6 +48,7 @@ const initialState: DiskState = {
     isProcessing: false,
     skipWaitTime: false,
     diskSpeed: 0.6,
+    viewMode: "2d",
     currentlyServicing: [],
     trackCount: 8,
     armRotation: {
@@ -131,6 +148,9 @@ export const diskSlice = createSlice({
         setSkipWaitTime: (state, action: PayloadAction<boolean>) => {
             state.skipWaitTime = action.payload
         },
+        setViewMode: (state, action: PayloadAction<DiskViewMode>) => {
+            state.viewMode = action.payload
+        },
     },
 })
 
@@ -170,10 +190,11 @@ const findSectorRotation = (sector: number, getState: () => RootState) => {
     const sectors = selectSectors(getState()).length
     const sectorsPerTrack = sectors / getState().disk.trackCount
     const sectorRotation = (sector % sectorsPerTrack) * (360 / sectorsPerTrack)
-    const radiusOfDiskHead = 250
+    const { radiusOfDiskHead, pivotDistance } =
+        ARM_GEOMETRY[getState().disk.viewMode]
     const radiusOfTrack = getRadiusOfTrack(sector, getState)
     const cosTheta =
-        (270 ** 2 + radiusOfTrack ** 2 - radiusOfDiskHead ** 2) /
+        (pivotDistance ** 2 + radiusOfTrack ** 2 - radiusOfDiskHead ** 2) /
         (2 * radiusOfDiskHead * radiusOfTrack)
     const offset = Math.acos(cosTheta) * (180 / Math.PI)
     const rotation = (sectorRotation + 180 - offset) % 360
@@ -348,6 +369,7 @@ export const {
     addToCurrentlyServicing,
     setDiskSpeed,
     setSkipWaitTime,
+    setViewMode,
 } = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk
@@ -361,5 +383,6 @@ export const selectArmRotation = (state: RootState) => state.disk.armRotation
 export const selectPlatterRotation = (state: RootState) => state.disk.platterRotation
 export const selectDiskSpeed = (state: RootState) => state.disk.diskSpeed
 export const selectSkipWaitTime = (state: RootState) => state.disk.skipWaitTime
+export const selectViewMode = (state: RootState) => state.disk.viewMode
 
 export default diskSlice.reducer

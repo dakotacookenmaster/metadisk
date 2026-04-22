@@ -1,15 +1,13 @@
-import {
+﻿import {
     Box,
-    Card,
-    CardContent,
-    Typography,
     LinearProgress,
-    useTheme,
     Paper,
+    Typography,
+    useTheme,
 } from "@mui/material"
 import { useEffect, useState } from "react"
 import { getCacheStats } from "../../apis/vsfs/system/BlockCache.vsfs"
-import { blue, green, orange } from "@mui/material/colors"
+import { green, orange, red } from "@mui/material/colors"
 
 interface CacheStats {
     hits: number
@@ -19,299 +17,225 @@ interface CacheStats {
     maxSize: number
 }
 
+const StatTile = ({
+    label,
+    value,
+    color,
+}: {
+    label: string
+    value: string | number
+    color: string
+}) => {
+    const theme = useTheme()
+    return (
+        <Box
+            sx={{
+                flex: 1,
+                minWidth: 0,
+                textAlign: "center",
+                padding: theme.spacing(2),
+                borderRadius: 1,
+                background: theme.palette.background.default,
+                border: `1px solid ${theme.palette.divider}`,
+            }}
+        >
+            <Typography
+                variant="h4"
+                sx={{ color, fontWeight: "bold", lineHeight: 1.1 }}
+            >
+                {value}
+            </Typography>
+            <Typography
+                variant="overline"
+                sx={{
+                    color: theme.palette.text.secondary,
+                    letterSpacing: 1,
+                }}
+            >
+                {label}
+            </Typography>
+        </Box>
+    )
+}
+
 export default function CacheStatistics() {
     const theme = useTheme()
     const [stats, setStats] = useState<CacheStats | null>(null)
-    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const updateStats = () => {
-            const currentStats = getCacheStats()
-            setStats(currentStats)
-            setLoading(false)
-        }
-
-        // Update stats immediately
-        updateStats()
-
-        // Update stats every second
-        const interval = setInterval(updateStats, 1000)
-
+        const update = () => setStats(getCacheStats())
+        update()
+        const interval = setInterval(update, 1000)
         return () => clearInterval(interval)
     }, [])
 
-    if (loading || !stats) {
+    if (!stats) {
         return (
-            <Box
+            <Paper
                 sx={{
+                    height: "100%",
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    height: "400px",
+                    padding: "10px 20px",
                 }}
             >
-                <Typography variant="h6">Loading cache statistics...</Typography>
-            </Box>
+                <Typography variant="h6">
+                    Loading cache statistics...
+                </Typography>
+            </Paper>
         )
     }
 
     const cacheUtilization = (stats.size / stats.maxSize) * 100
+    const total = stats.hits + stats.misses
+    const utilizationColor =
+        cacheUtilization > 90
+            ? red[500]
+            : cacheUtilization > 75
+            ? orange[500]
+            : green[500]
 
     return (
         <Paper
             sx={{
-                pt: theme.spacing(1.3),
-                pb: theme.spacing(2),
-                px: theme.spacing(2),
                 height: "100%",
-                flexGrow: 1,
-                flexBasis: "50%",
+                padding: "10px 20px",
+                overflow: "hidden",
             }}
         >
-            <Box sx={{ padding: theme.spacing(2) }}>
-                <Typography
-                    variant="h5"
-                    sx={{
-                        textAlign: "center",
-                        marginBottom: theme.spacing(3),
-                        fontWeight: "bold",
-                    }}
-                >
-                    Block Cache Statistics
-                </Typography>
+            <Typography
+                variant="h5"
+                sx={{ textAlign: "center", marginTop: "10px" }}
+            >
+                Block Cache Statistics
+            </Typography>
 
             <Box
                 sx={{
                     display: "flex",
-                    flexDirection: { xs: "column", md: "row" },
+                    flexDirection: "column",
                     gap: theme.spacing(3),
-                    marginBottom: theme.spacing(3),
+                    marginTop: theme.spacing(3),
                 }}
             >
-                {/* Cache Size */}
-                <Card sx={{ flex: 1 }}>
-                    <CardContent>
-                        <Typography
-                            variant="h6"
-                            sx={{ marginBottom: theme.spacing(2) }}
-                        >
-                            Cache Size
-                        </Typography>
-                        <Typography variant="h4" sx={{ color: blue[600] }}>
-                            {stats.size} / {stats.maxSize}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            blocks cached
-                        </Typography>
-                        <Box sx={{ marginTop: theme.spacing(2) }}>
-                            <LinearProgress
-                                variant="determinate"
-                                value={cacheUtilization}
-                                sx={{
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: theme.palette.grey[300],
-                                    "& .MuiLinearProgress-bar": {
-                                        backgroundColor:
-                                            cacheUtilization > 80
-                                                ? orange[500]
-                                                : green[500],
-                                    },
-                                }}
-                            />
-                            <Typography
-                                variant="caption"
-                                sx={{ marginTop: theme.spacing(1) }}
-                            >
-                                {cacheUtilization.toFixed(1)}% utilized
-                            </Typography>
-                        </Box>
-                    </CardContent>
-                </Card>
-
-                {/* Hit Rate */}
-                <Card sx={{ flex: 1 }}>
-                    <CardContent>
-                        <Typography
-                            variant="h6"
-                            sx={{ marginBottom: theme.spacing(2) }}
-                        >
-                            Cache Performance
-                        </Typography>
-                        <Typography variant="h4" sx={{ color: green[600] }}>
-                            {stats.hitRate.toFixed(1)}%
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            hit rate
-                        </Typography>
-                        <Box sx={{ marginTop: theme.spacing(2) }}>
-                            <Typography variant="body2">
-                                Hits: {stats.hits.toLocaleString()}
-                            </Typography>
-                            <Typography variant="body2">
-                                Misses: {stats.misses.toLocaleString()}
-                            </Typography>
-                            <Typography variant="body2">
-                                Total Accesses: {(stats.hits + stats.misses).toLocaleString()}
-                            </Typography>
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Box>
-
-            {/* Detailed Statistics */}
-            <Paper
-                sx={{
-                    padding: theme.spacing(3),
-                    backgroundColor: theme.palette.grey[900],
-                    marginTop: theme.spacing(2),
-                }}
-            >
-                <Typography
-                    variant="h6"
-                    sx={{
-                        marginBottom: theme.spacing(3),
-                        fontWeight: "bold",
-                        textAlign: "center",
-                        color: theme.palette.common.white,
-                    }}
-                >
-                    Detailed Statistics
-                </Typography>
                 <Box
                     sx={{
-                        display: "grid",
-                        gridTemplateColumns: {
-                            xs: "1fr",
-                            sm: "1fr 1fr",
-                            md: "1fr 1fr 1fr 1fr"
-                        },
+                        display: "flex",
+                        alignItems: "center",
                         gap: theme.spacing(3),
+                        padding: theme.spacing(3),
+                        borderRadius: 1,
+                        border: `1px solid ${theme.palette.divider}`,
+                        background: theme.palette.background.default,
                     }}
                 >
-                    <Box
-                        sx={{
-                            textAlign: "center",
-                            padding: theme.spacing(2),
-                            borderRadius: 2,
-                            backgroundColor: theme.palette.grey[800],
-                            border: `1px solid ${theme.palette.grey[700]}`,
-                            backdropFilter: 'blur(8px)',
-                        }}
-                    >
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography
-                            variant="h4"
+                            variant="overline"
                             sx={{
-                                color: green[600],
-                                fontWeight: "bold",
-                                marginBottom: theme.spacing(1)
+                                color: theme.palette.text.secondary,
+                                letterSpacing: 1,
                             }}
                         >
-                            {stats.hits.toLocaleString()}
+                            Hit Rate
                         </Typography>
                         <Typography
-                            variant="body1"
-                            sx={{ 
-                                fontWeight: 500,
-                                color: theme.palette.grey[300]
-                            }}
-                        >
-                            Cache Hits
-                        </Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            textAlign: "center",
-                            padding: theme.spacing(2),
-                            borderRadius: 2,
-                            backgroundColor: theme.palette.grey[800],
-                            border: `1px solid ${theme.palette.grey[700]}`,
-                            backdropFilter: 'blur(8px)',
-                        }}
-                    >
-                        <Typography
-                            variant="h4"
-                            sx={{
-                                color: orange[600],
-                                fontWeight: "bold",
-                                marginBottom: theme.spacing(1)
-                            }}
-                        >
-                            {stats.misses.toLocaleString()}
-                        </Typography>
-                        <Typography
-                            variant="body1"
-                            sx={{ 
-                                fontWeight: 500,
-                                color: theme.palette.grey[300]
-                            }}
-                        >
-                            Cache Misses
-                        </Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            textAlign: "center",
-                            padding: theme.spacing(2),
-                            borderRadius: 2,
-                            backgroundColor: theme.palette.grey[800],
-                            border: `1px solid ${theme.palette.grey[700]}`,
-                            backdropFilter: 'blur(8px)',
-                        }}
-                    >
-                        <Typography
-                            variant="h4"
-                            sx={{
-                                color: blue[600],
-                                fontWeight: "bold",
-                                marginBottom: theme.spacing(1)
-                            }}
-                        >
-                            {stats.size.toLocaleString()}
-                        </Typography>
-                        <Typography
-                            variant="body1"
-                            sx={{ 
-                                fontWeight: 500,
-                                color: theme.palette.grey[300]
-                            }}
-                        >
-                            Blocks Cached
-                        </Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            textAlign: "center",
-                            padding: theme.spacing(2),
-                            borderRadius: 2,
-                            backgroundColor: theme.palette.grey[800],
-                            border: `1px solid ${theme.palette.grey[700]}`,
-                            backdropFilter: 'blur(8px)',
-                        }}
-                    >
-                        <Typography
-                            variant="h4"
+                            variant="h3"
                             sx={{
                                 color: theme.palette.primary.main,
                                 fontWeight: "bold",
-                                marginBottom: theme.spacing(1)
+                                lineHeight: 1,
                             }}
                         >
-                            {stats.maxSize.toLocaleString()}
+                            {stats.hitRate.toFixed(1)}%
                         </Typography>
                         <Typography
-                            variant="body1"
-                            sx={{ 
-                                fontWeight: 500,
-                                color: theme.palette.grey[300]
+                            variant="body2"
+                            sx={{
+                                color: theme.palette.text.secondary,
+                                marginTop: theme.spacing(0.5),
                             }}
                         >
-                            Max Cache Size
+                            {stats.hits.toLocaleString()} hits /{" "}
+                            {total.toLocaleString()} accesses
+                        </Typography>
+                    </Box>
+                    <Box
+                        sx={{
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: theme.spacing(1),
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                            }}
+                        >
+                            <Typography variant="body2">
+                                Cache Utilization
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                {cacheUtilization.toFixed(1)}%
+                            </Typography>
+                        </Box>
+                        <LinearProgress
+                            variant="determinate"
+                            value={cacheUtilization}
+                            sx={{
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: theme.palette.action.hover,
+                                "& .MuiLinearProgress-bar": {
+                                    backgroundColor: utilizationColor,
+                                    borderRadius: 5,
+                                },
+                            }}
+                        />
+                        <Typography
+                            variant="caption"
+                            sx={{ color: theme.palette.text.secondary }}
+                        >
+                            {stats.size} / {stats.maxSize} blocks cached
                         </Typography>
                     </Box>
                 </Box>
-            </Paper>
-        </Box>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: theme.spacing(2),
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <StatTile
+                        label="Cache Hits"
+                        value={stats.hits.toLocaleString()}
+                        color={green[400]}
+                    />
+                    <StatTile
+                        label="Cache Misses"
+                        value={stats.misses.toLocaleString()}
+                        color={orange[400]}
+                    />
+                    <StatTile
+                        label="Blocks Cached"
+                        value={stats.size.toLocaleString()}
+                        color={theme.palette.primary.main}
+                    />
+                    <StatTile
+                        label="Max Cache Size"
+                        value={stats.maxSize.toLocaleString()}
+                        color={theme.palette.text.primary}
+                    />
+                </Box>
+            </Box>
         </Paper>
     )
 }

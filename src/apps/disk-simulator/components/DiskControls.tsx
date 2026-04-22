@@ -44,10 +44,20 @@ export default function DiskControls(props: BoxProps) {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    paddingTop: "10px"
+                    paddingTop: "10px",
+                    width: "120px",
                 }}
             >
-                <Typography variant="overline" fontWeight={"bold"}>
+                <Typography
+                    variant="overline"
+                    fontWeight={"bold"}
+                    sx={{
+                        whiteSpace: "nowrap",
+                        width: "100%",
+                        textAlign: "center",
+                        lineHeight: 1.5,
+                    }}
+                >
                     Speed: { value }
                 </Typography>
                 <Slider

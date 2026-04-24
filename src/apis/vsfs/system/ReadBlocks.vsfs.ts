@@ -5,11 +5,16 @@ import { readBlock } from "./BlockCache.vsfs"
  * Allows the reading of multiple blocks, providing a callback to update the invoker on progress
  * @param blocks The block numbers you want to read.
  * @param progressCb A callback you can provide to allow updates based on computed progress.
+ * @param appId Optional id of the originating app, forwarded to each
+ *              underlying `readBlock` so the disk simulator can attribute
+ *              every queued sector access. Apps don't pass this themselves;
+ *              it is injected by the `usePosix()` hook.
  * @returns
  */
 export const readBlocks = async (
     blocks: number[],
     progressCb?: (progress: number) => void,
+    appId?: string,
 ): Promise<ReadBlockPayload[]> => {
     let totalCompleted = 0
     const operations = []
@@ -23,7 +28,7 @@ export const readBlocks = async (
                             100,
                     )
                 }
-            }).then((result) => {
+            }, appId).then((result) => {
                 totalCompleted++
                 return result
             }),

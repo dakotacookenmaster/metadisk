@@ -77,3 +77,26 @@ describe("expect sector reads out of bounds to throw an error", () => {
         await expect(readSector(-1)).rejects.toThrowError(InvalidSectorError)
     })
 })
+
+test("passing an appId surfaces it in the enqueued payload (for disk-queue attribution)", async () => {
+    enqueue.mockClear()
+    await readSector(0, "file-explorer")
+    expect(enqueue).toBeCalledWith({
+        type: "read",
+        sectorNumber: 0,
+        requestId: "abcd",
+        appId: "file-explorer",
+    })
+})
+
+test("omitting appId leaves it off the enqueued payload entirely", async () => {
+    enqueue.mockClear()
+    await readSector(0)
+    // Important: appId must not even be present as `undefined` — it would
+    // break tests using exact-equality matchers and pollute selector logs.
+    expect(enqueue).toBeCalledWith({
+        type: "read",
+        sectorNumber: 0,
+        requestId: "abcd",
+    })
+})

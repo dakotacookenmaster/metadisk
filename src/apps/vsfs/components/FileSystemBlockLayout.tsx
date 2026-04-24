@@ -6,7 +6,10 @@ import { createRef, useEffect, useMemo, useState } from "react"
 import { blue } from "@mui/material/colors"
 import SuperblockTabs from "./SuperblockTabs"
 import BitmapTabs from "./BitmapTabs"
-import { readBlock } from "../../../apis/vsfs/system/BlockCache.vsfs"
+// Use the POSIX hook (rather than importing `readBlock` directly) so this
+// component's reads are attributed to the "vsfs" app in the Disk Simulator's
+// queue strip. See `usePosix.ts`.
+import usePosix from "../../common/hooks/usePosix"
 import InodeBlockTabs from "./InodeBlockTabs"
 import DataBlockTabs from "./DataBlockTabs"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
@@ -28,6 +31,7 @@ const FileSystemBlockLayout = () => {
     const blockRefs = useMemo(() => {
         return [...Array(totalBlocks)].map(() => createRef())
     }, [totalBlocks])
+    const { readBlock } = usePosix()
 
     const beginOperation = () => {
         setData(undefined)

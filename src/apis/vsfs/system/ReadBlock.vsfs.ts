@@ -6,14 +6,21 @@ import { getCharacter } from "../../../apps/vsfs/components/Viewers"
 import { readSector } from "../../disk/ReadSector.disk"
 import Permissions from "../../enums/vsfs/Permissions.enum"
 import { readBits, concatBuffers } from "../../utils/BitBuffer.utils"
+import { v4 as uuid } from "uuid"
 
 /**
  * Reads a block from the disk.
  * @param block The block number to read from the disk
+ * @param progressCb Optional progress callback (0–100).
+ * @param appId Optional id of the originating app, forwarded to each
+ *              underlying `readSector` call so the disk simulator can
+ *              attribute every queued sector access. Apps don't pass this
+ *              themselves; it is injected by the `usePosix()` hook.
  */
 export const readBlock = async (
     block: number,
     progressCb?: (progress: number) => void,
+    appId?: string,
 ): Promise<ReadBlockPayload> => {
     const state = store.getState()
     const sectorsPerBlock = selectSectorsPerBlock(state)
@@ -30,9 +37,14 @@ export const readBlock = async (
 
     let progress = 0
 
+    // One opId per readBlock call — stamped onto every sector payload so
+    // the disk simulator can group them as a single bracketed operation,
+    // independent of how the queue shifts as items are dequeued.
+    const opId = uuid()
+
     const result = await Promise.all(
         [...Array(sectorsPerBlock)].map((_, i) =>
-            readSector(i + block * sectorsPerBlock).then((data) => {
+            readSector(i + block * sectorsPerBlock, appId, opId).then((data) => {
                 if (progressCb) {
                     progress = progress + (1 / sectorsPerBlock) * 100
                     progressCb(progress)

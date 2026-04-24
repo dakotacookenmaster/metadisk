@@ -54,8 +54,10 @@ class BlockCache {
 
     /**
      * Get a block from cache or read from disk
+     * @param appId Optional id of the originating app, forwarded to
+     *              `readBlockDirect` so disk-level requests retain attribution.
      */
-    async get(blockNumber: number, progressCb?: (progress: number) => void): Promise<ReadBlockPayload> {
+    async get(blockNumber: number, progressCb?: (progress: number) => void, appId?: string): Promise<ReadBlockPayload> {
         const cached = this.cache.get(blockNumber)
         
         if (cached) {
@@ -93,7 +95,7 @@ class BlockCache {
 
         // Cache miss - read from disk
         this.misses++
-        const blockData = await readBlockDirect(blockNumber, progressCb)
+        const blockData = await readBlockDirect(blockNumber, progressCb, appId)
 
         // Store in cache (create a deep copy for storage)
         const dataClone = {
@@ -141,11 +143,14 @@ class BlockCache {
 
     /**
      * Write a block to cache and immediately flush to disk (write-through)
+     * @param appId Optional id of the originating app, forwarded to
+     *              `writeBlockDirect` so disk-level requests retain attribution.
      */
     async write(
         blockNumber: number,
         data: Uint8Array,
-        progressCb?: (progress: number, taskCount: number) => void
+        progressCb?: (progress: number, taskCount: number) => void,
+        appId?: string,
     ): Promise<WriteBlockPayload> {
         // Invalidate cache BEFORE writing to disk. This is important because
         // each underlying writeSector dispatches a redux update; subscribers
@@ -157,7 +162,7 @@ class BlockCache {
         this.invalidate(blockNumber)
 
         // Write-through to disk
-        const result = await writeBlockDirect(blockNumber, data, progressCb)
+        const result = await writeBlockDirect(blockNumber, data, progressCb, appId)
 
         // Invalidate again in case a concurrent reader re-populated the cache
         // with a partially-written view of the block during the write.
@@ -282,29 +287,37 @@ store.subscribe(() => {
 
 /**
  * Cached version of readBlock
+ * @param appId Optional id of the originating app for disk attribution.
+ *              Apps don't pass this themselves; it is injected by the
+ *              `usePosix()` hook from the current `AppContext`.
  */
 export async function readBlock(
     block: number,
     progressCb?: (progress: number) => void,
+    appId?: string,
 ): Promise<ReadBlockPayload> {
     if (!selectCacheEnabled(store.getState())) {
-        return readBlockDirect(block, progressCb)
+        return readBlockDirect(block, progressCb, appId)
     }
-    return blockCache.get(block, progressCb)
+    return blockCache.get(block, progressCb, appId)
 }
 
 /**
  * Cached version of writeBlock
+ * @param appId Optional id of the originating app for disk attribution.
+ *              Apps don't pass this themselves; it is injected by the
+ *              `usePosix()` hook from the current `AppContext`.
  */
 export async function writeBlock(
     block: number,
     data: Uint8Array,
     progressCb?: (progress: number, taskCount: number) => void,
+    appId?: string,
 ): Promise<WriteBlockPayload> {
     if (!selectCacheEnabled(store.getState())) {
-        return writeBlockDirect(block, data, progressCb)
+        return writeBlockDirect(block, data, progressCb, appId)
     }
-    return blockCache.write(block, data, progressCb)
+    return blockCache.write(block, data, progressCb, appId)
 }
 
 /**

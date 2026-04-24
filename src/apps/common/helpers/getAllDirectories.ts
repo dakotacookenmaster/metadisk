@@ -6,8 +6,13 @@ import { readBlock } from "../../../apis/vsfs/system/BlockCache.vsfs"
 
 /**
  * Determines which blocks contain directory information, and returns those block numbers
+ *
+ * @param appId Optional id of the app initiating these reads. When invoked
+ *   from inside a React component, callers should obtain this from
+ *   `usePosix().appId` rather than hard-coding it, so the Disk Simulator
+ *   can attribute the resulting block reads to the correct app icon.
  */
-const getAllDirectories = async (): Promise<Directories> => {
+const getAllDirectories = async (appId?: string): Promise<Directories> => {
     const state = store.getState()
     const { inodeStartIndex, numberOfInodeBlocks, inodeSize } = selectSuperblock(state)
     const blockSize = selectBlockSize(state)
@@ -16,8 +21,8 @@ const getAllDirectories = async (): Promise<Directories> => {
     )
     const inodesPerBlock = blockSize / inodeSize
 
-    const inodeBlocks = await readBlocks(inodeBlockNumbers)
-    const inodeBitmap = (await readBlock(1)).data.raw
+    const inodeBlocks = await readBlocks(inodeBlockNumbers, undefined, appId)
+    const inodeBitmap = (await readBlock(1, undefined, appId)).data.raw
     const directoryBlockNumbers = []
     
     for (const [inodeBlockIndex, inodeBlock] of inodeBlocks.entries()) {

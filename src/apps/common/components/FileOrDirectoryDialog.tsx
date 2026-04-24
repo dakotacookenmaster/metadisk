@@ -5,12 +5,17 @@ import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import { TextField, useTheme } from "@mui/material"
-import open from "../../../apis/vsfs/posix/open.vsfs"
 import OpenFlags from "../../../apis/enums/vsfs/OpenFlags.enum"
 import Permissions from "../../../apis/enums/vsfs/Permissions.enum"
 import { useAppDispatch } from "../../../redux/hooks/hooks"
 import { setError } from "../../../redux/reducers/appSlice"
-import mkdir from "../../../apis/vsfs/posix/mkdir.vsfs"
+// This dialog is rendered inside whichever app currently invokes it (e.g.
+// File Explorer). Going through `usePosix()` rather than importing `open`
+// and `mkdir` directly means the dialog inherits its host app's id from
+// `AppContext` and tags every queued disk request with it, so the Disk
+// Simulator can show the right app icon under the affected blocks.
+// See `usePosix.ts`.
+import usePosix from "../hooks/usePosix"
 import {
     getCharacter,
     getCharacterEncoding,
@@ -29,6 +34,7 @@ export default function FileOrDirectoryDialog(props: {
     const [name, setName] = React.useState("")
     const dispatch = useAppDispatch()
     const theme = useTheme()
+    const { open, mkdir } = usePosix()
 
     const handleClose = async () => {
         setIsOpen(false)

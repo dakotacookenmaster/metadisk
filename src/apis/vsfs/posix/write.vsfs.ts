@@ -19,8 +19,12 @@ import { sliceBits, concatBuffers } from "../../utils/BitBuffer.utils"
  * A POSIX-like function that allows writing data to a file, given a file descriptor
  * @param fileDescriptor The file descriptor pointing to the file you want to write to
  * @param data The data you wish to write to this file (as Uint8Array)
+ * @param appId Optional originating app id, forwarded down to every disk
+ *              read/write so the disk simulator can attribute each queued
+ *              sector to the calling app. Apps don't pass this themselves;
+ *              it is injected by the `usePosix()` hook.
  */
-export default async function write(fileDescriptor: number, data: Uint8Array) {
+export default async function write(fileDescriptor: number, data: Uint8Array, appId?: string) {
     const state = store.getState()
     const fileDescriptorTable = selectFileDescriptorTable(state)
     if (fileDescriptor < 0 || fileDescriptor > fileDescriptorTable.length - 1) {
@@ -45,7 +49,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
         const { inodeBlock, inodeOffset } = getInodeLocation(descriptor.inode)
 
         // Grab the inode
-        const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
+        const inode = (await readBlock(inodeBlock, undefined, appId)).data.inodes[inodeOffset]
 
         // get the size of the data in bits
         const fileSize = data.length * 8
@@ -81,7 +85,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
         if (necessaryBlocks === availableBlocks) {
             // we're in luck! We have the exact amount of allocated blocks, and we can just write
             for (let i = 0; i < pointers.length; i++) {
-                await writeBlocks(pointers, segments)
+                await writeBlocks(pointers, segments, undefined, appId)
             }
 
             // Now that we've written, we need to update the inode to show its new size
@@ -93,14 +97,14 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
             })
 
             // read the old inode block to rebuild it
-            const oldInodeBlock = (await readBlock(inodeBlock)).data.raw
+            const oldInodeBlock = (await readBlock(inodeBlock, undefined, appId)).data.raw
             const previousInodes = sliceBits(oldInodeBlock, 0, inodeOffset * 128)
             const furtherInodes = sliceBits(oldInodeBlock, inodeOffset * 128 + 128, oldInodeBlock.length * 8 - (inodeOffset * 128 + 128))
 
             const newInodeBlock = concatBuffers([previousInodes, updatedInode, furtherInodes])
 
             // write the updated inode
-            await writeBlock(inodeBlock, newInodeBlock)
+            await writeBlock(inodeBlock, newInodeBlock, undefined, appId)
         } else if (necessaryBlocks < availableBlocks) {
             // The file was reduced in size. This means we can deallocate some blocks
 
@@ -118,7 +122,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
             }
 
             // Write the data to the available pointers
-            await writeBlocks(neededPointers, segments)
+            await writeBlocks(neededPointers, segments, undefined, appId)
 
             // Update the inode with the new size, last modified, and new pointers
             const updatedInode = buildInode({
@@ -129,14 +133,14 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
             })
 
             // read the old inode block to rebuild it
-            const oldInodeBlock = (await readBlock(inodeBlock)).data.raw
+            const oldInodeBlock = (await readBlock(inodeBlock, undefined, appId)).data.raw
             const previousInodes = sliceBits(oldInodeBlock, 0, inodeOffset * 128)
             const furtherInodes = sliceBits(oldInodeBlock, inodeOffset * 128 + 128, oldInodeBlock.length * 8 - (inodeOffset * 128 + 128))
 
             const newInodeBlock = concatBuffers([previousInodes, updatedInode, furtherInodes])
 
             // Write the updated inode
-            await writeBlock(inodeBlock, newInodeBlock)
+            await writeBlock(inodeBlock, newInodeBlock, undefined, appId)
 
             // Update the bitmap for each of the now deallocated pointers
             for (const pointer of discardPointers) {
@@ -144,6 +148,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
                     "data",
                     pointer - inodeStartIndex - numberOfInodeBlocks,
                     "0",
+                    appId,
                 )
             }
         } else {
@@ -154,7 +159,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
             const newBlocks: number[] = []
 
             // Find the next available block
-            const dataBitmap = (await readBlock(2)).data.raw
+            const dataBitmap = (await readBlock(2, undefined, appId)).data.raw
 
             // Check each bit in the bitmap
             for (
@@ -183,7 +188,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
 
             // We found the new blocks we need to write to, in addition to any that
             // are existing. Start by writing the file
-            await writeBlocks([...pointers, ...newBlocks], segments)
+            await writeBlocks([...pointers, ...newBlocks], segments, undefined, appId)
 
             // build the new block pointers, with nulls padding the end
             const newBlockPointers = [...pointers, ...newBlocks]
@@ -201,14 +206,14 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
             })
 
             // read the old inode block to rebuild it
-            const oldInodeBlock = (await readBlock(inodeBlock)).data.raw
+            const oldInodeBlock = (await readBlock(inodeBlock, undefined, appId)).data.raw
             const previousInodes = sliceBits(oldInodeBlock, 0, inodeOffset * 128)
             const furtherInodes = sliceBits(oldInodeBlock, inodeOffset * 128 + 128, oldInodeBlock.length * 8 - (inodeOffset * 128 + 128))
 
             const newInodeBlock = concatBuffers([previousInodes, updatedInode, furtherInodes])
 
             // Write the updated inode
-            await writeBlock(inodeBlock, newInodeBlock)
+            await writeBlock(inodeBlock, newInodeBlock, undefined, appId)
 
             // For each of the new pointers, update the data bitmap
             for (const pointer of newBlocks) {
@@ -216,6 +221,7 @@ export default async function write(fileDescriptor: number, data: Uint8Array) {
                     "data",
                     pointer - inodeStartIndex - numberOfInodeBlocks,
                     "1",
+                    appId,
                 )
             }
 

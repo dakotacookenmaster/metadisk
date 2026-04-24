@@ -7,11 +7,16 @@ import { readBlock } from "./BlockCache.vsfs"
 /**
  * Checks if a given path is valid. If it is, it will return the inode corresponding to the file or directory.
  * @param pathname The pathname to check
+ * @param useParentDirectory If true, validate the parent directory only.
+ * @param appId Optional id of the originating app, forwarded so the
+ *              underlying directory traversal reads can be attributed in
+ *              the disk simulator. Apps don't pass this themselves; it is
+ *              injected by the `usePosix()` hook.
  * @returns
  * @throws InvalidPathError
  * @throws FilenameTooLongError
  */
-export default async function isValidPath(pathname: string, useParentDirectory: boolean = false): Promise<number> {
+export default async function isValidPath(pathname: string, useParentDirectory: boolean = false, appId?: string): Promise<number> {
     if (pathname.length === 0 || pathname[0] !== "/") {
         throw new InvalidPathError()
     }
@@ -31,7 +36,7 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
 
         const { inodeBlock, inodeOffset } = getInodeLocation(inodeNumber)
 
-        const inode = (await readBlock(inodeBlock)).data.inodes[inodeOffset]
+        const inode = (await readBlock(inodeBlock, undefined, appId)).data.inodes[inodeOffset]
 
         if(inode.type === "file") {
             // a file name was provided as a piece of the path...this is an invalid path
@@ -40,7 +45,7 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
 
         const allEntries: DirectoryEntry[] = []
         for(const pointer of inode.blockPointers) {
-            const { entries} = (await readBlock(pointer)).data.directory
+            const { entries} = (await readBlock(pointer, undefined, appId)).data.directory
             allEntries.push(...entries)
         }
         found = false

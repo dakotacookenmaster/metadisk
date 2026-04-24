@@ -2,9 +2,12 @@ import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import { useAppDispatch } from "../../../redux/hooks/hooks"
 import { setOpenFile } from "../../../redux/reducers/fileSystemSlice"
-import rmdir from "../../../apis/vsfs/posix/rmdir.vsfs"
+// Use `usePosix()` rather than importing `rmdir`/`unlink` directly so this
+// app's id ("file-explorer") is automatically attached to every queued
+// disk request, enabling the Disk Simulator's per-block app icons. See
+// `usePosix.ts`.
+import usePosix from "../../common/hooks/usePosix"
 import { setError } from "../../../redux/reducers/appSlice"
-import unlink from "../../../apis/vsfs/posix/unlink.vsfs"
 import FileOpenIcon from "@mui/icons-material/FileOpen"
 import { useTheme } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -39,6 +42,7 @@ export default function RightClick(props: {
     const { contextMenu, setContextMenu, setCurrentDirectory, setIsOpen, setType, setLoadingHierarchy } = props
     const dispatch = useAppDispatch()
     const theme = useTheme()
+    const { rmdir, unlink } = usePosix()
 
     const handleClose = () => {
         setContextMenu(null)

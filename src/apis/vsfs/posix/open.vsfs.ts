@@ -4,12 +4,12 @@ import { OpenFlagError } from "../../api-errors/OpenFlag.error"
 import OpenFlags from "../../enums/vsfs/OpenFlags.enum"
 import Permissions from "../../enums/vsfs/Permissions.enum"
 import getInodeLocation from "../system/GetInodeLocation.vsfs"
-import isValidPath from "../system/IsValidPath.vsfs"
-import { readBlock, writeBlock } from "../system/BlockCache.vsfs"
+import _isValidPath from "../system/IsValidPath.vsfs"
+import { readBlock as _readBlock, writeBlock as _writeBlock } from "../system/BlockCache.vsfs"
 import { DirectoryOverflowError } from "../../api-errors/DirectoryOverflow.error"
 import { DataBlockOverflowError } from "../../api-errors/DataBlockOverflow.error"
 import buildInode from "../system/BuildInode.vsfs"
-import updateBitmap from "../system/UpdateBitmap.vsfs"
+import _updateBitmap from "../system/UpdateBitmap.vsfs"
 import {
     addFileDescriptor,
     selectFileDescriptorTable,
@@ -29,6 +29,10 @@ import { sliceBits, concatBuffers } from "../../utils/BitBuffer.utils"
  * @param pathname The path at which to open (or create) the file
  * @param flags The options for opening this file
  * @param mode The file's permission mode, only used when creating a file
+ * @param appId Optional originating app id, forwarded down to every disk
+ *              read/write so the disk simulator can attribute each queued
+ *              sector to the calling app. Apps don't pass this themselves;
+ *              it is injected by the `usePosix()` hook.
  * @returns A file descriptor
  * @throws OpenFlagError
  */
@@ -36,7 +40,17 @@ export default async function open(
     pathname: string,
     flags: OpenFlags[],
     mode?: Permissions,
+    appId?: string,
 ): Promise<number> {
+    // Bind the originating `appId` to every disk operation performed by
+    // this POSIX call by shadowing the imports with curried locals. This
+    // keeps the function body free of repeated `, undefined, appId` noise
+    // while still attributing every queued sector to the calling app.
+    const readBlock: typeof _readBlock = (b, cb) => _readBlock(b, cb, appId)
+    const writeBlock: typeof _writeBlock = (b, d, cb) => _writeBlock(b, d, cb, appId)
+    const updateBitmap: typeof _updateBitmap = (which, index, value) => _updateBitmap(which, index, value, appId)
+    const isValidPath: typeof _isValidPath = (p, useParent) => _isValidPath(p, useParent, appId)
+
     /* 
         In order to open a file, a series of checks have to be made.
 

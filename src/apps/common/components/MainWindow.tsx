@@ -13,6 +13,7 @@ import ListItemIcon from "@mui/material/ListItemIcon"
 import BugReportIcon from '@mui/icons-material/BugReport';
 import ListItemText from "@mui/material/ListItemText"
 import apps from "../../../register-apps"
+import AppContext from "../AppContext"
 import Tooltip from "./Tooltip"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { VERSION } from "../constants"
@@ -250,6 +251,11 @@ export default function MainWindow(props: {
                     {Object.keys(apps)
                         .map((appKey) => {
                             const Element = apps[appKey].elementFn
+                            // Wrap each app in an AppContext provider so any
+                            // descendant calling `usePosix()` automatically
+                            // tags its disk requests with this app's id.
+                            // That tag is what powers the per-block app
+                            // icons in the Disk Simulator's queue strip.
                             return (
                                 <Box
                                     data-testid={appKey}
@@ -258,13 +264,15 @@ export default function MainWindow(props: {
                                         width: `calc(${
                                             isLG ? "100%" : "50%"
                                         } - (${theme.spacing(1.5)} / 2))`,
-                                        height: "730px",
+                                        height: "770px",
                                         display: apps[appKey].enabled
                                             ? "block"
                                             : "none",
                                     }}
                                 >
-                                    <Element {...apps[appKey].props} />
+                                    <AppContext.Provider value={apps[appKey].id}>
+                                        <Element {...apps[appKey].props} />
+                                    </AppContext.Provider>
                                 </Box>
                             )
                         })}

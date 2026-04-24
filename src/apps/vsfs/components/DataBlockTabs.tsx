@@ -15,7 +15,10 @@ import {
     useTheme,
 } from "@mui/material"
 import DirectoryEntry from "../../../apis/interfaces/vsfs/DirectoryEntry.interface"
-import { readBlock } from "../../../apis/vsfs/system/BlockCache.vsfs"
+// Use the POSIX hook (rather than importing `readBlock` directly) so this
+// component's reads are attributed to the "vsfs" app in the Disk Simulator's
+// queue strip. See `usePosix.ts`.
+import usePosix from "../../common/hooks/usePosix"
 import { useAppSelector } from "../../../redux/hooks/hooks"
 import { selectSuperblock } from "../../../redux/reducers/fileSystemSlice"
 import { selectSectors } from "../../../redux/reducers/diskSlice"
@@ -87,10 +90,11 @@ export default function DataBlockTabs(props: {
     const sectors = useAppSelector(selectSectors)
     const theme = useTheme()
     const [shouldHighlight, setShouldHighlight] = React.useState(true)
+    const { readBlock, appId } = usePosix()
 
     React.useEffect(() => {
         ;(async () => {
-            const directories = await getAllDirectories()
+            const directories = await getAllDirectories(appId)
             if (
                 directories.blocks.includes(
                     blockNumber + inodeStartIndex + numberOfInodeBlocks,

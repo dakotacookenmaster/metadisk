@@ -103,3 +103,26 @@ describe("writing too much data to a sector should throw an error", async () => 
         )
     })
 })
+
+test("passing an appId surfaces it in the enqueued payload (for disk-queue attribution)", async () => {
+    enqueue.mockClear()
+    await writeSector(0, testData, "editor")
+    expect(enqueue).toBeCalledWith({
+        type: "write",
+        sectorNumber: 0,
+        data: testData,
+        requestId: "abcd",
+        appId: "editor",
+    })
+})
+
+test("omitting appId leaves it off the enqueued payload entirely", async () => {
+    enqueue.mockClear()
+    await writeSector(0, testData)
+    expect(enqueue).toBeCalledWith({
+        type: "write",
+        sectorNumber: 0,
+        data: testData,
+        requestId: "abcd",
+    })
+})

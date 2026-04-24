@@ -2,15 +2,19 @@ import { Box, Button, Paper, Typography, useTheme } from "@mui/material"
 import { useEffect, useRef, useState } from "react"
 import { getCharacter, getCharacterEncoding } from "../vsfs/components/Viewers"
 import Tooltip from "../common/components/Tooltip"
-import open from "../../apis/vsfs/posix/open.vsfs"
 import OpenFlags from "../../apis/enums/vsfs/OpenFlags.enum"
-import read from "../../apis/vsfs/posix/read.vsfs"
-import write from "../../apis/vsfs/posix/write.vsfs"
+// We deliberately do NOT import the POSIX functions directly. Going
+// through `usePosix()` injects this app's id ("editor", set by
+// `register-apps.tsx` and provided via `AppContext` by `MainWindow`) into
+// every disk operation. That id ends up on each entry in the disk queue,
+// which is what lets the Disk Simulator render the editor's icon under the
+// blocks it is reading or writing. Importing POSIX directly would leave
+// requests unattributed and break that visualization. See `usePosix.ts`.
+import usePosix from "../common/hooks/usePosix"
 import convertBinaryStringToText from "../common/helpers/convertBinaryStringToText"
 import convertTextToBinaryString from "../common/helpers/convertTextToBinaryString"
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/hooks"
 import { setError } from "../../redux/reducers/appSlice"
-import close from "../../apis/vsfs/posix/close.vsfs"
 import { selectOpenFile, setOpenFile } from "../../redux/reducers/fileSystemSlice"
 import { blue } from "@mui/material/colors"
 
@@ -23,6 +27,7 @@ const Editor = () => {
     const [saving, setSaving] = useState(false)
     const dispatch = useAppDispatch()
     const editorRef = useRef<null | HTMLDivElement>(null)
+    const { open, read, write, close } = usePosix()
     
     useEffect(() => {
         ;(async () => {

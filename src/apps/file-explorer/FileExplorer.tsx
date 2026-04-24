@@ -22,7 +22,11 @@ import WaitingMessage from "../common/components/WaitingMessage"
 import RightClick from "./components/RightClick"
 import { selectSectors } from "../../redux/reducers/diskSlice"
 import FileOrDirectoryDialog from "../common/components/FileOrDirectoryDialog"
-import listing from "../../apis/vsfs/posix/listing.vsfs"
+// Use the POSIX hook (rather than importing `listing` directly) so this
+// app's id ("file-explorer") is automatically attached to every disk
+// request. That attribution is what powers the per-block app icons in the
+// Disk Simulator's queue strip. See `usePosix.ts`.
+import usePosix from "../common/hooks/usePosix"
 import DirectoryListing from "../../apis/interfaces/vsfs/DirectoryListing.interface"
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder"
 import NoteAddIcon from "@mui/icons-material/NoteAdd"
@@ -46,6 +50,7 @@ export default function FileExplorer() {
     const sectors = useAppSelector(selectSectors)
     const [isOpen, setIsOpen] = useState(false)
     const [type, setType] = useState<"file" | "directory">("file")
+    const { listing } = usePosix()
 
     const handleContextMenu = (
         event: React.MouseEvent<HTMLElement>,

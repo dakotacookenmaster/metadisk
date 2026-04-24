@@ -284,7 +284,9 @@ const writeOrRead =
             )
         }
 
-        // When the read / write has happened, notify all subscribers that it has been serviced
+        // When the read / write has happened, notify all subscribers that it has been serviced.
+        // Carry through `appId` so anything inspecting `currentlyServicing` (or any future
+        // archive of completed requests) preserves the originating app attribution.
         dispatch(
             addToCurrentlyServicing({
                 requestId: data.requestId,
@@ -294,6 +296,8 @@ const writeOrRead =
                     data.type === "read"
                         ? getState().disk.sectors[data.sectorNumber].data
                         : undefined,
+                ...(data.appId !== undefined ? { appId: data.appId } : {}),
+                ...(data.opId !== undefined ? { opId: data.opId } : {}),
             }),
         )
     }

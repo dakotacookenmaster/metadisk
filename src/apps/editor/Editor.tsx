@@ -54,6 +54,7 @@ const Editor = () => {
                 setLoading(false)
             }
         })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [openFile])
 
     const handleSave = async () => {

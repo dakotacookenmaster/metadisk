@@ -118,6 +118,7 @@ export default function DataBlockTabs(props: {
             }
             setFinished(true)
         })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sectors])
 
     const handleChange = (_: React.SyntheticEvent, newValue: number) => {

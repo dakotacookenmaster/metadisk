@@ -6,6 +6,7 @@ import { Typography } from "@mui/material"
 import * as monacoEditor from "monaco-editor"
 import { css } from "@emotion/css"
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const characterMap = [
     "\uE400",
     "\u263A",
@@ -270,14 +271,17 @@ export const characterMap = [
  * @param char The character you want to get the number for
  * @returns
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const getCharacterEncoding = (char: string): number => {
     return characterMap.findIndex((c) => c === char)
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const getCharacter = (byte: number): string => {
     return characterMap[byte]
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const convertBinaryByteStringToType = (
     byte: string,
     mode: "bin" | "hex" | "ascii",
@@ -386,6 +390,7 @@ const Viewer = (props: {
         if (editorRef.current && highlights) {
             applyHighlights(editorRef.current)
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, mode, highlights, shouldHighlight])
 
     return (

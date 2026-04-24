@@ -32,6 +32,7 @@ import {
  * @param amount The number of bits
  * @returns 
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const getByteCount = (amount: number) => {
     const GiB = amount / 8_589_934_592
     const MiB = amount / 8_388_608

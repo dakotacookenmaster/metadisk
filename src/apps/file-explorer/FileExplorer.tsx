@@ -89,6 +89,7 @@ export default function FileExplorer() {
                 )
             }
         })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentDirectory, isDiskFormatted, sectors])
     return (
         <Paper

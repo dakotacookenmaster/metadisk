@@ -96,7 +96,7 @@ describe("renders the disk simulator", () => {
         expect(await screen.findByText("4 (R)")).toBeInTheDocument()
 
         // Three groups, each with exactly one icon.
-        let groups = await screen.findAllByTestId(/^queue-group-\d+$/)
+        const groups = await screen.findAllByTestId(/^queue-group-\d+$/)
         expect(groups).toHaveLength(3)
         const icons = await screen.findAllByTestId(/^queue-group-icon-\d+$/)
         expect(icons).toHaveLength(3)

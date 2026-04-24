@@ -49,6 +49,7 @@ const FileSystemBlockLayout = () => {
             const result = (await readBlock(1)).data.raw
             setInodeBitmap(result)
         })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sectors])
 
     useEffect(() => {
@@ -60,6 +61,7 @@ const FileSystemBlockLayout = () => {
             setData(result)
             setCanMove(true)
         })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selected, sectors, blockNumber])
 
     return (

@@ -2,6 +2,7 @@ import { describe, expect, test, vi, beforeEach } from "vitest"
 import { renderHook } from "@testing-library/react"
 import React from "react"
 import AppContext from "../AppContext"
+import Permissions from "../../../apis/enums/vsfs/Permissions.enum"
 
 // Mock every underlying POSIX/block module BEFORE importing the hook so
 // the hook picks up our spies as the imported defaults.
@@ -71,10 +72,10 @@ describe("usePosix() injects the AppContext appId into every call", () => {
             wrapper: wrap("editor"),
         })
 
-        await result.current.open("/a", 0, 0o644)
+        await result.current.open("/a", [], Permissions.READ)
         await result.current.close(1)
         await result.current.read(1)
-        await result.current.write(1, "hi")
+        await result.current.write(1, new Uint8Array(0))
         await result.current.listing("/")
         await result.current.mkdir("/d")
         await result.current.rmdir("/d")
@@ -84,10 +85,10 @@ describe("usePosix() injects the AppContext appId into every call", () => {
         await result.current.readBlocks([0])
         await result.current.writeBlocks([0], [new Uint8Array(0)])
 
-        expect(_open).toHaveBeenCalledWith("/a", 0, 0o644, "editor")
+        expect(_open).toHaveBeenCalledWith("/a", [], Permissions.READ, "editor")
         expect(_close).toHaveBeenCalledWith(1, "editor")
         expect(_read).toHaveBeenCalledWith(1, "editor")
-        expect(_write).toHaveBeenCalledWith(1, "hi", "editor")
+        expect(_write).toHaveBeenCalledWith(1, new Uint8Array(0), "editor")
         expect(_listing).toHaveBeenCalledWith("/", "editor")
         expect(_mkdir).toHaveBeenCalledWith("/d", "editor")
         expect(_rmdir).toHaveBeenCalledWith("/d", "editor")
@@ -111,8 +112,8 @@ describe("usePosix() injects the AppContext appId into every call", () => {
     test("with no provider, appId is undefined and is forwarded as such (system caller)", async () => {
         const { result } = renderHook(() => usePosix())
         expect(result.current.appId).toBeUndefined()
-        await result.current.open("/a", 0, 0o644)
-        expect(_open).toHaveBeenCalledWith("/a", 0, 0o644, undefined)
+        await result.current.open("/a", [], Permissions.READ)
+        expect(_open).toHaveBeenCalledWith("/a", [], Permissions.READ, undefined)
     })
 
     test("the returned function bag is referentially stable per appId", () => {
@@ -126,13 +127,13 @@ describe("usePosix() injects the AppContext appId into every call", () => {
 
     test("different provider values produce different bound appIds", async () => {
         const a = renderHook(() => usePosix(), { wrapper: wrap("editor") })
-        await a.result.current.open("/a", 0, 0o644)
-        expect(_open).toHaveBeenLastCalledWith("/a", 0, 0o644, "editor")
+        await a.result.current.open("/a", [], Permissions.READ)
+        expect(_open).toHaveBeenLastCalledWith("/a", [], Permissions.READ, "editor")
 
         const b = renderHook(() => usePosix(), {
             wrapper: wrap("file-explorer"),
         })
-        await b.result.current.open("/a", 0, 0o644)
-        expect(_open).toHaveBeenLastCalledWith("/a", 0, 0o644, "file-explorer")
+        await b.result.current.open("/a", [], Permissions.READ)
+        expect(_open).toHaveBeenLastCalledWith("/a", [], Permissions.READ, "file-explorer")
     })
 })

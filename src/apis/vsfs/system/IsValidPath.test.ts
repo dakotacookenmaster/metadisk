@@ -19,25 +19,25 @@ beforeEach(async () => {
     await initializeSuperblock()
 })
 
-test("a path containing just a / should return the root inode", () => {
-    expect(isValidPath("/")).resolves.toBe(0)
+test("a path containing just a / should return the root inode", async () => {
+    await expect(isValidPath("/")).resolves.toBe(0)
 })
 
-test("an path that doesn't begin with a / should throw an error", () => {
-    expect(isValidPath("abc")).rejects.toThrow(InvalidPathError)
+test("an path that doesn't begin with a / should throw an error", async () => {
+    await expect(isValidPath("abc")).rejects.toThrow(InvalidPathError)
 })
 
-test("an empty path should throw an error", () => {
-    expect(isValidPath("")).rejects.toThrow(InvalidPathError)
+test("an empty path should throw an error", async () => {
+    await expect(isValidPath("")).rejects.toThrow(InvalidPathError)
 })
 
-test("a path with a between-slash value longer than 13 characters should throw an error", () => {
-    expect(isValidPath('/abcdefghijklmnopqrstuvwxyz')).rejects.toThrow(FilenameTooLongError)
+test("a path with a between-slash value longer than 13 characters should throw an error", async () => {
+    await expect(isValidPath('/abcdefghijklmnopqrstuvwxyz')).rejects.toThrow(FilenameTooLongError)
 })
 
 test("a path with a filename in between should throw an error", { timeout: 15000 }, async () => {
     await open("/abc.txt", [OpenFlags.O_CREAT, OpenFlags.O_RDWR], Permissions.READ_WRITE)
-    expect(isValidPath("/abc.txt/fakedir")).rejects.toThrowError(InvalidPathError)
+    await expect(isValidPath("/abc.txt/fakedir")).rejects.toThrowError(InvalidPathError)
 })
 
 

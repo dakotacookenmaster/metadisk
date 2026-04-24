@@ -336,32 +336,39 @@ export default function FileExplorer() {
                                 }}
                             >
                                 <Tooltip placement="top" title="New File">
-                                    <IconButton
-                                        data-testid="New File Button"
-                                        disabled={loadingHierarchy.length !== 0}
-                                        sx={{ width: "60px", height: "60px" }}
-                                        onClick={() => {
-                                            setContextMenu(null)
-                                            setType("file")
-                                            setIsOpen(true)
-                                        }}
-                                    >
-                                        <NoteAddIcon fontSize="large" />
-                                    </IconButton>
+                                    {/* span wrapper so Tooltip can still */}
+                                    {/* listen for hover events while the */}
+                                    {/* IconButton is disabled (MUI requires this). */}
+                                    <span>
+                                        <IconButton
+                                            data-testid="New File Button"
+                                            disabled={loadingHierarchy.length !== 0}
+                                            sx={{ width: "60px", height: "60px" }}
+                                            onClick={() => {
+                                                setContextMenu(null)
+                                                setType("file")
+                                                setIsOpen(true)
+                                            }}
+                                        >
+                                            <NoteAddIcon fontSize="large" />
+                                        </IconButton>
+                                    </span>
                                 </Tooltip>
                                 <Tooltip placement="top" title="New Directory">
-                                    <IconButton
-                                        data-testid="New Directory Button"
-                                        disabled={loadingHierarchy.length !== 0}
-                                        sx={{ width: "60px", height: "60px" }}
-                                        onClick={() => {
-                                            setContextMenu(null)
-                                            setType("directory")
-                                            setIsOpen(true)
-                                        }}
-                                    >
-                                        <CreateNewFolderIcon fontSize="large" />
-                                    </IconButton>
+                                    <span>
+                                        <IconButton
+                                            data-testid="New Directory Button"
+                                            disabled={loadingHierarchy.length !== 0}
+                                            sx={{ width: "60px", height: "60px" }}
+                                            onClick={() => {
+                                                setContextMenu(null)
+                                                setType("directory")
+                                                setIsOpen(true)
+                                            }}
+                                        >
+                                            <CreateNewFolderIcon fontSize="large" />
+                                        </IconButton>
+                                    </span>
                                 </Tooltip>
                             </Box>
                         </Box>

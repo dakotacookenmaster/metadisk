@@ -29,6 +29,13 @@ interface DiskState {
     diskSpeed: number
     skipWaitTime: boolean
     viewMode: DiskViewMode
+    cacheEnabled: boolean
+    cacheStats: {
+        hits: number
+        misses: number
+        size: number
+        maxSize: number
+    }
     armRotation: {
         degrees: number
         time: number
@@ -49,6 +56,13 @@ const initialState: DiskState = {
     skipWaitTime: false,
     diskSpeed: 0.6,
     viewMode: "2d",
+    cacheEnabled: true,
+    cacheStats: {
+        hits: 0,
+        misses: 0,
+        size: 0,
+        maxSize: 64,
+    },
     currentlyServicing: [],
     trackCount: 8,
     armRotation: {
@@ -150,6 +164,20 @@ export const diskSlice = createSlice({
         },
         setViewMode: (state, action: PayloadAction<DiskViewMode>) => {
             state.viewMode = action.payload
+        },
+        setCacheEnabled: (state, action: PayloadAction<boolean>) => {
+            state.cacheEnabled = action.payload
+        },
+        setCacheStats: (
+            state,
+            action: PayloadAction<{
+                hits: number
+                misses: number
+                size: number
+                maxSize: number
+            }>,
+        ) => {
+            state.cacheStats = action.payload
         },
     },
 })
@@ -370,6 +398,8 @@ export const {
     setDiskSpeed,
     setSkipWaitTime,
     setViewMode,
+    setCacheEnabled,
+    setCacheStats,
 } = diskSlice.actions
 
 export const selectDisk = (state: RootState) => state.disk
@@ -384,5 +414,7 @@ export const selectPlatterRotation = (state: RootState) => state.disk.platterRot
 export const selectDiskSpeed = (state: RootState) => state.disk.diskSpeed
 export const selectSkipWaitTime = (state: RootState) => state.disk.skipWaitTime
 export const selectViewMode = (state: RootState) => state.disk.viewMode
+export const selectCacheEnabled = (state: RootState) => state.disk.cacheEnabled
+export const selectCacheStats = (state: RootState) => state.disk.cacheStats
 
 export default diskSlice.reducer

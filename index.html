@@ -11,6 +11,20 @@
                 font-family: "u0000";
                 src: url("/u0000.woff2") format("woff2");
             }
+            /*
+             * The u0000.woff2 font ships with an empty glyph for "%"
+             * (U+0025): the cmap entry exists, but the glyph has zero
+             * path commands and a null bounding box, so the textarea
+             * renders nothing for that character. Override just U+0025
+             * with whatever monospace font the OS provides so "%" shows
+             * up correctly without affecting any of the other glyphs.
+             */
+            @font-face {
+                font-family: "u0000";
+                src: local("Consolas"), local("Menlo"),
+                    local("Courier New"), local("monospace");
+                unicode-range: U+0025;
+            }
         </style>
     </head>
     <body>

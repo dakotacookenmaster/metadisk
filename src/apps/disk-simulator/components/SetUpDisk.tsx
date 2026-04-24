@@ -20,7 +20,9 @@ import {
 } from "../../../redux/reducers/fileSystemSlice"
 import {
     resetPlatterRotation,
+    selectCacheEnabled,
     selectTrackCount,
+    setCacheEnabled,
     setSectors,
     setTrackCount,
 } from "../../../redux/reducers/diskSlice"
@@ -63,6 +65,7 @@ const SetUpDisk = () => {
         useAppSelector(selectSectorsPerBlock) *
         useAppSelector(selectTotalBlocks)
     const sectorsPerTrack = totalSectors / trackCount
+    const cacheEnabled = useAppSelector(selectCacheEnabled)
     const dispatch = useAppDispatch()
 
     const getTrackCountOptions = () => {
@@ -158,6 +161,31 @@ const SetUpDisk = () => {
                     value={sectorsPerTrack}
                     fullWidth
                 />
+            </Tooltip>
+            <Tooltip
+                placement="top"
+                title="Toggle the in-memory block cache. When disabled, every read and write goes straight to the disk. Toggling between Enabled and Disabled completely clears the cache."
+            >
+                <FormControl required fullWidth>
+                    <InputLabel id="cache-enabled-label">
+                        Block Cache
+                    </InputLabel>
+                    <Select
+                        value={cacheEnabled ? "enabled" : "disabled"}
+                        onChange={(event) =>
+                            dispatch(
+                                setCacheEnabled(
+                                    event.target.value === "enabled",
+                                ),
+                            )
+                        }
+                        label="Block Cache"
+                        labelId="cache-enabled-label"
+                    >
+                        <MenuItem value="enabled">Enabled</MenuItem>
+                        <MenuItem value="disabled">Disabled</MenuItem>
+                    </Select>
+                </FormControl>
             </Tooltip>
             <Button
                 variant="contained"

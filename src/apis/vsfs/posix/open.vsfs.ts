@@ -177,7 +177,11 @@ export default async function open(
             parentDirectoryInodeNumber,
         )
 
-        const parentDirectoryInode = (await readBlock(inodeBlock)).data.inodes[
+        // Hold on to the full payload so we can reuse `data.raw` later when
+        // we splice the updated parent inode back in, instead of issuing a
+        // second cached read for the same block.
+        const parentInodeBlockPayload = await readBlock(inodeBlock)
+        const parentDirectoryInode = parentInodeBlockPayload.data.inodes[
             inodeOffset
         ]
 
@@ -311,23 +315,19 @@ export default async function open(
             permissions: parentDirectoryInode.permissions,
         })
 
-        const {
-            inodeBlock: oldParentDirectoryInodeBlockNumber,
-            inodeOffset: oldParentDirectoryInodeOffset,
-        } = getInodeLocation(parentDirectoryInodeNumber)
-        const oldParentDirectoryInodeBlock = (
-            await readBlock(oldParentDirectoryInodeBlockNumber)
-        ).data.raw
+        // Reuse the parent inode block we already read above instead of
+        // re-calling `getInodeLocation` and re-reading the same block.
+        const oldParentDirectoryInodeBlock = parentInodeBlockPayload.data.raw
         const priorParentDirectoryInodes = sliceBits(
             oldParentDirectoryInodeBlock,
             0,
-            128 * oldParentDirectoryInodeOffset,
+            128 * inodeOffset,
         )
 
         const restParentDirectoryInodes = sliceBits(
             oldParentDirectoryInodeBlock,
-            128 * oldParentDirectoryInodeOffset + 128,
-            oldParentDirectoryInodeBlock.length * 8 - (128 * oldParentDirectoryInodeOffset + 128),
+            128 * inodeOffset + 128,
+            oldParentDirectoryInodeBlock.length * 8 - (128 * inodeOffset + 128),
         )
         const completeNewParent = concatBuffers([
             priorParentDirectoryInodes,
@@ -353,7 +353,12 @@ export default async function open(
             inodeOffset: availableInodeBlockOffset,
         } = getInodeLocation(availableInode)
 
-        const oldInodeBlock = (await readBlock(availableInodeBlock)).data.raw
+        // If the new file's inode lives in the same block we just wrote
+        // the parent inode to (e.g. creating a file in `/`), reuse the
+        // freshly-built bytes instead of issuing another disk read.
+        const oldInodeBlock = availableInodeBlock === inodeBlock
+            ? completeNewParent
+            : (await readBlock(availableInodeBlock)).data.raw
 
         const priorInodes = sliceBits(
             oldInodeBlock,

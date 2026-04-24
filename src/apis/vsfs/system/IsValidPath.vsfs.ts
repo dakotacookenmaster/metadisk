@@ -45,6 +45,10 @@ export default async function isValidPath(pathname: string, useParentDirectory: 
 
         const allEntries: DirectoryEntry[] = []
         for(const pointer of inode.blockPointers) {
+            // A null pointer (0) means "no block allocated". Reading it
+            // would re-fetch the superblock and parse it as a directory,
+            // wasting cache traffic and inflating cache-hit counters.
+            if (pointer === 0) continue
             const { entries} = (await readBlock(pointer, undefined, appId)).data.directory
             allEntries.push(...entries)
         }
